@@ -1,1 +1,2 @@
 @AGENTS.md
+@src/docs/COMPONENT_STYLE_GUIDE.md
