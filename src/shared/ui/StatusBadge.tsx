@@ -20,7 +20,10 @@ const variantConfig = {
   },
 } as const;
 
-const StatusBadge = ({ variant, className }: StatusBadgeProps) => {
+const StatusBadge = ({
+  variant,
+  className,
+}: StatusBadgeProps): React.ReactElement => {
   const { label, textClass } = variantConfig[variant];
 
   return (

@@ -12,7 +12,11 @@ interface PeriodTabProps {
 
 const PERIODS: Period[] = ["오늘", "7일", "30일"];
 
-const PeriodTab = ({ value, onChange, className }: PeriodTabProps) => {
+const PeriodTab = ({
+  value,
+  onChange,
+  className,
+}: PeriodTabProps): React.ReactElement => {
   return (
     <div
       role="tablist"

@@ -20,7 +20,7 @@ const Button = ({
   disabled,
   children,
   ...props
-}: ButtonProps) => {
+}: ButtonProps): React.ReactElement => {
   return (
     <button
       type="button"

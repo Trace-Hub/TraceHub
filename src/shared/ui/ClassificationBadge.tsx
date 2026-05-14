@@ -43,7 +43,7 @@ const variantConfig = {
 const ClassificationBadge = ({
   variant,
   className,
-}: ClassificationBadgeProps) => {
+}: ClassificationBadgeProps): React.ReactElement => {
   const { label, textClass, icon } = variantConfig[variant];
 
   return (

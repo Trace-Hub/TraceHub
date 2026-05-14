@@ -5,7 +5,10 @@ interface ChangeRateBadgeProps {
   className?: string;
 }
 
-const ChangeRateBadge = ({ value, className }: ChangeRateBadgeProps) => {
+const ChangeRateBadge = ({
+  value,
+  className,
+}: ChangeRateBadgeProps): React.ReactElement => {
   const isPositive = value > 0;
   const isNeutral = value === 0;
 
