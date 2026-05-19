@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { cn } from "@/shared/lib/utils";
 
 type StatusFilterValue = "all" | "unresolved" | "ignored" | "resolved";
@@ -23,30 +22,24 @@ const StatusFilter = ({
   onChange,
   className,
 }: StatusFilterProps): React.ReactElement => {
-  const [selected, setSelected] = useState<StatusFilterValue>(value);
-
   const handleClick = (newValue: StatusFilterValue): void => {
-    setSelected(newValue);
     onChange(newValue);
   };
 
   return (
-    <div
-      role="group"
-      aria-label="상태 필터"
-      className={cn("flex items-center gap-1", className)}
-    >
+    <fieldset className={cn("flex items-center gap-1", className)}>
+      <legend className="sr-only">상태 필터</legend>
       {STATUS_OPTIONS.map((option) => (
         <button
           key={option.value}
           type="button"
-          aria-pressed={selected === option.value}
+          aria-pressed={value === option.value}
           onClick={() => handleClick(option.value)}
           className={cn(
             "px-3 py-1.5 rounded-md",
             "font-sans text-caption font-normal",
             "transition-interactive transition-fast",
-            selected === option.value
+            value === option.value
               ? "bg-primary text-white hover:bg-primary-hover"
               : "text-text-secondary hover:bg-bg-hover",
           )}
@@ -54,7 +47,7 @@ const StatusFilter = ({
           {option.label}
         </button>
       ))}
-    </div>
+    </fieldset>
   );
 };
 

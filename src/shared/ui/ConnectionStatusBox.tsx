@@ -46,6 +46,8 @@ const ConnectionStatusBox = ({
 
     return (
         <div
+            role="status"
+            aria-live="polite"
             className={cn(
                 'flex flex-row items-center gap-2 px-4 py-3 rounded-md text-body2 leading-normal font-normal text-text-primary',
                 containerClass,

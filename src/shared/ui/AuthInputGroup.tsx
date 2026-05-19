@@ -28,6 +28,7 @@ const AuthInputGroup = ({value, onChange, placeholder, className, variant}: Auth
     return (
         <div className={cn("flex flex-row items-center w-full relative", className)}>
             <input
+                aria-label={placeholder ?? config.placeholder}
                 type={isVisible ? "text" : "password"}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
