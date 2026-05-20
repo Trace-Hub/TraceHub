@@ -169,6 +169,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /* =============================================
+   CUSTOM UTILITIES
+   ============================================= */
+
+@utility transition-interactive {
+    transition-property: background-color, color;
+}
+
+/* =============================================
    BASE STYLES
    ============================================= */
 
