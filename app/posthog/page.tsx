@@ -1,5 +1,5 @@
 import PosthogPage from "@/views/posthog/page";
 
-export default function Page() {
+export default function Page(): React.ReactNode {
 	return <PosthogPage />;
 }

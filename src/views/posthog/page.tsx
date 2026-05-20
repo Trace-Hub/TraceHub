@@ -7,7 +7,7 @@ const PosthogPage = () => {
     const [activeTab, setActiveTab] = useState("A");
     const [lastEvent, setLastEvent] = useState("");
 
-    const handleTabChange = (tab: string) => {
+    const handleTabChange = (tab: string): void => {
         setActiveTab(tab);
         trackEvent("TAB_CHANGED", {tab});
         setLastEvent(`tab_changed / 탭: ${tab}`);
@@ -69,9 +69,10 @@ const PosthogPage = () => {
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
-                            const input = (e.currentTarget.elements.namedItem("testInput") as HTMLInputElement).value;
-                            trackEvent("FORM_SUBMITTED", {input_value: input});
-                            setLastEvent(`form_submitted / 입력값: ${input}`);
+                            const inputEl = e.currentTarget.elements.namedItem("testInput");
+                            const input = inputEl instanceof HTMLInputElement ? inputEl.value : "";
+                            trackEvent("FORM_SUBMITTED", {input_length: input.length, has_value: input.length > 0});
+                            setLastEvent("form_submitted");
                         }}
                         className="flex gap-2"
                     >
