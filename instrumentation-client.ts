@@ -3,29 +3,35 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import posthog from "posthog-js";
 
 Sentry.init({
-  dsn: "https://b9881bad521c50e712134c33820adb10@o4511341714931712.ingest.us.sentry.io/4511341716176896",
+    dsn: "https://b9881bad521c50e712134c33820adb10@o4511341714931712.ingest.us.sentry.io/4511341716176896",
 
-  // Add optional integrations for additional features
-  integrations: [Sentry.replayIntegration()],
+    // Add optional integrations for additional features
+    integrations: [Sentry.replayIntegration()],
 
-  // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
-  tracesSampleRate: 1,
-  // Enable logs to be sent to Sentry
-  enableLogs: true,
+    // Define how likely traces are sampled. Adjust this value in production, or use tracesSampler for greater control.
+    tracesSampleRate: 1,
+    // Enable logs to be sent to Sentry
+    enableLogs: true,
 
-  // Define how likely Replay events are sampled.
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
-  replaysSessionSampleRate: 0.1,
+    // Define how likely Replay events are sampled.
+    // This sets the sample rate to be 10%. You may want this to be 100% while
+    // in development and sample at a lower rate in production
+    replaysSessionSampleRate: 0.1,
 
-  // Define how likely Replay events are sampled when an error occurs.
-  replaysOnErrorSampleRate: 1.0,
+    // Define how likely Replay events are sampled when an error occurs.
+    replaysOnErrorSampleRate: 1.0,
 
-  // Enable sending user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+    // Enable sending user PII (Personally Identifiable Information)
+    // https://docs.sentry.io/platforms/javascript/guides/nextjs/configuration/options/#sendDefaultPii
+    sendDefaultPii: true,
+});
+
+posthog.init(process.env.NEXT_PUBLIC_POSTHOG_TOKEN!, {
+    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+    defaults: '2026-01-30',
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

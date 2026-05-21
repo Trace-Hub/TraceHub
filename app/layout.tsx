@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { cn } from "@/shared/lib/utils";
+import PostHogProvider from "@/app-init/providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -37,7 +38,9 @@ export default function RootLayout({
         inter.variable,
       )}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <PostHogProvider>{children}</PostHogProvider>
+      </body>
     </html>
   );
 }
