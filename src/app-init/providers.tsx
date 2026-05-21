@@ -6,7 +6,11 @@ import { type ReactElement, type ReactNode, Suspense, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PageviewTracker from "@/app-init/PageviewTracker";
 
-const PostHogProvider = ({children}: { children: ReactNode }): ReactElement => {
+interface PostHogProviderProps {
+    children: ReactNode
+}
+
+const PostHogProvider = ({ children }: PostHogProviderProps): ReactElement => {
     const [queryClient] = useState(() => new QueryClient());
 
     return (

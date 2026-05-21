@@ -9,7 +9,8 @@ const PageviewTracker = (): null => {
     const searchParams = useSearchParams();
 
     useEffect(() => {
-        const url = `${window.location.origin}${pathname}`;
+        const query = searchParams.toString();
+        const url = `${window.location.origin}${pathname}${query ? `?${query}` : ""}`;
         trackPageview(url);
     }, [pathname, searchParams]);
 
