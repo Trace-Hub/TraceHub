@@ -79,6 +79,8 @@ const PosthogPage = () => {
                         <input
                             name="testInput"
                             type="text"
+
+
                             placeholder="텍스트를 입력하세요"
                             className="px-3 py-2 text-sm border border-gray-300 rounded w-60"
                         />
