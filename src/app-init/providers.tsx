@@ -1,33 +1,23 @@
 "use client";
 
 import posthog from "posthog-js";
-import {PostHogProvider as PHProvider, usePostHog} from "posthog-js/react";
-import {usePathname, useSearchParams} from "next/navigation";
-import {Suspense, useEffect} from "react";
+import { PostHogProvider as PHProvider } from "posthog-js/react";
+import { type ReactElement, type ReactNode, Suspense, useState } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import PageviewTracker from "@/app-init/PageviewTracker";
 
-const PageviewTracker = (): null => {
-    const pathname = usePathname();
-    const searchParams = useSearchParams();
-    const ph = usePostHog();
+const PostHogProvider = ({children}: { children: ReactNode }): ReactElement => {
+    const [queryClient] = useState(() => new QueryClient());
 
-    useEffect(() => {
-        if (ph) {
-            const url = `${window.location.origin}${pathname}`;
-            ph.capture("$pageview", {$current_url: url});
-        }
-    }, [pathname, searchParams, ph]);
-
-    return null;
-};
-
-const PostHogProvider = ({children}: { children: React.ReactNode }) => {
     return (
-        <PHProvider client={posthog}>
-            <Suspense>
-                <PageviewTracker/>
-            </Suspense>
-            {children}
-        </PHProvider>
+        <QueryClientProvider client={queryClient}>
+            <PHProvider client={posthog}>
+                <Suspense>
+                    <PageviewTracker/>
+                </Suspense>
+                {children}
+            </PHProvider>
+        </QueryClientProvider>
     );
 };
 
