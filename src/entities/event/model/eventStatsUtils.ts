@@ -1,3 +1,4 @@
+import dayjs from "@/shared/lib/dayjs"
 import type { EventPeriodCount, Period } from "@/entities/event/model/eventStats"
 
 interface HogQLQueries {
@@ -66,12 +67,10 @@ function buildEmptyBreakdown(period: Period): EventPeriodCount[] {
 	}
 
 	const days = period === "week" ? 7 : 30
+	const today = dayjs()
 	return Array.from({ length: days }, (_, i) => {
-		const d = new Date()
-		d.setDate(d.getDate() - (days - 1) + i)
-		const month = String(d.getMonth() + 1).padStart(2, "0")
-		const day = String(d.getDate()).padStart(2, "0")
-		return { label: `${month}/${day}`, count: 0 }
+		const label = today.subtract(days - 1 - i, "day").format("MM/DD")
+		return { label, count: 0 }
 	})
 }
 
@@ -80,8 +79,29 @@ function toLabel(unit: string | number, period: Period): string {
 		return `${Number(unit)}시`
 	}
 	// unit은 "YYYY-MM-DD" 형식
-	const parts = String(unit).split("-")
-	return `${parts[1]}/${parts[2]}`
+	return dayjs(String(unit)).format("MM/DD")
 }
 
-export { buildQueries, buildEmptyBreakdown, toLabel }
+function calcChangeRate(current: number, previous: number): number {
+	if (previous === 0) return 0
+	return Math.round(((current - previous) / previous) * 100)
+}
+
+function getPeakLabel(breakdown: EventPeriodCount[]): string {
+	if (breakdown.length === 0) return "-"
+	return breakdown.reduce((a, b) => (a.count >= b.count ? a : b)).label
+}
+
+function calcAverage(breakdown: EventPeriodCount[]): number {
+	if (breakdown.length === 0) return 0
+	const total = breakdown.reduce((sum, b) => sum + b.count, 0)
+	return Math.round((total / breakdown.length) * 10) / 10
+}
+
+function getYAxisTicks(maxValue: number): number[] {
+	if (maxValue < 1000) return [0, 20, 40, 60, 80, 100]
+	if (maxValue < 10000) return [0, 200, 400, 600, 800, 1000]
+	return [0, 2000, 4000, 6000, 8000, 10000]
+}
+
+export { buildQueries, buildEmptyBreakdown, toLabel, calcChangeRate, getPeakLabel, calcAverage, getYAxisTicks }
