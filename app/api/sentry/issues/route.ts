@@ -2,23 +2,42 @@ import { NextResponse } from "next/server";
 import type {
   SentryIssue,
   ErrorListResponse,
+  ErrorStatus,
 } from "@/entities/error/model/errorStats";
 
 const SENTRY_HOST = "https://sentry.io";
-const SENTRY_AUTH_TOKEN = process.env.NEXT_SENTRY_API_TOKEN;
-const SENTRY_ORG = process.env.NEXT_SENTRY_ORG;
-const SENTRY_PROJECT = process.env.NEXT_SENTRY_PROJECT;
-
-if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG || !SENTRY_PROJECT) {
-  throw new Error("Sentry 환경변수가 설정되지 않았습니다");
-}
+const VALID_STATUSES: ErrorStatus[] = ["unresolved", "ignored", "resolved"];
 
 export async function GET(request: Request): Promise<NextResponse> {
+  const SENTRY_AUTH_TOKEN = process.env.NEXT_SENTRY_API_TOKEN;
+  const SENTRY_ORG = process.env.NEXT_SENTRY_ORG;
+  const SENTRY_PROJECT = process.env.NEXT_SENTRY_PROJECT;
+
+  if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG || !SENTRY_PROJECT) {
+    return NextResponse.json(
+      { error: "Sentry 환경변수가 설정되지 않았습니다" },
+      { status: 500 },
+    );
+  }
+
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status") ?? "unresolved";
+    const rawStatus = searchParams.get("status") ?? "unresolved";
     const environment = searchParams.get("environment") ?? "";
     const query = searchParams.get("query") ?? "";
+
+    // status 허용값 검증
+    if (!VALID_STATUSES.includes(rawStatus as ErrorStatus)) {
+      return NextResponse.json(
+        {
+          error:
+            "유효하지 않은 status 값입니다. unresolved | ignored | resolved 중 하나를 사용하세요.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const status = rawStatus as ErrorStatus;
 
     const params = new URLSearchParams({
       query: `is:${status}${query ? ` ${query}` : ""}`,
