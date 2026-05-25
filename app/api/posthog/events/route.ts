@@ -14,7 +14,7 @@ import {
 
 const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST
 const POSTHOG_API_KEY = process.env.NEXT_POSTHOG_PERSONAL_API_KEY
-const POSTHOG_PROJECT_ID = process.env.NEXT_POSTHOG_PROJECT_ID
+const POSTHOG_PROJECT_ID = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID
 
 if (!POSTHOG_HOST || !POSTHOG_API_KEY || !POSTHOG_PROJECT_ID) {
 	throw new Error("PostHog 환경변수가 설정되지 않았습니다")

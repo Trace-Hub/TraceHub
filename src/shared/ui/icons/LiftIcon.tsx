@@ -7,21 +7,21 @@ interface IconProps {
 	color?: string;
 }
 
-const DropIcon = ({ className, color }: IconProps): JSX.Element => {
+const LiftIcon = ({ className, color }: IconProps): JSX.Element => {
 	return (
 		<svg
-			width="16"
-			height="16"
-			viewBox="0 0 16 16"
+			width="14"
+			height="14"
+			viewBox="0 0 14 14"
 			fill="none"
 			xmlns="http://www.w3.org/2000/svg"
 			className={cn("shrink-0", className)}
 			aria-hidden="true"
 		>
 			<path
-				d="M4 6L8 10L12 6"
+				d="M10.4996 8.74988L6.99975 5.25L3.49988 8.74988"
 				{...svgStrokeProps(color)}
-				strokeWidth="1.33333"
+				strokeWidth="1.16663"
 				strokeLinecap="round"
 				strokeLinejoin="round"
 			/>
@@ -29,4 +29,4 @@ const DropIcon = ({ className, color }: IconProps): JSX.Element => {
 	);
 };
 
-export default DropIcon;
+export default LiftIcon;
