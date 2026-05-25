@@ -12,8 +12,6 @@ const EVENT_LABEL: Record<string, string> = {
     "input_focus": "입력 포커스",
 }
 
-function getEventLabel(event: string): string {
-    return EVENT_LABEL[event] ?? event
-}
+const getEventLabel = (event: string): string => EVENT_LABEL[event] ?? event
 
 export { EVENT_LABEL, getEventLabel }

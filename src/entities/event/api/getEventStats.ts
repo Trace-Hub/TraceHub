@@ -1,20 +1,30 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query"
-import type { EventStatsResponse, Period } from "@/entities/event/model/eventStats"
-import { apiClient } from "@/shared/api/client"
+import { type UseQueryResult, useQuery } from "@tanstack/react-query";
+import type {
+	EventStatsResponse,
+	Period,
+} from "@/entities/event/model/eventStats";
+import { apiClient } from "@/shared/api/client";
 
-async function getEventStats(period: Period, signal?: AbortSignal): Promise<EventStatsResponse> {
-	const response = await apiClient(`/api/posthog/events?period=${period}`, { signal })
+const getEventStats = async (
+	period: Period,
+	signal?: AbortSignal,
+): Promise<EventStatsResponse> => {
+	const response = await apiClient(`/api/posthog/events?period=${period}`, {
+		signal,
+	});
 	if (!response.ok) {
-		throw new Error("이벤트 데이터를 불러오는 데 실패했습니다")
+		throw new Error("이벤트 데이터를 불러오는 데 실패했습니다");
 	}
-	return response.json()
-}
+	return response.json();
+};
 
-function useEventStats(period: Period): UseQueryResult<EventStatsResponse, Error> {
+const useEventStats = (
+	period: Period,
+): UseQueryResult<EventStatsResponse, Error> => {
 	return useQuery({
 		queryKey: ["events", "stats", period],
 		queryFn: ({ signal }) => getEventStats(period, signal),
-	})
-}
+	});
+};
 
-export { getEventStats, useEventStats }
+export { getEventStats, useEventStats };

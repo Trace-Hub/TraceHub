@@ -23,7 +23,8 @@ const PERIOD_TO_AFTER: Record<Period, string> = {
 	month: "-30d",
 };
 
-function buildPostHogEventUrl(event: string, period: Period = "day"): string {
+const buildPostHogEventUrl = (event: string, period: Period = "day"): string => {
+	if (!POSTHOG_APP_HOST || !POSTHOG_PROJECT_ID) return "";
 	const query = encodeURIComponent(
 		JSON.stringify({
 			kind: "DataTableNode",

@@ -1,12 +1,11 @@
 import { cn } from "@/shared/lib/utils";
 
-export function iconClass(className?: string): string {
-	return cn(
+export const iconClass = (className?: string): string =>
+	cn(
 		"flex flex-row items-center justify-center w-8 h-8 border-1 border-border-base rounded-sm",
 		className,
 	);
-}
 
-export function svgStrokeProps(color?: string): { stroke: string } {
-	return { stroke: color ?? "currentColor" };
-}
+export const svgStrokeProps = (color?: string): { stroke: string } => ({
+	stroke: color ?? "currentColor",
+});

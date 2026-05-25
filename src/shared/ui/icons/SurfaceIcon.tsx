@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { svgStrokeProps } from "@/shared/lib/iconUtils";
 import { cn } from "@/shared/lib/utils";
 
@@ -6,7 +7,7 @@ interface IconProps {
 	color?: string;
 }
 
-const SurfaceIcon = ({ className, color }: IconProps) => {
+const SurfaceIcon = ({ className, color }: IconProps): JSX.Element => {
 	return (
 		<svg
 			width="14"

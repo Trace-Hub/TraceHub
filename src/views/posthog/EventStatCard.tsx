@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import type { Period } from "@/entities/event/model/eventStats";
 import { calcChangeRate } from "@/entities/event/model/eventStatsUtils";
 import { getEventLabel } from "@/shared/config/eventLabel";
@@ -25,7 +25,7 @@ const EventStatCard = ({
 	period,
 	children,
 	className,
-}: EventStatCardProps) => {
+}: EventStatCardProps): ReactElement => {
 	const label = getEventLabel(event);
 	const changeRate = calcChangeRate(currentTotal, previousTotal);
 

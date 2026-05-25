@@ -51,19 +51,19 @@ const DEFAULT_INSIGHT: EventInsightTexts = {
 };
 
 // 마지막 글자의 받침 여부로 주격 조사를 결정
-function getSubjectParticle(text: string): string {
+const getSubjectParticle = (text: string): string => {
 	const lastChar = text[text.length - 1];
 	const code = lastChar?.charCodeAt(0) ?? 0;
 	if (code < 0xac00 || code > 0xd7a3) return "이";
 	return (code - 0xac00) % 28 > 0 ? "이" : "가";
-}
+};
 
-function getFactText(eventLabel: string, currentTotal: number): string {
+const getFactText = (eventLabel: string, currentTotal: number): string => {
 	const particle = getSubjectParticle(eventLabel);
 	return `${eventLabel}${particle} ${currentTotal.toLocaleString()}회 발생했습니다.`;
-}
+};
 
-function getComparisonText(changeRate: number): string {
+const getComparisonText = (changeRate: number): string => {
 	if (changeRate === 0) return "이전 기간과 동일한 수준입니다.";
 
 	const direction = changeRate > 0 ? "증가" : "감소";
@@ -78,11 +78,11 @@ function getComparisonText(changeRate: number): string {
 	}
 
 	return text;
-}
+};
 
-function getActionText(event: string, changeRate: number): string {
+const getActionText = (event: string, changeRate: number): string => {
 	const texts = EVENT_INSIGHT[event] ?? DEFAULT_INSIGHT;
 	return changeRate >= 0 ? texts.increase : texts.decrease;
-}
+};
 
 export { getActionText, getComparisonText, getFactText };

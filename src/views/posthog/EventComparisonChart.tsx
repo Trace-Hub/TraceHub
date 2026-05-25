@@ -41,9 +41,9 @@ interface EventComparisonChartProps {
 	className?: string;
 }
 
-function buildComparisonData(
+const buildComparisonData = (
 	events: EventStats[],
-): Record<string, string | number>[] {
+): Record<string, string | number>[] => {
 	const breakdown = events[0]?.breakdown ?? [];
 	return breakdown.map((b, i) => {
 		const point: Record<string, string | number> = { label: b.label };
@@ -57,7 +57,7 @@ function buildComparisonData(
 		}
 		return point;
 	});
-}
+};
 
 const EventComparisonChart = ({
 	events,
