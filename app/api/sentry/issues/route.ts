@@ -8,7 +8,7 @@ import type {
 const SENTRY_HOST = "https://sentry.io";
 const VALID_STATUSES: ErrorStatus[] = ["unresolved", "ignored", "resolved"];
 
-export async function GET(request: Request): Promise<NextResponse> {
+export const GET = async (request: Request): Promise<NextResponse> => {
   const SENTRY_AUTH_TOKEN = process.env.NEXT_SENTRY_API_TOKEN;
   const SENTRY_ORG = process.env.NEXT_SENTRY_ORG;
   const SENTRY_PROJECT = process.env.NEXT_SENTRY_PROJECT;
@@ -86,4 +86,4 @@ export async function GET(request: Request): Promise<NextResponse> {
       { status: 500 },
     );
   }
-}
+};

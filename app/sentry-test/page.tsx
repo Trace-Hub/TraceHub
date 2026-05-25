@@ -9,7 +9,7 @@ import {
 import { useErrorList } from "@/entities/error/api/getErrorList";
 import type { ErrorStatus } from "@/entities/error/model/errorStats";
 
-export default function SentryTestPage(): React.ReactElement {
+const SentryTestPage = (): React.ReactElement => {
   const [status, setStatus] = useState<ErrorStatus>("unresolved");
   const { data, isLoading, error } = useErrorList({ status });
 
@@ -118,4 +118,5 @@ export default function SentryTestPage(): React.ReactElement {
       </section>
     </div>
   );
-}
+};
+export default SentryTestPage;
