@@ -4,11 +4,7 @@ type ErrorLevel = "error" | "fatal" | "warning" | "info";
 
 type ErrorStatsPeriod = "24h" | "7d" | "30d";
 
-type ErrorTagType =
-  | "browser.name"
-  | "os.name"
-  | "environment"
-  | "device.family";
+type ErrorTagType = "browser.name" | "os.name" | "environment";
 
 interface SentryIssue {
   id: string;

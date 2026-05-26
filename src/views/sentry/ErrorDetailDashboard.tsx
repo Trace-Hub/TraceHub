@@ -25,7 +25,6 @@ const TAG_TABS: { label: string; value: ErrorTagType }[] = [
   { label: "브라우저", value: "browser.name" },
   { label: "OS", value: "os.name" },
   { label: "환경", value: "environment" },
-  { label: "기기", value: "device.family" },
 ];
 
 const TAB_TO_PERIOD: Record<Period, ErrorStatsPeriod> = {

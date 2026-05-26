@@ -5,12 +5,7 @@ import type {
 } from "@/entities/error/model/errorStats";
 
 const SENTRY_HOST = "https://sentry.io";
-const VALID_TAGS: ErrorTagType[] = [
-  "browser.name",
-  "os.name",
-  "environment",
-  "device.family",
-];
+const VALID_TAGS: ErrorTagType[] = ["browser.name", "os.name", "environment"];
 
 export const GET = async (
   _request: Request,
