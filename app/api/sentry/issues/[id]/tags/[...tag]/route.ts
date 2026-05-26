@@ -13,8 +13,8 @@ const VALID_TAGS: ErrorTagType[] = [
 ];
 
 export const GET = async (
-  request: Request,
-  { params }: { params: Promise<{ id: string; tag: string }> },
+  _request: Request,
+  { params }: { params: Promise<{ id: string; tag: string[] }> },
 ): Promise<NextResponse> => {
   const SENTRY_AUTH_TOKEN = process.env.NEXT_SENTRY_API_TOKEN;
   const SENTRY_ORG = process.env.NEXT_SENTRY_ORG;
@@ -27,7 +27,9 @@ export const GET = async (
   }
 
   try {
-    const { id, tag } = await params;
+    const { id, tag: tagSegments } = await params;
+    // [...tag] catch-all: ["browser", "name"] → "browser.name"
+    const tag = tagSegments.join(".");
 
     if (!VALID_TAGS.includes(tag as ErrorTagType)) {
       return NextResponse.json(

@@ -12,6 +12,7 @@ import { useErrorTags } from "@/entities/error/api/getErrorTags";
 import ErrorTimeChart from "@/views/sentry/ErrorTimeChart";
 import ErrorTagChart from "@/views/sentry/ErrorTagChart";
 import PeriodSelector from "@/shared/ui/PeriodSelector";
+import InsightLabel from "@/shared/ui/InsightLabel";
 import type { Period } from "@/shared/ui/PeriodTab";
 import { cn } from "@/shared/lib/utils";
 
@@ -53,6 +54,24 @@ const ErrorDetailDashboard = ({
 
   return (
     <div className={cn("flex flex-col gap-6", className)}>
+      {/* 인사이트 */}
+      <section className="flex flex-col gap-2">
+        <InsightLabel
+          variant="fact"
+          text={`${issue.title} 에러가 ${issue.count}회 발생했습니다. 영향 사용자는 ${issue.userCount}명입니다.`}
+        />
+        <InsightLabel
+          variant="comparison"
+          // TODO: LLM 연동 후 이전 기간 대비 증감 문구로 교체
+          text="최근 발생 추이를 확인하고 이전 배포 시점과 비교해보세요."
+        />
+        <InsightLabel
+          variant="action"
+          // TODO: LLM 연동 후 에러 원인 기반 행동 가이드로 교체
+          text={`${issue.culprit} 파일을 확인하고 관련 코드를 점검하세요.`}
+        />
+      </section>
+
       {/* 시간대별 발생 현황 */}
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">

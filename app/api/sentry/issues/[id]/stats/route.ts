@@ -74,9 +74,33 @@ export const GET = async (
     );
     statsUrl.searchParams.set("field", "count()");
     statsUrl.searchParams.set("query", `issue.id:${id}`);
-    statsUrl.searchParams.set("period", periodParam);
     statsUrl.searchParams.set("interval", interval);
     statsUrl.searchParams.set("dataset", "errors");
+
+    // 오늘(24h)은 당일 0시~23시 고정, 나머지는 period 파라미터 사용
+    if (period === "24h") {
+      const now = new Date();
+      const startOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        0,
+        0,
+        0,
+      );
+      const endOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59,
+      );
+      statsUrl.searchParams.set("start", startOfDay.toISOString());
+      statsUrl.searchParams.set("end", endOfDay.toISOString());
+    } else {
+      statsUrl.searchParams.set("period", periodParam);
+    }
 
     const response = await fetch(statsUrl.toString(), {
       headers: { Authorization: `Bearer ${SENTRY_AUTH_TOKEN}` },
@@ -105,7 +129,11 @@ export const GET = async (
       count: values[0]?.count ?? 0,
     }));
 
-    const stats = allStats.slice(-PERIOD_LIMIT[period]);
+    // 24h는 당일 0시~현재 시각까지만 슬라이싱, 나머지는 최근 N개 슬라이싱
+    const limit =
+      period === "24h" ? new Date().getHours() + 1 : PERIOD_LIMIT[period];
+    const stats =
+      period === "24h" ? allStats.slice(0, limit) : allStats.slice(-limit);
 
     return NextResponse.json({
       issueId: id,
