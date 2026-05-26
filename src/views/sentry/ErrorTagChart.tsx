@@ -75,9 +75,9 @@ const ErrorTagChart = ({
           animationDuration={800}
           animationEasing="ease-out"
         >
-          {chartData.map((entry, index) => (
+          {chartData.map((entry) => (
             <Cell
-              key={`${entry.label}-${index}`}
+              key={entry.label}
               fill="var(--color-primary)"
               fillOpacity={0.85}
               stroke="var(--color-primary)"

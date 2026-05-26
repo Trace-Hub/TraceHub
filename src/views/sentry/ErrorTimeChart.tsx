@@ -33,6 +33,7 @@ const ErrorTimeChart = ({
   className,
 }: ErrorTimeChartProps): ReactElement => {
   const chartData = stats.map((s) => ({
+    timestamp: s.timestamp,
     label: formatLabel(s.timestamp, period),
     count: s.count,
   }));
@@ -86,9 +87,9 @@ const ErrorTimeChart = ({
           animationDuration={800}
           animationEasing="ease-out"
         >
-          {chartData.map((entry, index) => (
+          {chartData.map((entry) => (
             <Cell
-              key={`${entry.label}-${index}`}
+              key={entry.timestamp}
               fill={
                 entry.count === peakCount && peakCount > 0
                   ? "var(--color-warning)"

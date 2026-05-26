@@ -32,22 +32,20 @@ export const GET = async (
     if (!VALID_TAGS.includes(tag as ErrorTagType)) {
       return NextResponse.json(
         {
-          error:
-            "유효하지 않은 tag 값입니다. browser.name | os.name | environment | device 중 하나를 사용하세요.",
+          error: `유효하지 않은 tag 값입니다. ${VALID_TAGS.join(" | ")} 중 하나를 사용하세요.`,
         },
         { status: 400 },
       );
     }
 
     const response = await fetch(
-      `${SENTRY_HOST}/api/0/organizations/${SENTRY_ORG}/issues/${id}/tags/${tag}/`,
+      `${SENTRY_HOST}/api/0/organizations/${encodeURIComponent(SENTRY_ORG)}/issues/${id}/tags/${tag}/`,
       {
         headers: { Authorization: `Bearer ${SENTRY_AUTH_TOKEN}` },
       },
     );
 
     if (!response.ok) {
-      // 태그가 없는 경우 빈 배열 반환
       if (response.status === 404) {
         return NextResponse.json({
           issueId: id,
@@ -58,14 +56,37 @@ export const GET = async (
       throw new Error(`Sentry API responded with ${response.status}`);
     }
 
-    const raw = await response.json();
+    const raw: unknown = await response.json();
 
-    const values = raw.topValues.map((v: Record<string, unknown>) => ({
-      value: v.value as string,
-      count: v.count as number,
-      percentage: Number(
-        (((v.count as number) / (raw.totalValues as number)) * 100).toFixed(1),
-      ),
+    if (
+      typeof raw !== "object" ||
+      raw === null ||
+      !("topValues" in raw) ||
+      !Array.isArray((raw as { topValues: unknown }).topValues)
+    ) {
+      throw new Error("Sentry API 응답 형식이 올바르지 않습니다");
+    }
+
+    const { topValues, totalValues } = raw as {
+      topValues: { value: unknown; count: unknown }[];
+      totalValues: unknown;
+    };
+
+    const total =
+      typeof totalValues === "number" && totalValues > 0 ? totalValues : 0;
+
+    const values = topValues.map((v) => ({
+      value: typeof v.value === "string" ? v.value : String(v.value),
+      count: typeof v.count === "number" ? v.count : 0,
+      percentage:
+        total > 0
+          ? Number(
+              (
+                ((typeof v.count === "number" ? v.count : 0) / total) *
+                100
+              ).toFixed(1),
+            )
+          : 0,
     }));
 
     return NextResponse.json({

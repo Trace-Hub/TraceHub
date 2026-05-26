@@ -13,11 +13,16 @@ const PERIOD_INTERVAL: Record<ErrorStatsPeriod, string> = {
   "30d": "1d",
 };
 
-// Sentry issues stats API period 파라미터 매핑
 const PERIOD_PARAM: Record<ErrorStatsPeriod, string> = {
   "24h": "24h",
   "7d": "7d",
   "30d": "30d",
+};
+
+const PERIOD_LIMIT: Record<ErrorStatsPeriod, number> = {
+  "24h": 24,
+  "7d": 7,
+  "30d": 30,
 };
 
 export const GET = async (
@@ -40,6 +45,14 @@ export const GET = async (
     const { searchParams } = new URL(request.url);
     const rawPeriod = searchParams.get("period") ?? "24h";
 
+    // id 포맷 검증 (숫자만 허용)
+    if (!/^\d+$/.test(id)) {
+      return NextResponse.json(
+        { error: "유효하지 않은 issue id입니다." },
+        { status: 400 },
+      );
+    }
+
     if (!VALID_PERIODS.includes(rawPeriod as ErrorStatsPeriod)) {
       return NextResponse.json(
         {
@@ -54,9 +67,18 @@ export const GET = async (
     const interval = PERIOD_INTERVAL[period];
     const periodParam = PERIOD_PARAM[period];
 
-    const statsUrl = `${SENTRY_HOST}/api/0/organizations/${SENTRY_ORG}/events-stats/?field=count()&query=issue.id:${id}&period=${periodParam}&interval=${interval}&dataset=errors`;
+    // URLSearchParams로 안전하게 쿼리 조합
+    const statsUrl = new URL(
+      `/api/0/organizations/${encodeURIComponent(SENTRY_ORG)}/events-stats/`,
+      SENTRY_HOST,
+    );
+    statsUrl.searchParams.set("field", "count()");
+    statsUrl.searchParams.set("query", `issue.id:${id}`);
+    statsUrl.searchParams.set("period", periodParam);
+    statsUrl.searchParams.set("interval", interval);
+    statsUrl.searchParams.set("dataset", "errors");
 
-    const response = await fetch(statsUrl, {
+    const response = await fetch(statsUrl.toString(), {
       headers: { Authorization: `Bearer ${SENTRY_AUTH_TOKEN}` },
     });
 
@@ -64,24 +86,26 @@ export const GET = async (
       throw new Error(`Sentry API responded with ${response.status}`);
     }
 
-    const raw = await response.json();
+    const raw: unknown = await response.json();
+
+    if (
+      typeof raw !== "object" ||
+      raw === null ||
+      !("data" in raw) ||
+      !Array.isArray((raw as { data: unknown }).data)
+    ) {
+      throw new Error("Sentry API 응답 형식이 올바르지 않습니다");
+    }
 
     // events-stats 응답 형식: { data: [[timestamp, [{count: n}]], ...] }
-    const allStats = raw.data.map(
-      ([timestamp, values]: [number, { count: number }[]]) => ({
-        timestamp,
-        count: values[0]?.count ?? 0,
-      }),
-    );
+    const allStats = (
+      raw as { data: [number, { count: number }[]][] }
+    ).data.map(([timestamp, values]) => ({
+      timestamp,
+      count: values[0]?.count ?? 0,
+    }));
 
-    // period에 맞게 최근 데이터만 슬라이싱
-    const PERIOD_LIMIT: Record<ErrorStatsPeriod, number> = {
-      "24h": 24,
-      "7d": 7,
-      "30d": 30,
-    };
-    const limit = PERIOD_LIMIT[period];
-    const stats = allStats.slice(-limit);
+    const stats = allStats.slice(-PERIOD_LIMIT[period]);
 
     return NextResponse.json({
       issueId: id,

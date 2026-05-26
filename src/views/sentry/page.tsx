@@ -100,7 +100,11 @@ const SentryPage = (): ReactElement => {
         {isLoading && (
           <p className="text-body2 text-text-tertiary">로딩 중...</p>
         )}
-        {error && <p className="text-body2 text-error">{error.message}</p>}
+        {error && (
+          <p className="text-body2 text-error">
+            이슈 목록을 불러오는 데 실패했습니다
+          </p>
+        )}
 
         {data && (
           <div className="flex flex-col gap-2">
