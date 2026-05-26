@@ -2,6 +2,14 @@ type ErrorStatus = "unresolved" | "ignored" | "resolved";
 
 type ErrorLevel = "error" | "fatal" | "warning" | "info";
 
+type ErrorStatsPeriod = "24h" | "7d" | "30d";
+
+type ErrorTagType =
+  | "browser.name"
+  | "os.name"
+  | "environment"
+  | "device.family";
+
 interface SentryIssue {
   id: string;
   title: string;
@@ -33,10 +41,39 @@ type ErrorQueryParams = {
   query?: string;
 };
 
+interface ErrorStatPoint {
+  timestamp: number;
+  count: number;
+}
+
+interface ErrorStatsResponse {
+  issueId: string;
+  period: ErrorStatsPeriod;
+  stats: ErrorStatPoint[];
+}
+
+interface ErrorTagValue {
+  value: string;
+  count: number;
+  percentage: number;
+}
+
+interface ErrorTagResponse {
+  issueId: string;
+  tag: ErrorTagType;
+  values: ErrorTagValue[];
+}
+
 export type {
   ErrorStatus,
   ErrorLevel,
+  ErrorStatsPeriod,
+  ErrorTagType,
   SentryIssue,
   ErrorListResponse,
   ErrorQueryParams,
+  ErrorStatPoint,
+  ErrorStatsResponse,
+  ErrorTagValue,
+  ErrorTagResponse,
 };
