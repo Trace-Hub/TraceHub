@@ -1,7 +1,7 @@
 "use client"
 
 import type { JSX } from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/shared/lib/utils"
@@ -9,11 +9,22 @@ import THIcon from "@/shared/ui/icons/THIcon"
 import MenuIcon from "@/shared/ui/icons/MenuIcon"
 import { NAV_ITEMS } from "@/shared/config/navigation"
 
+const SIDEBAR_ID = "dashboard-sidebar"
+
 const Sidebar = (): JSX.Element => {
 	const pathname = usePathname()
 	const [isOpen, setIsOpen] = useState(false)
 
 	const handleClose = () => setIsOpen(false)
+
+	useEffect(() => {
+		if (!isOpen) return
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key === "Escape") setIsOpen(false)
+		}
+		window.addEventListener("keydown", onKeyDown)
+		return () => window.removeEventListener("keydown", onKeyDown)
+	}, [isOpen])
 
 	return (
 		<>
@@ -22,6 +33,8 @@ const Sidebar = (): JSX.Element => {
 				type="button"
 				className="fixed top-4 left-4 z-30 p-2 rounded-md bg-bg-card border border-border-subtle lg:hidden"
 				onClick={() => setIsOpen(true)}
+				aria-expanded={isOpen}
+				aria-controls={SIDEBAR_ID}
 				aria-label="메뉴 열기"
 			>
 				<MenuIcon />
@@ -38,6 +51,7 @@ const Sidebar = (): JSX.Element => {
 
 			{/* 사이드바 패널 */}
 			<aside
+				id={SIDEBAR_ID}
 				className={cn(
 					"fixed inset-y-0 left-0 z-50 flex flex-col",
 					"w-55 bg-bg-card border-r border-border-subtle",
@@ -53,6 +67,22 @@ const Sidebar = (): JSX.Element => {
 				<div className="flex items-center gap-3 px-4 py-5 border-b border-border-subtle">
 					<THIcon />
 					<span className="text-h1 font-bold text-text-primary">TraceHub</span>
+					{/* 사이드바 내부 닫기 버튼 - 모바일/태블릿 전용 */}
+					<button
+						type="button"
+						onClick={handleClose}
+						className="ml-auto p-1 text-text-secondary hover:text-text-primary lg:hidden"
+						aria-label="메뉴 닫기"
+					>
+						<svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+							<path
+								d="M15 5L5 15M5 5l10 10"
+								stroke="currentColor"
+								strokeWidth="1.67"
+								strokeLinecap="round"
+							/>
+						</svg>
+					</button>
 				</div>
 
 				{/* 네비게이션 메뉴 */}
