@@ -54,7 +54,7 @@ const ErrorDetailDashboard = ({
   return (
     <div className={cn("flex flex-col gap-6", className)}>
       {/* 인사이트 */}
-      <section className="flex flex-col gap-2">
+      <section className="flex flex-col gap-2 p-4 rounded-xl border border-border-base bg-bg-base">
         <InsightLabel
           variant="fact"
           text={`${issue.title} 에러가 ${issue.count}회 발생했습니다. 영향 사용자는 ${issue.userCount}명입니다.`}
