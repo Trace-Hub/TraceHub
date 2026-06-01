@@ -1,6 +1,7 @@
 "use client"
 
 import {cn} from "@/shared/lib/utils"
+import {JSX} from "react";
 import {SERVICE_CONFIG} from "@/features/settings/model/integrationConfig"
 import useConnectionTest from "@/features/settings/model/useConnectionTest"
 import type {ServiceType} from "@/features/settings/model/integrationTypes"
@@ -15,7 +16,7 @@ interface IntegrationCardProps {
     className?: string
 }
 
-const IntegrationCard = ({service, className}: IntegrationCardProps) => {
+const IntegrationCard = ({service, className}: IntegrationCardProps): JSX.Element => {
     const {testStatus, failMessage, handleTest} = useConnectionTest(service)
     const {title, envKeys, guide, docsUrl} = SERVICE_CONFIG[service]
 

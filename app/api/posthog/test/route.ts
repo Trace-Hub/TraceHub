@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 
+// app/ 레이어에서 features/ 타입을 직접 참조하지 않기 위해 로컬 정의
 interface PosthogConnectionTestResponse {
 	connected: boolean
 	reason?: "env_missing" | "invalid_token" | "api_error"
@@ -18,6 +19,7 @@ export const GET = async (): Promise<NextResponse<PosthogConnectionTestResponse>
 			headers: {
 				Authorization: `Bearer ${apiKey}`,
 			},
+			signal: AbortSignal.timeout(10000),
 		})
 
 		if (response.status === 401) {
@@ -29,7 +31,8 @@ export const GET = async (): Promise<NextResponse<PosthogConnectionTestResponse>
 		}
 
 		return NextResponse.json({ connected: true })
-	} catch {
+	} catch (err) {
+		console.error("PostHog connection error:", err)
 		return NextResponse.json({ connected: false, reason: "api_error" })
 	}
 }

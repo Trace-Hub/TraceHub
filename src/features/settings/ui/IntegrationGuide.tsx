@@ -1,6 +1,7 @@
 "use client"
 
 import {useState} from "react"
+import {JSX} from "react";
 import {HugeiconsIcon} from "@hugeicons/react"
 import {ArrowDown01Icon, ArrowUp01Icon} from "@hugeicons/core-free-icons"
 
@@ -10,7 +11,7 @@ interface IntegrationGuideProps {
 	docsUrl: string
 }
 
-const IntegrationGuide = ({title, guide, docsUrl}: IntegrationGuideProps) => {
+const IntegrationGuide = ({title, guide, docsUrl}: IntegrationGuideProps): JSX.Element => {
 	const [isGuideOpen, setIsGuideOpen] = useState(false)
 
 	const handleGuideToggle = (): void => {
@@ -23,6 +24,7 @@ const IntegrationGuide = ({title, guide, docsUrl}: IntegrationGuideProps) => {
 				type="button"
 				onClick={handleGuideToggle}
 				aria-expanded={isGuideOpen}
+				aria-controls={`${title}-guide`}
 				aria-label={`${title} 설정 가이드 ${isGuideOpen ? "닫기" : "열기"}`}
 				className="flex flex-row items-center gap-1 text-body2 text-text-tertiary hover:text-text-secondary transition-interactive w-fit"
 			>
@@ -31,7 +33,7 @@ const IntegrationGuide = ({title, guide, docsUrl}: IntegrationGuideProps) => {
 			</button>
 
 			{isGuideOpen && (
-				<div className="flex flex-col gap-3 px-4 py-3 rounded-md bg-bg-subtle border border-border-subtle">
+				<div id={`${title}-guide`} className="flex flex-col gap-3 px-4 py-3 rounded-md bg-bg-subtle border border-border-subtle">
 					<ul className="flex flex-col gap-3">
 						{Object.entries(guide).map(([key, description]) => (
 							<li key={key} className="flex flex-col gap-1">
