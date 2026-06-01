@@ -39,7 +39,7 @@ const ErrorDetailView = ({ issueId }: ErrorDetailViewProps): ReactElement => {
       {/* 뒤로가기 */}
       <button
         type="button"
-        onClick={() => router.back()}
+        onClick={() => router.push("/dashboard/errors")}
         className="flex items-center gap-1 text-caption text-text-tertiary hover:text-text-secondary w-fit"
       >
         ← 에러 목록으로 돌아가기

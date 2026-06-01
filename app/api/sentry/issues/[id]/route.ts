@@ -46,12 +46,24 @@ export const GET = async (
 
     const r = raw as Record<string, unknown>;
 
+    const VALID_STATUSES = ["unresolved", "ignored", "resolved"] as const;
+    const VALID_LEVELS = ["error", "fatal", "warning", "info"] as const;
+
+    const rawStatus = r.status;
+    const rawLevel = r.level;
+
     const issue: SentryIssue = {
       id: String(r.id ?? ""),
       title: String(r.title ?? ""),
       culprit: String(r.culprit ?? ""),
-      status: (r.status as SentryIssue["status"]) ?? "unresolved",
-      level: (r.level as SentryIssue["level"]) ?? "error",
+      status: VALID_STATUSES.includes(
+        rawStatus as (typeof VALID_STATUSES)[number],
+      )
+        ? (rawStatus as SentryIssue["status"])
+        : "unresolved",
+      level: VALID_LEVELS.includes(rawLevel as (typeof VALID_LEVELS)[number])
+        ? (rawLevel as SentryIssue["level"])
+        : "error",
       count: String(r.count ?? "0"),
       userCount: typeof r.userCount === "number" ? r.userCount : 0,
       firstSeen: String(r.firstSeen ?? ""),
