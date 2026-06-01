@@ -16,6 +16,10 @@ const ErrorDetailView = ({ issueId }: ErrorDetailViewProps): ReactElement => {
   const router = useRouter();
   const { data: issue, isLoading, error } = useErrorDetail(issueId);
 
+  const handleBack = (): void => {
+    router.push("/dashboard/errors");
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full min-h-screen">
@@ -39,7 +43,7 @@ const ErrorDetailView = ({ issueId }: ErrorDetailViewProps): ReactElement => {
       {/* 뒤로가기 */}
       <button
         type="button"
-        onClick={() => router.push("/dashboard/errors")}
+        onClick={handleBack}
         className="flex items-center gap-1 text-caption text-text-tertiary hover:text-text-secondary w-fit"
       >
         ← 에러 목록으로 돌아가기
