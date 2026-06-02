@@ -62,8 +62,8 @@ const ErrorTimeChart = ({
           tickLine={false}
           axisLine={false}
           tick={{ fontSize: 11, fill: "var(--color-text-tertiary)" }}
-          interval={period === "30d" ? 0 : "preserveStartEnd"}
-          minTickGap={period === "30d" ? 0 : 30}
+          interval={0}
+          minTickGap={0}
         />
         <YAxis
           ticks={ticks}
