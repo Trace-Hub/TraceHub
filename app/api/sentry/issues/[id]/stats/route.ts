@@ -129,9 +129,8 @@ export const GET = async (
       count: values[0]?.count ?? 0,
     }));
 
-    // 24h는 당일 0시~현재 시각까지만 슬라이싱, 나머지는 최근 N개 슬라이싱
-    const limit =
-      period === "24h" ? new Date().getHours() + 1 : PERIOD_LIMIT[period];
+    // 24h는 당일 0시~23시 전체 24개 표시, 나머지는 최근 N개 슬라이싱
+    const limit = PERIOD_LIMIT[period];
     const stats =
       period === "24h" ? allStats.slice(0, limit) : allStats.slice(-limit);
 
