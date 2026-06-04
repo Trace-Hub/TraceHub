@@ -129,11 +129,36 @@ export const GET = async (
       count: values[0]?.count ?? 0,
     }));
 
-    // 24h는 당일 0시~현재 시각까지만 슬라이싱, 나머지는 최근 N개 슬라이싱
-    const limit =
-      period === "24h" ? new Date().getHours() + 1 : PERIOD_LIMIT[period];
-    const stats =
-      period === "24h" ? allStats.slice(0, limit) : allStats.slice(-limit);
+    let stats: { timestamp: number; count: number }[];
+
+    if (period === "24h") {
+      // 당일 0시~23시 24슬롯 강제 생성
+      const now = new Date();
+      const startOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        0,
+        0,
+        0,
+      );
+      const slots: { timestamp: number; count: number }[] = [];
+
+      for (let h = 0; h < 24; h++) {
+        const slotTime = new Date(startOfDay.getTime() + h * 3600 * 1000);
+        const slotTimestamp = Math.floor(slotTime.getTime() / 1000);
+        const match = allStats.find((s) => {
+          const sHour = new Date(s.timestamp * 1000).getHours();
+          const sDate = new Date(s.timestamp * 1000).toDateString();
+          return sHour === h && sDate === now.toDateString();
+        });
+        slots.push({ timestamp: slotTimestamp, count: match?.count ?? 0 });
+      }
+      stats = slots;
+    } else {
+      // 7일/30일은 최근 N개 슬라이싱
+      stats = allStats.slice(-PERIOD_LIMIT[period]);
+    }
 
     return NextResponse.json({
       issueId: id,
