@@ -3,10 +3,10 @@
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useErrorDetail } from "@/entities/error/api/getErrorDetail";
+import { formatIssueSummary } from "@/entities/error/model/errorStatsUtils";
 import ErrorDetailDashboard from "@/views/sentry/ErrorDetailDashboard";
 import ClassificationBadge from "@/shared/ui/ClassificationBadge";
 import StatusBadge from "@/shared/ui/StatusBadge";
-import dayjs from "@/shared/lib/dayjs";
 
 interface ErrorDetailViewProps {
   issueId: string;
@@ -64,19 +64,7 @@ const ErrorDetailView = ({ issueId }: ErrorDetailViewProps): ReactElement => {
           culprit: {issue.culprit}
         </p>
         <p className="text-caption text-text-secondary">
-          최초: {dayjs(issue.firstSeen).format("YYYY.MM.DD HH:mm")}
-          {" · "}
-          마지막: {dayjs(issue.lastSeen).format("YYYY.MM.DD HH:mm")}
-          {" · "}
-          발생:{" "}
-          <span className="font-medium text-text-primary">
-            {Number(issue.count).toLocaleString()}회
-          </span>
-          {" · "}
-          영향 사용자:{" "}
-          <span className="font-medium text-text-primary">
-            {issue.userCount.toLocaleString()}명
-          </span>
+          {formatIssueSummary(issue)}
         </p>
       </div>
 
