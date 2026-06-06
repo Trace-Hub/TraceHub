@@ -4,7 +4,7 @@ import type {
 	EventPropertyType,
 	EventPropertyValue,
 } from "@/entities/event/model/eventStats"
-import { runHogQLQuery } from "@/shared/lib/posthogServer"
+import { runHogQLQuery, sanitizeHogQLString } from "@/shared/lib/posthogServer"
 
 const VALID_PROPERTY_TYPES: EventPropertyType[] = [
 	"browser",
@@ -37,7 +37,7 @@ export async function GET(
 ): Promise<NextResponse> {
 	try {
 		const { eventName: rawEventName, propertyType: rawPropertyType } = await params
-		const eventName = decodeURIComponent(rawEventName)
+		const eventName = sanitizeHogQLString(decodeURIComponent(rawEventName))
 
 		// EventPropertyType[] 타입의 includes()에 string을 넘기기 위해 as 필요
 		if (!VALID_PROPERTY_TYPES.includes(rawPropertyType as EventPropertyType)) {
@@ -68,10 +68,8 @@ export async function GET(
 		`)
 
 		// 전체 합계를 구해 percentage 계산 — Sentry tags 라우트와 동일한 방식
-		const total = result.results.reduce((sum, row) => {
-			const count = row[1]
-			return sum + (typeof count === "number" ? count : 0)
-		}, 0)
+		// PostHog 응답이 숫자 또는 문자열 모두 올 수 있으므로 Number()로 일관되게 합산
+		const total = result.results.reduce((sum, row) => sum + Number(row[1] ?? 0), 0)
 
 		const values: EventPropertyValue[] = result.results.map((row) => {
 			// 쿼리 컬럼 순서 [propertyValue, count]를 명시적으로 지정했으므로 안전

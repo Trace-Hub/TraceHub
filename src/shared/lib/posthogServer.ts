@@ -17,6 +17,9 @@ if (!POSTHOG_HOST || !POSTHOG_API_KEY || !POSTHOG_PROJECT_ID) {
 // HogQL 은 toTimezone() 함수를 미지원하므로 INTERVAL 산술로 KST(UTC+9) 오프셋 적용
 const KST_OFFSET = "INTERVAL 9 HOUR"
 
+// HogQL 문자열 리터럴 내 단일 따옴표를 이스케이프 — 특수문자 포함 이벤트명의 쿼리 파싱 오류 방지
+const sanitizeHogQLString = (value: string): string => value.replace(/'/g, "\\'")
+
 const VALID_PERIODS: Period[] = ["day", "week", "month"]
 
 const buildKstPeriodFilter = (period: Period): string => {
@@ -24,9 +27,9 @@ const buildKstPeriodFilter = (period: Period): string => {
 		case "day":
 			return `toDate(timestamp + ${KST_OFFSET}) = toDate(now() + ${KST_OFFSET})`
 		case "week":
-			return "timestamp >= now() - INTERVAL 7 DAY"
+			return `toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 6`
 		case "month":
-			return "timestamp >= now() - INTERVAL 30 DAY"
+			return `toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 29`
 	}
 }
 
@@ -35,9 +38,9 @@ const buildKstPreviousPeriodFilter = (period: Period): string => {
 		case "day":
 			return `toDate(timestamp + ${KST_OFFSET}) = toDate(now() + ${KST_OFFSET}) - 1`
 		case "week":
-			return "timestamp >= now() - INTERVAL 14 DAY AND timestamp < now() - INTERVAL 7 DAY"
+			return `toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 13 AND toDate(timestamp + ${KST_OFFSET}) <= toDate(now() + ${KST_OFFSET}) - 7`
 		case "month":
-			return "timestamp >= now() - INTERVAL 60 DAY AND timestamp < now() - INTERVAL 30 DAY"
+			return `toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 59 AND toDate(timestamp + ${KST_OFFSET}) <= toDate(now() + ${KST_OFFSET}) - 30`
 	}
 }
 
@@ -51,6 +54,7 @@ const runHogQLQuery = async (query: string): Promise<PostHogQueryResult> => {
 				Authorization: `Bearer ${POSTHOG_API_KEY}`,
 			},
 			body: JSON.stringify({ query: { kind: "HogQLQuery", query } }),
+			signal: AbortSignal.timeout(10_000),
 		},
 	)
 	if (!response.ok) {
@@ -66,4 +70,5 @@ export {
 	buildKstPeriodFilter,
 	buildKstPreviousPeriodFilter,
 	runHogQLQuery,
+	sanitizeHogQLString,
 }

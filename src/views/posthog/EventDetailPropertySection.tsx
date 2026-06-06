@@ -63,8 +63,8 @@ const EventDetailPropertySection = ({
 					<p className="text-caption text-text-tertiary py-8 text-center">로딩 중...</p>
 				)}
 				{isError && (
-					<p className="text-body2 text-text-tertiary py-8 text-center">
-						데이터가 없습니다
+					<p className="text-body2 text-error py-8 text-center">
+						데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
 					</p>
 				)}
 				{hasData && <PercentageBarChart values={values} />}

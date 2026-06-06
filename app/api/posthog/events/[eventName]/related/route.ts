@@ -8,6 +8,7 @@ import {
 	VALID_PERIODS,
 	buildKstPeriodFilter,
 	runHogQLQuery,
+	sanitizeHogQLString,
 } from "@/shared/lib/posthogServer"
 
 export async function GET(
@@ -16,7 +17,7 @@ export async function GET(
 ): Promise<NextResponse> {
 	try {
 		const { eventName: rawEventName } = await params
-		const eventName = decodeURIComponent(rawEventName)
+		const eventName = sanitizeHogQLString(decodeURIComponent(rawEventName))
 
 		const { searchParams } = new URL(request.url)
 		const rawPeriod = searchParams.get("period") ?? "day"

@@ -11,6 +11,7 @@ import {
 	buildKstPeriodFilter,
 	buildKstPreviousPeriodFilter,
 	runHogQLQuery,
+	sanitizeHogQLString,
 } from "@/shared/lib/posthogServer"
 
 interface EventDetailResponse {
@@ -35,7 +36,7 @@ export async function GET(
 	try {
 		const { eventName: rawEventName } = await params
 		// URL 인코딩된 $pageview 같은 이벤트명 복원
-		const eventName = decodeURIComponent(rawEventName)
+		const eventName = sanitizeHogQLString(decodeURIComponent(rawEventName))
 
 		const { searchParams } = new URL(request.url)
 		const rawPeriod = searchParams.get("period") ?? "day"

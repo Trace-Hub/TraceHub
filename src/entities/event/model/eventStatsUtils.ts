@@ -40,15 +40,15 @@ const buildQueries = (period: Period): HogQLQueries => {
 				current: `
           SELECT event, toDate(timestamp + ${KST_OFFSET}) AS unit, count() AS count
           FROM events
-          WHERE timestamp >= now() - INTERVAL 7 DAY
+          WHERE toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 6
           GROUP BY event, unit
           ORDER BY event, unit ASC
         `,
 				previous: `
           SELECT event, count() AS count
           FROM events
-          WHERE timestamp >= now() - INTERVAL 14 DAY
-            AND timestamp < now() - INTERVAL 7 DAY
+          WHERE toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 13
+            AND toDate(timestamp + ${KST_OFFSET}) <= toDate(now() + ${KST_OFFSET}) - 7
           GROUP BY event
         `,
 			};
@@ -57,15 +57,15 @@ const buildQueries = (period: Period): HogQLQueries => {
 				current: `
           SELECT event, toDate(timestamp + ${KST_OFFSET}) AS unit, count() AS count
           FROM events
-          WHERE timestamp >= now() - INTERVAL 30 DAY
+          WHERE toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 29
           GROUP BY event, unit
           ORDER BY event, unit ASC
         `,
 				previous: `
           SELECT event, count() AS count
           FROM events
-          WHERE timestamp >= now() - INTERVAL 60 DAY
-            AND timestamp < now() - INTERVAL 30 DAY
+          WHERE toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 59
+            AND toDate(timestamp + ${KST_OFFSET}) <= toDate(now() + ${KST_OFFSET}) - 30
           GROUP BY event
         `,
 			};
