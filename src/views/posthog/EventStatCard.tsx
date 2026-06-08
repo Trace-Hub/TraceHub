@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactElement, ReactNode } from "react";
 import type { Period } from "@/entities/event/model/eventStats";
 import {calcChangeRate} from "@/entities/event/model/eventStatsUtils";
@@ -38,7 +39,12 @@ const EventStatCard = ({
 			)}
 		>
 			<div className="flex items-center justify-between">
-				<h3 className="text-h1 font-bold text-text-primary">{label}</h3>
+				<Link
+					href={`/dashboard/events/${encodeURIComponent(event)}`}
+					className="text-h1 font-bold text-text-primary hover:text-primary transition-colors duration-150"
+				>
+					{label}
+				</Link>
 				<ChangeRateBadge value={changeRate} />
 			</div>
 			<StatsRow

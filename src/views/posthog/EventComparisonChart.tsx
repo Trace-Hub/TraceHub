@@ -10,6 +10,7 @@ import {
 	YAxis,
 } from "recharts";
 import type { EventStats } from "@/entities/event/model/eventStats";
+import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
 import { getEventLabel } from "@/shared/config/eventLabel";
 import { cn } from "@/shared/lib/utils";
 import {
@@ -19,14 +20,6 @@ import {
 	ChartTooltipContent,
 } from "@/shared/ui/chart";
 import SurfaceIcon from "@/shared/ui/icons/SurfaceIcon";
-
-const CHART_COLORS = [
-	"var(--color-primary)",
-	"var(--color-success)",
-	"var(--color-warning)",
-	"var(--color-error)",
-	"var(--color-surge)",
-];
 
 const COMPARISON_EVENTS = [
 	"$pageview",
@@ -81,7 +74,7 @@ const EventComparisonChart = ({
 			ev.event,
 			{
 				label: getEventLabel(ev.event),
-				color: CHART_COLORS[i % CHART_COLORS.length],
+				color: CHART_COLOR_PALETTE[i % CHART_COLOR_PALETTE.length],
 			},
 		]),
 	);
@@ -128,12 +121,12 @@ const EventComparisonChart = ({
 							key={ev.event}
 							type="monotone"
 							dataKey={ev.event}
-							stroke={CHART_COLORS[i % CHART_COLORS.length]}
+							stroke={CHART_COLOR_PALETTE[i % CHART_COLOR_PALETTE.length]}
 							strokeWidth={2}
 							dot={false}
 							activeDot={{
 								r: 4,
-								fill: CHART_COLORS[i % CHART_COLORS.length],
+								fill: CHART_COLOR_PALETTE[i % CHART_COLOR_PALETTE.length],
 								strokeWidth: 0,
 							}}
 							isAnimationActive
@@ -148,7 +141,7 @@ const EventComparisonChart = ({
 				{filteredEvents.map((ev, i) => (
 					<div key={ev.event} className="flex items-center gap-1.5">
 						<SurfaceIcon
-							color={CHART_COLORS[i % CHART_COLORS.length]}
+							color={CHART_COLOR_PALETTE[i % CHART_COLOR_PALETTE.length]}
 							className="w-3.5 h-3.5"
 						/>
 						<span className="text-caption text-text-secondary">

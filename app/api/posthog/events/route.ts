@@ -4,50 +4,19 @@ import type {
 	EventStats,
 	EventStatsResponse,
 	Period,
-	PostHogQueryResult,
 } from "@/entities/event/model/eventStats"
 import {
 	buildEmptyBreakdown,
 	buildQueries,
 	toLabel,
 } from "@/entities/event/model/eventStatsUtils"
-
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST
-const POSTHOG_API_KEY = process.env.NEXT_POSTHOG_PERSONAL_API_KEY
-const POSTHOG_PROJECT_ID = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID
-
-if (!POSTHOG_HOST || !POSTHOG_API_KEY || !POSTHOG_PROJECT_ID) {
-	throw new Error("PostHog 환경변수가 설정되지 않았습니다")
-}
-
-const VALID_PERIODS: Period[] = ["day", "week", "month"]
-
-async function runHogQLQuery(query: string): Promise<PostHogQueryResult> {
-	const response = await fetch(
-		`${POSTHOG_HOST}/api/projects/${POSTHOG_PROJECT_ID}/query`,
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${POSTHOG_API_KEY}`,
-			},
-			body: JSON.stringify({ query: { kind: "HogQLQuery", query } }),
-		},
-	)
-
-	if (!response.ok) {
-		throw new Error(`PostHog API responded with ${response.status}`)
-	}
-
-	return response.json()
-}
+import { VALID_PERIODS, runHogQLQuery } from "@/shared/lib/posthogServer"
 
 export async function GET(request: Request): Promise<NextResponse> {
 	try {
 		const { searchParams } = new URL(request.url)
 		const rawPeriod = searchParams.get("period") ?? "day"
 
-		// Period[] 타입의 includes()에 string을 넘기기 위해 as 필요
 		if (!VALID_PERIODS.includes(rawPeriod as Period)) {
 			return NextResponse.json(
 				{ error: "유효하지 않은 period 값입니다. day | week | month 중 하나를 사용하세요." },
@@ -55,7 +24,6 @@ export async function GET(request: Request): Promise<NextResponse> {
 			)
 		}
 
-		// includes() 검증 완료 후 안전한 단언
 		const period = rawPeriod as Period
 		const { current: currentQuery, previous: previousQuery } = buildQueries(period)
 
@@ -66,7 +34,6 @@ export async function GET(request: Request): Promise<NextResponse> {
 
 		const previousMap = new Map<string, number>()
 		for (const row of previous.results) {
-			// 쿼리 컬럼 순서 [event, count]를 명시적으로 지정했으므로 안전
 			const [event, count] = row as [string, number]
 			previousMap.set(event, Number(count))
 		}

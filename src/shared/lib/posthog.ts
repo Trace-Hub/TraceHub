@@ -17,8 +17,10 @@ const trackPageview = (url: string): void => {
 	posthog.capture("$pageview", { $current_url: url });
 };
 
+// day: "dStart" = 오늘 자정부터 (HogQL의 toDate(timestamp) = today()와 동일한 기준)
+// "-24h"는 현재 기준 24시간 전이라 캘린더 기준 "오늘"과 불일치함
 const PERIOD_TO_AFTER: Record<Period, string> = {
-	day: "-24h",
+	day: "dStart",
 	week: "-7d",
 	month: "-30d",
 };

@@ -3,31 +3,18 @@
 import type { ReactElement } from "react";
 import { useState } from "react";
 import { useEventStats } from "@/entities/event/api/getEventStats";
-import type { Period as ApiPeriod } from "@/entities/event/model/eventStats";
+import { EVENT_TAB_TO_PERIOD } from "@/entities/event/model/eventStats";
 import { getPeakLabel } from "@/entities/event/model/eventStatsUtils";
+import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
 import PeriodTab, { type Period as TabPeriod } from "@/shared/ui/PeriodTab";
 import EventBarChart from "@/views/posthog/EventBarChart";
 import EventComparisonChart from "@/views/posthog/EventComparisonChart";
 import EventLineChart from "@/views/posthog/EventLineChart";
 import EventStatCard from "@/views/posthog/EventStatCard";
 
-const CHART_COLORS = [
-	"var(--color-primary)",
-	"var(--color-success)",
-	"var(--color-warning)",
-	"var(--color-error)",
-	"var(--color-surge)",
-];
-
-const TAB_TO_PERIOD: Record<TabPeriod, ApiPeriod> = {
-	오늘: "day",
-	"7일": "week",
-	"30일": "month",
-};
-
 const EventStatsDashboard = (): ReactElement => {
 	const [activeTab, setActiveTab] = useState<TabPeriod>("오늘");
-	const period = TAB_TO_PERIOD[activeTab];
+	const period = EVENT_TAB_TO_PERIOD[activeTab];
 	const { data, isLoading, isError } = useEventStats(period);
 
 	return (
@@ -62,12 +49,12 @@ const EventStatsDashboard = (): ReactElement => {
 					{period === "day" ? (
 						<EventBarChart
 							breakdown={ev.breakdown}
-							color={CHART_COLORS[i % CHART_COLORS.length]}
+							color={CHART_COLOR_PALETTE[i % CHART_COLOR_PALETTE.length]}
 						/>
 					) : (
 						<EventLineChart
 							breakdown={ev.breakdown}
-							color={CHART_COLORS[i % CHART_COLORS.length]}
+							color={CHART_COLOR_PALETTE[i % CHART_COLOR_PALETTE.length]}
 						/>
 					)}
 				</EventStatCard>
