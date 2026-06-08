@@ -3,16 +3,12 @@ import type {
 	PostHogQueryResult,
 } from "@/entities/event/model/eventStats"
 
-// NEXT_POSTHOG_PERSONAL_API_KEY 는 NEXT_PUBLIC_ 접두사가 없어 클라이언트 번들에서 undefined → throw.
+// NEXT_POSTHOG_PERSONAL_API_KEY 는 NEXT_PUBLIC_ 접두사가 없어 클라이언트 번들에서 undefined.
 // 따라서 본 모듈은 사실상 server-only 로 동작한다.
 
 const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST
 const POSTHOG_API_KEY = process.env.NEXT_POSTHOG_PERSONAL_API_KEY
 const POSTHOG_PROJECT_ID = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID
-
-if (!POSTHOG_HOST || !POSTHOG_API_KEY || !POSTHOG_PROJECT_ID) {
-	throw new Error("PostHog 환경변수가 설정되지 않았습니다")
-}
 
 // HogQL 은 toTimezone() 함수를 미지원하므로 INTERVAL 산술로 KST(UTC+9) 오프셋 적용
 const KST_OFFSET = "INTERVAL 9 HOUR"
@@ -45,6 +41,9 @@ const buildKstPreviousPeriodFilter = (period: Period): string => {
 }
 
 const runHogQLQuery = async (query: string): Promise<PostHogQueryResult> => {
+	if (!POSTHOG_HOST || !POSTHOG_API_KEY || !POSTHOG_PROJECT_ID) {
+		throw new Error("PostHog 환경변수가 설정되지 않았습니다")
+	}
 	const response = await fetch(
 		`${POSTHOG_HOST}/api/projects/${POSTHOG_PROJECT_ID}/query`,
 		{
