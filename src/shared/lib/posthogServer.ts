@@ -14,9 +14,10 @@ const POSTHOG_PROJECT_ID = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID;
 // HogQL 은 toTimezone() 함수를 미지원하므로 INTERVAL 산술로 KST(UTC+9) 오프셋 적용
 const KST_OFFSET = "INTERVAL 9 HOUR";
 
-// HogQL 문자열 리터럴 내 단일 따옴표를 이스케이프 — 특수문자 포함 이벤트명의 쿼리 파싱 오류 방지
+// HogQL 문자열 리터럴 내 역슬래시·단일 따옴표를 이스케이프 — ClickHouse는 \를 이스케이프
+// 문자로 해석하므로 \를 먼저 처리한 뒤 '를 이스케이프해야 이중 치환 오류를 막을 수 있음
 const sanitizeHogQLString = (value: string): string =>
-	value.replace(/'/g, "\\'");
+	value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 
 const VALID_PERIODS: Period[] = ["day", "week", "month"];
 
