@@ -15,9 +15,9 @@ interface HogQLQueries {
 
 // PostHog는 UTC로 timestamp를 저장 — KST(UTC+9) 기준으로 맞추려면 +9시간 오프셋 적용
 // toTimezone 대신 INTERVAL 산술로 처리 (PostHog HogQL 호환성이 더 높음)
-const KST_OFFSET = "INTERVAL 9 HOUR"
+const KST_OFFSET = "INTERVAL 9 HOUR";
 
-const buildQueries = (period: Period): HogQLQueries => {
+const buildQueries = (period: Period, pathFilter: string): HogQLQueries => {
 	switch (period) {
 		case "day":
 			return {
@@ -25,6 +25,7 @@ const buildQueries = (period: Period): HogQLQueries => {
           SELECT event, toHour(timestamp + ${KST_OFFSET}) AS unit, count() AS count
           FROM events
           WHERE toDate(timestamp + ${KST_OFFSET}) = toDate(now() + ${KST_OFFSET})
+          AND ${pathFilter}
           GROUP BY event, unit
           ORDER BY event, unit ASC
         `,
@@ -32,6 +33,7 @@ const buildQueries = (period: Period): HogQLQueries => {
           SELECT event, count() AS count
           FROM events
           WHERE toDate(timestamp + ${KST_OFFSET}) = toDate(now() + ${KST_OFFSET}) - 1
+          AND ${pathFilter}
           GROUP BY event
         `,
 			};
@@ -41,6 +43,7 @@ const buildQueries = (period: Period): HogQLQueries => {
           SELECT event, toDate(timestamp + ${KST_OFFSET}) AS unit, count() AS count
           FROM events
           WHERE toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 6
+          AND ${pathFilter}
           GROUP BY event, unit
           ORDER BY event, unit ASC
         `,
@@ -49,6 +52,7 @@ const buildQueries = (period: Period): HogQLQueries => {
           FROM events
           WHERE toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 13
             AND toDate(timestamp + ${KST_OFFSET}) <= toDate(now() + ${KST_OFFSET}) - 7
+          AND ${pathFilter}
           GROUP BY event
         `,
 			};
@@ -58,6 +62,7 @@ const buildQueries = (period: Period): HogQLQueries => {
           SELECT event, toDate(timestamp + ${KST_OFFSET}) AS unit, count() AS count
           FROM events
           WHERE toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 29
+          AND ${pathFilter}
           GROUP BY event, unit
           ORDER BY event, unit ASC
         `,
@@ -66,6 +71,7 @@ const buildQueries = (period: Period): HogQLQueries => {
           FROM events
           WHERE toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 59
             AND toDate(timestamp + ${KST_OFFSET}) <= toDate(now() + ${KST_OFFSET}) - 30
+          AND ${pathFilter}
           GROUP BY event
         `,
 			};
