@@ -1,11 +1,8 @@
-import type { JSX } from "react"
+import type { ReactElement } from "react";
+import MainDashboard from "@/views/dashboard/MainDashboard";
 
-const DashboardPage = (): JSX.Element => {
-	return (
-		<div className="flex items-center justify-center h-full min-h-screen text-text-tertiary text-body1">
-			Dashboard
-		</div>
-	)
-}
+const DashboardPage = (): ReactElement => {
+  return <MainDashboard />;
+};
 
-export default DashboardPage
+export default DashboardPage;
