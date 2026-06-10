@@ -38,7 +38,7 @@ const EventDetailDashboard = ({
 		data: propertyData,
 		isLoading: propertyLoading,
 		isError: propertyError,
-	} = useEventProperty(event, activeProperty)
+	} = useEventProperty(event, activeProperty, period)
 	const { data: relatedData, isLoading: relatedLoading } = useRelatedEvents(event, period)
 
 	const changeRate = detailData

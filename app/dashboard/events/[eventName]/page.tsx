@@ -15,7 +15,8 @@ const EventDetailPage = async ({ params }: EventDetailPageProps): Promise<ReactE
 	return (
 		<div className="flex flex-col gap-6 p-6">
 			<h2 className="text-h1 font-bold text-text-primary">{label}</h2>
-			<EventDetailDashboard event={eventName} />
+			{/* 이벤트 간 이동 시 컴포넌트를 remount해 차트 초기 애니메이션이 재실행되도록 함 */}
+			<EventDetailDashboard key={eventName} event={eventName} />
 		</div>
 	)
 }

@@ -21,8 +21,12 @@ const AnimatedNumber = ({ value, format, className }: AnimatedNumberProps): Reac
 			duration: 1.2,
 			ease: "easeOut",
 			onUpdate: (v) => setDisplay(v),
+			// fromRef는 애니메이션 완료 후 갱신 — effect 본문에서 즉시 갱신하면
+			// StrictMode 이중 실행 시 두 번째 effect가 from===value로 동작해 애니메이션이 건너뜀
+			onComplete: () => {
+				fromRef.current = value
+			},
 		})
-		fromRef.current = value
 		return controls.stop
 	}, [value])
 
