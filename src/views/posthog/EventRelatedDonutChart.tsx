@@ -35,10 +35,14 @@ const EventRelatedDonutChart = ({
 		]),
 	)
 
+	// 5개 이벤트 간 상대 비율(합산 100%)로 정규화 — 각 항목의 공동 발생률과 다름
+	const totalCount = data.reduce((sum, d) => sum + d.count, 0)
+
 	// Recharts 가 deprecated <Cell> 대신 데이터의 fill 필드를 자동 적용
 	const chartData = data.map((d, i) => ({
 		name: d.value,
 		value: d.count,
+		normalizedPct: totalCount > 0 ? parseFloat(((d.count / totalCount) * 100).toFixed(1)) : 0,
 		fill: colors[i % colors.length],
 	}))
 
@@ -68,6 +72,20 @@ const EventRelatedDonutChart = ({
 						<ChartTooltipContent
 							className="bg-bg-card border-border-base shadow-md"
 							nameKey="name"
+							formatter={(_value, name, item) => (
+								<>
+									<div
+										className="h-2.5 w-2.5 shrink-0 rounded-[2px]"
+										style={{ background: item.payload?.fill }}
+									/>
+									<div className="flex flex-1 justify-between items-center leading-none">
+										<span className="text-text-secondary">{name}</span>
+										<span className="font-mono font-medium tabular-nums ml-4">
+											{Number(item.payload?.normalizedPct ?? 0)}%
+										</span>
+									</div>
+								</>
+							)}
 						/>
 					}
 				/>
