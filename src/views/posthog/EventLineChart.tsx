@@ -52,7 +52,8 @@ const EventLineChart = ({ breakdown, color, className }: EventLineChartProps): R
                 />
                 <ChartTooltip
                     cursor={{ stroke: "var(--color-border-base)", strokeWidth: 1 }}
-                    content={<ChartTooltipContent />}
+                    content={<ChartTooltipContent className="bg-bg-card border-border-base shadow-md" />}
+                    isAnimationActive={false}
                 />
                 <ReferenceLine
                     y={average}

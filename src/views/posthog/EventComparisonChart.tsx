@@ -1,19 +1,15 @@
 "use client";
 
-import { type ReactElement, useState } from "react";
+import type { ReactElement } from "react";
 import {
 	CartesianGrid,
 	Line,
 	LineChart,
-	ReferenceLine,
 	XAxis,
 	YAxis,
 } from "recharts";
 import type { EventStats } from "@/entities/event/model/eventStats";
-import {
-	buildCountData,
-	buildNormalizedData,
-} from "@/views/posthog/model/eventChartUtils";
+import { buildCountData } from "@/views/posthog/model/eventChartUtils";
 import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
 import { getEventLabel } from "@/shared/config/eventLabel";
 import { cn } from "@/shared/lib/utils";
@@ -33,24 +29,15 @@ const COMPARISON_EVENTS = [
 	"tab_changed",
 ];
 
-type ChartMode = "count" | "normalized";
-
 interface EventComparisonChartProps {
 	events: EventStats[];
 	className?: string;
 }
 
-const CHART_MODE_LABELS: Record<ChartMode, string> = {
-	count: "횟수",
-	normalized: "정규화",
-};
-
 const EventComparisonChart = ({
 	events,
 	className,
 }: EventComparisonChartProps): ReactElement => {
-	const [mode, setMode] = useState<ChartMode>("count");
-
 	const filteredEvents = events.filter((ev) =>
 		COMPARISON_EVENTS.includes(ev.event),
 	);
@@ -62,10 +49,7 @@ const EventComparisonChart = ({
 					.map((b) => b.label)
 			: breakdown.map((b) => b.label);
 
-	const chartData =
-		mode === "count"
-			? buildCountData(filteredEvents)
-			: buildNormalizedData(filteredEvents);
+	const chartData = buildCountData(filteredEvents);
 
 	const config: ChartConfig = Object.fromEntries(
 		filteredEvents.map((ev, i) => [
@@ -85,30 +69,6 @@ const EventComparisonChart = ({
 				className,
 			)}
 		>
-			<div className="flex justify-end">
-				<div role="tablist" aria-label="차트 표시 방식" className="inline-flex items-center gap-1">
-					{(["count", "normalized"] as ChartMode[]).map((m) => (
-						<button
-							key={m}
-							role="tab"
-							type="button"
-							aria-selected={mode === m}
-							onClick={() => setMode(m)}
-							className={cn(
-								"px-3 py-1 rounded-md",
-								"text-caption font-medium",
-								"transition-[background-color,color] duration-150 ease",
-								mode === m
-									? "bg-primary text-white"
-									: "text-text-secondary hover:text-text-primary",
-							)}
-						>
-							{CHART_MODE_LABELS[m]}
-						</button>
-					))}
-				</div>
-			</div>
-
 			<ChartContainer config={config} className="aspect-auto h-52">
 				<LineChart
 					data={chartData}
@@ -128,23 +88,13 @@ const EventComparisonChart = ({
 						axisLine={false}
 						tick={{ fontSize: 11, fill: "var(--color-text-tertiary)" }}
 						tickFormatter={(v: number) =>
-							mode === "normalized"
-								? `${v}%`
-								: v >= 1000
-									? `${(v / 1000).toFixed(1)}k`
-									: `${v}`
+							v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${v}`
 						}
 					/>
-					{mode === "normalized" && (
-						<ReferenceLine
-							y={0}
-							stroke="var(--color-border-base)"
-							strokeWidth={1}
-						/>
-					)}
 					<ChartTooltip
 						cursor={{ stroke: "var(--color-border-base)", strokeWidth: 1 }}
-						content={<ChartTooltipContent indicator="line" />}
+						content={<ChartTooltipContent indicator="line" className="bg-bg-card border-border-base shadow-md" />}
+						isAnimationActive={false}
 					/>
 					{filteredEvents.map((ev, i) => (
 						<Line
@@ -182,9 +132,7 @@ const EventComparisonChart = ({
 			</div>
 
 			<p className="text-caption text-text-tertiary">
-				{mode === "count"
-					? "이벤트 유형별 발생 횟수 추이를 비교합니다."
-					: "첫 이벤트 발생일 기준 상대 변화율(%)로 정규화되어 표시됩니다."}
+				이벤트 유형별 발생 횟수 추이를 비교합니다.
 			</p>
 		</div>
 	);
