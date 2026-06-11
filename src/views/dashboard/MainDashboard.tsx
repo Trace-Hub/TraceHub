@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useErrorList } from "@/entities/error/api/getErrorList";
 import { useEventStats } from "@/entities/event/api/getEventStats";
-import { calcChangeRate } from "@/entities/event/model/eventStatsUtils";
+import {
+  calcChangeRate,
+  getPeakLabel,
+} from "@/entities/event/model/eventStatsUtils";
 import { getEventLabel } from "@/shared/config/eventLabel";
 import StatusBadge from "@/shared/ui/StatusBadge";
 import ClassificationBadge from "@/shared/ui/ClassificationBadge";
@@ -34,20 +38,31 @@ interface ErrorTopCardProps {
 }
 
 const ErrorTopCard = ({ issue }: ErrorTopCardProps): ReactElement => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+
+  const handleCardClick = (): void => {
+    router.push(`/dashboard/errors/${issue.id}`);
+  };
 
   return (
-    <div className="rounded-xl border border-border-base bg-bg-base overflow-hidden">
-      <div className="p-4 flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <ClassificationBadge
-            variant={issue.isUnhandled ? "critical" : "new"}
-          />
+    <div className="rounded-xl border border-border-base bg-bg-base overflow-hidden flex flex-col">
+      <button
+        type="button"
+        onClick={handleCardClick}
+        className="w-full p-4 flex flex-col gap-2 text-left hover:bg-bg-hover transition-colors flex-1 min-h-30"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ClassificationBadge
+              variant={issue.isUnhandled ? "critical" : "new"}
+            />
+            <p className="text-body2 font-medium text-text-primary font-mono">
+              {issue.title}
+            </p>
+          </div>
           <StatusBadge variant={issue.status} />
         </div>
-        <p className="text-body2 font-medium text-text-primary font-mono">
-          {issue.title}
-        </p>
         <p className="text-caption text-text-secondary">
           발생:{" "}
           <span className="font-medium">
@@ -61,24 +76,24 @@ const ErrorTopCard = ({ issue }: ErrorTopCardProps): ReactElement => {
           {" · "}마지막: {dayjs(issue.lastSeen).format("MM/DD HH:mm")}
         </p>
         <p className="text-caption text-text-tertiary">{issue.culprit}</p>
+      </button>
 
-        {isOpen && (
-          <div className="flex flex-col gap-2 mt-1">
-            <InsightLabel
-              variant="fact"
-              text={`${issue.title} 에러가 ${Number(issue.count).toLocaleString()}회 발생했습니다.`}
-            />
-            <InsightLabel
-              variant="comparison"
-              text="최근 발생 추이를 확인하고 이전 배포 시점과 비교해보세요."
-            />
-            <InsightLabel
-              variant="action"
-              text={`${issue.culprit} 파일을 확인하고 관련 코드를 점검하세요.`}
-            />
-          </div>
-        )}
-      </div>
+      {isOpen && (
+        <div className="px-4 pb-3 flex flex-col gap-2">
+          <InsightLabel
+            variant="fact"
+            text={`${issue.title} 에러가 ${Number(issue.count).toLocaleString()}회 발생했습니다.`}
+          />
+          <InsightLabel
+            variant="comparison"
+            text="최근 발생 추이를 확인하고 이전 배포 시점과 비교해보세요."
+          />
+          <InsightLabel
+            variant="action"
+            text={`${issue.culprit} 파일을 확인하고 관련 코드를 점검하세요.`}
+          />
+        </div>
+      )}
 
       <div className="flex items-center justify-between px-4 py-2">
         <button
@@ -112,17 +127,28 @@ interface EventTopCardProps {
 }
 
 const EventTopCard = ({ event }: EventTopCardProps): ReactElement => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
   const label = getEventLabel(event.event);
   const changeRate = calcChangeRate(event.currentTotal, event.previousTotal);
+  const peakLabel = getPeakLabel(event.breakdown);
+
+  const handleCardClick = (): void => {
+    router.push(`/dashboard/events/${encodeURIComponent(event.event)}`);
+  };
 
   return (
-    <div className="rounded-xl border border-border-base bg-bg-base overflow-hidden">
-      <div className="p-4 flex flex-col gap-2">
+    <div className="rounded-xl border border-border-base bg-bg-base overflow-hidden flex flex-col">
+      <button
+        type="button"
+        onClick={handleCardClick}
+        className="w-full p-4 flex flex-col gap-2 text-left hover:bg-bg-hover transition-colors flex-1 min-h-30"
+      >
         <div className="flex items-center justify-between">
           <p className="text-body2 font-medium text-text-primary">{label}</p>
           <ChangeRateBadge value={changeRate} />
         </div>
+        <p className="text-caption text-text-tertiary">{event.event}</p>
         <p className="text-caption text-text-secondary">
           발생:{" "}
           <span className="font-medium">
@@ -132,25 +158,26 @@ const EventTopCard = ({ event }: EventTopCardProps): ReactElement => {
           <span className="font-medium">
             {event.previousTotal.toLocaleString()}회
           </span>
+          {" · "}피크: <span className="font-medium">{peakLabel}</span>
         </p>
+      </button>
 
-        {isOpen && (
-          <div className="flex flex-col gap-2 mt-1">
-            <InsightLabel
-              variant="fact"
-              text={`${label} 이벤트가 ${event.currentTotal.toLocaleString()}회 발생했습니다.`}
-            />
-            <InsightLabel
-              variant="comparison"
-              text={`이전 기간 대비 ${changeRate > 0 ? "증가" : changeRate < 0 ? "감소" : "동일"}했습니다.`}
-            />
-            <InsightLabel
-              variant="action"
-              text="이벤트 추이를 확인하고 비정상 패턴이 있는지 점검하세요."
-            />
-          </div>
-        )}
-      </div>
+      {isOpen && (
+        <div className="px-4 pb-3 flex flex-col gap-2">
+          <InsightLabel
+            variant="fact"
+            text={`${label} 이벤트가 ${event.currentTotal.toLocaleString()}회 발생했습니다.`}
+          />
+          <InsightLabel
+            variant="comparison"
+            text={`이전 기간 대비 ${changeRate > 0 ? "증가" : changeRate < 0 ? "감소" : "동일"}했습니다.`}
+          />
+          <InsightLabel
+            variant="action"
+            text="이벤트 추이를 확인하고 비정상 패턴이 있는지 점검하세요."
+          />
+        </div>
+      )}
 
       <div className="flex items-center justify-between px-4 py-2">
         <button
@@ -215,14 +242,18 @@ const OverviewChart = ({ type, period }: OverviewChartProps): ReactElement => {
           로딩 중...
         </p>
       );
-    if (errorStats)
-      return (
-        <ErrorTimeChart
-          key={`error-${errorPeriod}`}
-          stats={errorStats.stats}
-          period={errorPeriod}
-        />
-      );
+    if (errorStats) {
+      const hasData = errorStats.stats.some((s) => s.count > 0);
+      if (hasData)
+        return (
+          <ErrorTimeChart
+            key={`error-${errorPeriod}`}
+            stats={errorStats.stats}
+            period={errorPeriod}
+            className="h-36"
+          />
+        );
+    }
     return (
       <p className="text-body2 text-text-tertiary py-8 text-center">
         데이터가 없습니다
@@ -230,7 +261,6 @@ const OverviewChart = ({ type, period }: OverviewChartProps): ReactElement => {
     );
   }
 
-  // 이벤트: 모든 이벤트 breakdown 합산
   if (eventLoading)
     return (
       <p className="text-caption text-text-tertiary py-8 text-center">
@@ -244,19 +274,21 @@ const OverviewChart = ({ type, period }: OverviewChartProps): ReactElement => {
         merged[b.label] = (merged[b.label] ?? 0) + b.count;
       }
     }
-    const stats: ErrorStatPoint[] = Object.entries(merged).map(
-      ([label, count]) => ({
-        timestamp: 0, // 이벤트는 label 기반이라 timestamp 불필요
-        count,
-      }),
-    );
-    // ErrorTimeChart 대신 간단한 데이터 표시 — 이벤트는 label 기반이라 별도 처리 필요
-    // 임시로 ErrorTimeChart 재사용 (timestamp=0이라 label 포맷이 안 맞을 수 있음)
+    const entries = Object.entries(merged);
+    const chartLabels = entries.map(([label]) => label);
+    const stats: ErrorStatPoint[] = entries.map(([, count], index) => ({
+      timestamp: index,
+      count,
+    }));
     return (
       <ErrorTimeChart
         key={`event-${errorPeriod}`}
         stats={stats}
         period={errorPeriod}
+        className="h-36"
+        barColor="var(--color-primary)"
+        peakColor="var(--color-primary-hover)"
+        labels={chartLabels}
       />
     );
   }
@@ -277,14 +309,18 @@ const MainDashboard = (): ReactElement => {
   const { data: errorData, isLoading: errorLoading } = useErrorList({
     status: "unresolved",
   });
-  const { data: eventData, isLoading: eventLoading } = useEventStats("day");
+  const { data: eventData, isLoading: eventLoading } = useEventStats("week");
+  const { data: eventDataMonth } = useEventStats("month");
 
-  const topErrors = errorData?.issues.slice(0, 5) ?? [];
-  const topEvents = eventData?.events.slice(0, 5) ?? [];
+  const topErrors = errorData?.issues.slice(0, 3) ?? [];
+  const topEvents = (
+    eventData?.events && eventData.events.length > 0
+      ? eventData.events
+      : (eventDataMonth?.events ?? [])
+  ).slice(0, 3);
 
   return (
     <div className="flex flex-col gap-6 p-6">
-      {/* 페이지 헤더 */}
       <div>
         <h1 className="text-h1 font-bold text-text-primary">개요</h1>
         <p className="text-body2 text-text-secondary mt-1">
@@ -292,12 +328,10 @@ const MainDashboard = (): ReactElement => {
         </p>
       </div>
 
-      {/* Top 5 그리드 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 에러 Top 5 */}
         <section className="flex flex-col gap-3">
           <h2 className="text-body1 font-medium text-text-primary">
-            에러 Top 5
+            에러 Top 3
           </h2>
           {errorLoading && (
             <p className="text-caption text-text-tertiary py-4">로딩 중...</p>
@@ -312,10 +346,9 @@ const MainDashboard = (): ReactElement => {
           )}
         </section>
 
-        {/* 이벤트 Top 5 */}
         <section className="flex flex-col gap-3">
           <h2 className="text-body1 font-medium text-text-primary">
-            이벤트 Top 5
+            이벤트 Top 3
           </h2>
           {eventLoading && (
             <p className="text-caption text-text-tertiary py-4">로딩 중...</p>
@@ -331,7 +364,6 @@ const MainDashboard = (): ReactElement => {
         </section>
       </div>
 
-      {/* 발생 추이 차트 */}
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
