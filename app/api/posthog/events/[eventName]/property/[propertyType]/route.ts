@@ -3,11 +3,14 @@ import type {
 	EventPropertyResponse,
 	EventPropertyType,
 	EventPropertyValue,
+	Period,
 } from "@/entities/event/model/eventStats";
 import {
+	buildKstPeriodFilter,
 	buildPathFilter,
 	runHogQLQuery,
 	sanitizeHogQLString,
+	VALID_PERIODS,
 } from "@/shared/lib/posthogServer";
 
 const VALID_PROPERTY_TYPES: EventPropertyType[] = [
@@ -36,13 +39,27 @@ const buildHostFilter = (propertyType: EventPropertyType): string => {
 };
 
 export async function GET(
-	_request: Request,
+	request: Request,
 	{ params }: { params: Promise<{ eventName: string; propertyType: string }> },
 ): Promise<NextResponse> {
 	try {
 		const { eventName: rawEventName, propertyType: rawPropertyType } =
 			await params;
 		const eventName = sanitizeHogQLString(decodeURIComponent(rawEventName));
+
+		const { searchParams } = new URL(request.url);
+		const rawPeriod = searchParams.get("period") ?? "day";
+
+		// Period[] 타입의 includes()에 string을 넘기기 위해 as 필요
+		if (!VALID_PERIODS.includes(rawPeriod as Period)) {
+			return NextResponse.json(
+				{
+					error:
+						"유효하지 않은 period 값입니다. day | week | month 중 하나를 사용하세요.",
+				},
+				{ status: 400 },
+			);
+		}
 
 		// EventPropertyType[] 타입의 includes()에 string을 넘기기 위해 as 필요
 		if (!VALID_PROPERTY_TYPES.includes(rawPropertyType as EventPropertyType)) {
@@ -55,9 +72,11 @@ export async function GET(
 		}
 
 		// includes() 검증 완료 후 안전한 단언
+		const period = rawPeriod as Period;
 		const propertyType = rawPropertyType as EventPropertyType;
 		const propertyKey = PROPERTY_KEY_MAP[propertyType];
 
+		const periodFilter = buildKstPeriodFilter(period);
 		const hostFilter = buildHostFilter(propertyType);
 		const pathFilter = buildPathFilter();
 
@@ -67,6 +86,7 @@ export async function GET(
 			WHERE event = '${eventName}'
 			AND ${propertyKey} IS NOT NULL
 			AND ${propertyKey} != ''
+			AND ${periodFilter}
 			${hostFilter}
 			AND ${pathFilter}
 			GROUP BY 1

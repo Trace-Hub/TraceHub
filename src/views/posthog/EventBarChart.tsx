@@ -57,7 +57,8 @@ const EventBarChart = ({
 				/>
 				<ChartTooltip
 					cursor={{ fill: "var(--color-bg-hover)" }}
-					content={<ChartTooltipContent />}
+					content={<ChartTooltipContent className="bg-bg-card border-border-base shadow-md" />}
+					isAnimationActive={false}
 				/>
 				<Bar
 					dataKey="count"

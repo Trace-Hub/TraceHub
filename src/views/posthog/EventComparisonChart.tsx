@@ -5,11 +5,11 @@ import {
 	CartesianGrid,
 	Line,
 	LineChart,
-	ReferenceLine,
 	XAxis,
 	YAxis,
 } from "recharts";
 import type { EventStats } from "@/entities/event/model/eventStats";
+import { buildCountData } from "@/views/posthog/model/eventChartUtils";
 import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
 import { getEventLabel } from "@/shared/config/eventLabel";
 import { cn } from "@/shared/lib/utils";
@@ -34,24 +34,6 @@ interface EventComparisonChartProps {
 	className?: string;
 }
 
-const buildComparisonData = (
-	events: EventStats[],
-): Record<string, string | number>[] => {
-	const breakdown = events[0]?.breakdown ?? [];
-	return breakdown.map((b, i) => {
-		const point: Record<string, string | number> = { label: b.label };
-		for (const ev of events) {
-			const firstCount = ev.breakdown[0]?.count ?? 0;
-			const currentCount = ev.breakdown[i]?.count ?? 0;
-			point[ev.event] =
-				firstCount === 0
-					? 0
-					: Math.round(((currentCount - firstCount) / firstCount) * 100);
-		}
-		return point;
-	});
-};
-
 const EventComparisonChart = ({
 	events,
 	className,
@@ -67,7 +49,7 @@ const EventComparisonChart = ({
 					.map((b) => b.label)
 			: breakdown.map((b) => b.label);
 
-	const chartData = buildComparisonData(filteredEvents);
+	const chartData = buildCountData(filteredEvents);
 
 	const config: ChartConfig = Object.fromEntries(
 		filteredEvents.map((ev, i) => [
@@ -105,16 +87,14 @@ const EventComparisonChart = ({
 						tickLine={false}
 						axisLine={false}
 						tick={{ fontSize: 11, fill: "var(--color-text-tertiary)" }}
-						tickFormatter={(v) => `${v}%`}
-					/>
-					<ReferenceLine
-						y={0}
-						stroke="var(--color-border-base)"
-						strokeWidth={1}
+						tickFormatter={(v: number) =>
+							v >= 1000 ? `${(v / 1000).toFixed(1)}k` : `${v}`
+						}
 					/>
 					<ChartTooltip
 						cursor={{ stroke: "var(--color-border-base)", strokeWidth: 1 }}
-						content={<ChartTooltipContent indicator="line" />}
+						content={<ChartTooltipContent indicator="line" className="bg-bg-card border-border-base shadow-md" />}
+						isAnimationActive={false}
 					/>
 					{filteredEvents.map((ev, i) => (
 						<Line
@@ -152,7 +132,7 @@ const EventComparisonChart = ({
 			</div>
 
 			<p className="text-caption text-text-tertiary">
-				기준일(첫날) 대비 상대 변화율(%)로 정규화되어 표시됩니다.
+				이벤트 유형별 발생 횟수 추이를 비교합니다.
 			</p>
 		</div>
 	);

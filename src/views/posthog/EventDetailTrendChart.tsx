@@ -73,7 +73,8 @@ const EventDetailTrendChart = ({
 				/>
 				<ChartTooltip
 					cursor={{ stroke: "var(--color-border-base)", strokeWidth: 1 }}
-					content={<ChartTooltipContent indicator="line" />}
+					content={<ChartTooltipContent indicator="line" className="bg-bg-card border-border-base shadow-md" />}
+					isAnimationActive={false}
 				/>
 				<Area
 					type="monotone"
