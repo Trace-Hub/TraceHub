@@ -3,14 +3,12 @@
 import type { ReactElement } from "react"
 import { useState } from "react"
 import { useEventDetail } from "@/entities/event/api/getEventDetail"
+import { useEventPages } from "@/entities/event/api/getEventPages"
 import { useEventProperty } from "@/entities/event/api/getEventProperty"
-import { useRelatedEvents } from "@/entities/event/api/getRelatedEvents"
+import { usePageEventDistribution } from "@/entities/event/api/getPageEventDistribution"
 import { EVENT_TAB_TO_PERIOD } from "@/entities/event/model/eventStats"
 import type { EventPropertyType } from "@/entities/event/model/eventStats"
-import {
-	calcChangeRate,
-	sortRelatedEventsByLabel,
-} from "@/entities/event/model/eventStatsUtils"
+import { calcChangeRate } from "@/entities/event/model/eventStatsUtils"
 import { cn } from "@/shared/lib/utils"
 import { type Period as TabPeriod } from "@/shared/ui/PeriodSelector"
 import EventDetailInsightSection from "@/views/posthog/EventDetailInsightSection"
@@ -30,8 +28,15 @@ const EventDetailDashboard = ({
 }: EventDetailDashboardProps): ReactElement => {
 	const [activePeriod, setActivePeriod] = useState<TabPeriod>("오늘")
 	const [activeProperty, setActiveProperty] = useState<EventPropertyType>("browser")
+	const [selectedPathname, setSelectedPathname] = useState("")
 
 	const period = EVENT_TAB_TO_PERIOD[activePeriod]
+
+	const handlePeriodChange = (next: TabPeriod) => {
+		setActivePeriod(next)
+		// 기간이 바뀌면 페이지 목록이 새로 패칭되므로 선택 상태를 초기화
+		setSelectedPathname("")
+	}
 
 	const { data: detailData, isLoading: detailLoading } = useEventDetail(event, period)
 	const {
@@ -39,24 +44,13 @@ const EventDetailDashboard = ({
 		isLoading: propertyLoading,
 		isError: propertyError,
 	} = useEventProperty(event, activeProperty, period)
-	const { data: relatedData, isLoading: relatedLoading } = useRelatedEvents(event, period)
+	const { data: pagesData, isLoading: pagesLoading } = useEventPages(event, period)
+	const { data: pageEventsData, isLoading: pageEventsLoading } =
+		usePageEventDistribution(selectedPathname, period)
 
 	const changeRate = detailData
 		? calcChangeRate(detailData.metrics.totalCount, detailData.metrics.previousTotal)
 		: 0
-
-	// 도넛은 세션 비중(관계성), 막대는 절대 발생 횟수 — 서로 다른 인사이트라 데이터를 분리
-	const relatedSorted = sortRelatedEventsByLabel(relatedData?.related ?? [])
-	const relatedDonutValues = relatedSorted.map((r) => ({
-		value: r.label,
-		count: r.sessionCount,
-		percentage: r.percentage,
-	}))
-	const relatedBarValues = relatedSorted.map((r) => ({
-		value: r.label,
-		count: r.occurrenceCount,
-		percentage: r.percentage,
-	}))
 
 	return (
 		<div className={cn("flex flex-col gap-6", className)}>
@@ -74,12 +68,14 @@ const EventDetailDashboard = ({
 				trend={detailData?.trend}
 				isLoading={detailLoading}
 				period={activePeriod}
-				onPeriodChange={setActivePeriod}
+				onPeriodChange={handlePeriodChange}
 			/>
 			<EventDetailRelatedEventsSection
-				donutValues={relatedDonutValues}
-				barValues={relatedBarValues}
-				isLoading={relatedLoading}
+				pages={pagesData?.pages ?? []}
+				pageEvents={pageEventsData?.events ?? []}
+				selectedPathname={selectedPathname}
+				onPathnameChange={setSelectedPathname}
+				isLoading={pagesLoading || pageEventsLoading}
 			/>
 			<EventDetailPropertySection
 				activeProperty={activeProperty}

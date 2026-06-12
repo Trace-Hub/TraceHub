@@ -4,6 +4,7 @@ const EVENT_LABEL: Record<string, string> = {
     "$pageleave": "페이지 이탈",
     "$autocapture": "자동 캡처",
     "$identify": "사용자 식별",
+    "$rageclick": "연타 클릭",
     // 커스텀 이벤트
     "button_clicked": "버튼 클릭",
     "link_clicked": "링크 클릭",
