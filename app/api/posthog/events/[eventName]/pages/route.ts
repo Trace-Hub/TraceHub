@@ -18,7 +18,8 @@ export async function GET(
 ): Promise<NextResponse> {
 	try {
 		const { eventName: rawEventName } = await params;
-		const eventName = sanitizeHogQLString(decodeURIComponent(rawEventName));
+		// Next.js App Router가 params를 이미 디코드하므로 decodeURIComponent 중복 호출 불필요
+		const eventName = sanitizeHogQLString(rawEventName);
 
 		const { searchParams } = new URL(request.url);
 		const rawPeriod = searchParams.get("period") ?? "day";
@@ -81,9 +82,7 @@ export async function GET(
 				pathname: String(pathname),
 				count: Number(count),
 				sessionCount: Number(sessionCount),
-				percentage: Number(
-					((Number(count) / totalCount) * 100).toFixed(1),
-				),
+				percentage: Number(((Number(count) / totalCount) * 100).toFixed(1)),
 			};
 		});
 

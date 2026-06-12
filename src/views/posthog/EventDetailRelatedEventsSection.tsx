@@ -1,25 +1,26 @@
-"use client"
+"use client";
 
-import type { ReactElement } from "react"
+import type { ReactElement } from "react";
 import type {
 	EventPageStat,
 	PageEventItem,
-} from "@/entities/event/model/eventStats"
-import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors"
-import { getEventLabel } from "@/shared/config/eventLabel"
-import { cn } from "@/shared/lib/utils"
+} from "@/entities/event/model/eventStats";
+import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
+import { getEventLabel } from "@/shared/config/eventLabel";
+import { cn } from "@/shared/lib/utils";
 import PercentageBarChart, {
 	type PercentageBarChartItem,
-} from "@/shared/ui/PercentageBarChart"
-import EventRelatedDonutChart from "@/views/posthog/EventRelatedDonutChart"
+} from "@/shared/ui/PercentageBarChart";
+import EventRelatedDonutChart from "@/views/posthog/EventRelatedDonutChart";
 
 interface EventDetailRelatedEventsSectionProps {
-	pages: EventPageStat[]
-	pageEvents: PageEventItem[]
-	selectedPathname: string
-	onPathnameChange: (pathname: string) => void
-	isLoading: boolean
-	className?: string
+	pages: EventPageStat[];
+	pageEvents: PageEventItem[];
+	selectedPathname: string;
+	onPathnameChange: (pathname: string) => void;
+	isLoading: boolean;
+	isError: boolean;
+	className?: string;
 }
 
 const EventDetailRelatedEventsSection = ({
@@ -28,20 +29,21 @@ const EventDetailRelatedEventsSection = ({
 	selectedPathname,
 	onPathnameChange,
 	isLoading,
+	isError,
 	className,
 }: EventDetailRelatedEventsSectionProps): ReactElement => {
-	const isPagesEmpty = pages.length === 0
+	const isPagesEmpty = pages.length === 0;
 
 	const donutValues = pageEvents.map((e) => ({
 		value: getEventLabel(e.event),
 		count: e.count,
-	}))
+	}));
 	const barValues: PercentageBarChartItem[] = pageEvents.map((e) => ({
 		value: getEventLabel(e.event),
 		count: e.count,
 		percentage: e.percentage,
-	}))
-	const isChartEmpty = pageEvents.length === 0
+	}));
+	const isChartEmpty = pageEvents.length === 0;
 
 	return (
 		<section className={cn("flex flex-col gap-3", className)}>
@@ -71,16 +73,21 @@ const EventDetailRelatedEventsSection = ({
 					로딩 중...
 				</p>
 			)}
-			{!isLoading && isChartEmpty && (
+			{!isLoading && isError && (
+				<p className="text-body2 text-text-tertiary py-8 text-center">
+					잠시 후 다시 시도해주세요
+				</p>
+			)}
+			{!isLoading && !isError && isChartEmpty && (
 				<p className="text-body2 text-text-tertiary py-8 text-center">
 					이벤트 데이터가 없습니다
 				</p>
 			)}
-			{!isLoading && !isChartEmpty && (
+			{!isLoading && !isError && !isChartEmpty && (
 				<div className="flex flex-col gap-3 md:flex-row">
 					<div className="flex flex-col gap-2 flex-1 p-4 rounded-xl border border-border-base bg-bg-base">
 						<span className="text-caption text-text-tertiary">
-							이벤트 세션 비중
+							이벤트 발생 비중
 						</span>
 						<EventRelatedDonutChart
 							data={donutValues}
@@ -100,7 +107,7 @@ const EventDetailRelatedEventsSection = ({
 				</div>
 			)}
 		</section>
-	)
-}
+	);
+};
 
-export default EventDetailRelatedEventsSection
+export default EventDetailRelatedEventsSection;
