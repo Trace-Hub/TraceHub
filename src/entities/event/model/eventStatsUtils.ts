@@ -1,12 +1,8 @@
 import type {
 	EventPeriodCount,
 	Period,
-	RelatedEvent,
 } from "@/entities/event/model/eventStats";
-import { getEventLabel } from "@/shared/config/eventLabel";
 import dayjs from "@/shared/lib/dayjs";
-
-type LabeledRelatedEvent = RelatedEvent & { label: string };
 
 interface HogQLQueries {
 	current: string;
@@ -126,15 +122,6 @@ const getYAxisTicks = (maxValue: number): number[] => {
 	return [0, 20000, 40000, 60000, 80000, 100000];
 };
 
-// 연관 이벤트를 표시용 라벨로 매핑하고 가나다순(ko)으로 정렬
-// period 변경 시 동일 이벤트가 항상 같은 위치에 오도록 고정 순서 보장
-const sortRelatedEventsByLabel = (
-	related: RelatedEvent[],
-): LabeledRelatedEvent[] =>
-	related
-		.map((r) => ({ ...r, label: getEventLabel(r.event) }))
-		.sort((a, b) => a.label.localeCompare(b.label, "ko"));
-
 export {
 	buildEmptyBreakdown,
 	buildQueries,
@@ -142,6 +129,5 @@ export {
 	calcChangeRate,
 	getPeakLabel,
 	getYAxisTicks,
-	sortRelatedEventsByLabel,
 	toLabel,
 };

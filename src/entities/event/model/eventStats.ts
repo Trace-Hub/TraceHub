@@ -77,19 +77,32 @@ interface EventDetailResponse {
 	trend: EventTrendPoint[]
 }
 
-// percentage = 이 이벤트 전체 세션 중 연관 이벤트가 함께 발생한 세션 비율 → 도넛 차트 비중
-// sessionCount = 함께 발생한 세션의 수 (도넛 슬라이스 크기 기준)
-// occurrenceCount = 연관 이벤트의 절대 발생 횟수 (막대 차트 X축 값)
-interface RelatedEvent {
-	event: string
+// 이벤트가 발생한 페이지별 통계 — 드롭다운 + 기본 차트에 사용
+// count = 해당 페이지에서의 이벤트 발생 횟수
+// sessionCount = 해당 페이지에서의 유니크 세션 수
+// percentage = 전체 발생 대비 이 페이지의 비율
+interface EventPageStat {
+	pathname: string
+	count: number
 	sessionCount: number
-	occurrenceCount: number
 	percentage: number
 }
 
-interface RelatedEventsResponse {
+interface EventPagesResponse {
 	event: string
-	related: RelatedEvent[]
+	pages: EventPageStat[]
+}
+
+// 특정 페이지에서 발생한 이벤트 분포 — 페이지 선택 시 차트에 사용
+interface PageEventItem {
+	event: string
+	count: number
+	percentage: number
+}
+
+interface PageEventDistributionResponse {
+	pathname: string
+	events: PageEventItem[]
 }
 
 export type {
@@ -104,6 +117,8 @@ export type {
 	EventPropertyType,
 	EventPropertyValue,
 	EventPropertyResponse,
-	RelatedEvent,
-	RelatedEventsResponse,
+	EventPageStat,
+	EventPagesResponse,
+	PageEventItem,
+	PageEventDistributionResponse,
 }
