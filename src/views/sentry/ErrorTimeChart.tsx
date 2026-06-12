@@ -20,6 +20,9 @@ interface ErrorTimeChartProps {
   stats: ErrorStatPoint[];
   period: ErrorStatsPeriod;
   className?: string;
+  barColor?: string;
+  peakColor?: string;
+  labels?: string[];
 }
 
 const formatLabel = (timestamp: number, period: ErrorStatsPeriod): string => {
@@ -31,10 +34,13 @@ const ErrorTimeChart = ({
   stats,
   period,
   className,
+  barColor = "var(--color-error)",
+  peakColor = "var(--color-warning)",
+  labels,
 }: ErrorTimeChartProps): ReactElement => {
-  const chartData = stats.map((s) => ({
+  const chartData = stats.map((s, i) => ({
     timestamp: s.timestamp,
-    label: formatLabel(s.timestamp, period),
+    label: labels?.[i] ?? formatLabel(s.timestamp, period),
     count: s.count,
   }));
 
@@ -43,7 +49,7 @@ const ErrorTimeChart = ({
   const ticks = getYAxisTicks(maxCount);
 
   const config: ChartConfig = {
-    count: { label: "발생 횟수", color: "var(--color-error)" },
+    count: { label: "발생 횟수", color: barColor },
   };
 
   return (
@@ -92,8 +98,8 @@ const ErrorTimeChart = ({
               key={entry.timestamp}
               fill={
                 entry.count === peakCount && peakCount > 0
-                  ? "var(--color-warning)"
-                  : "var(--color-error)"
+                  ? peakColor
+                  : barColor
               }
               fillOpacity={0.85}
             />
