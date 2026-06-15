@@ -11,6 +11,7 @@ import { cn } from "@/shared/lib/utils";
 import PercentageBarChart, {
 	type PercentageBarChartItem,
 } from "@/shared/ui/PercentageBarChart";
+import EventDetailRelatedEventsSectionSkeleton from "@/views/posthog/EventDetailRelatedEventsSectionSkeleton";
 import EventRelatedDonutChart from "@/views/posthog/EventRelatedDonutChart";
 
 interface EventDetailRelatedEventsSectionProps {
@@ -68,11 +69,7 @@ const EventDetailRelatedEventsSection = ({
 				)}
 			</div>
 
-			{isLoading && (
-				<p className="text-caption text-text-tertiary py-8 text-center">
-					로딩 중...
-				</p>
-			)}
+			{isLoading && <EventDetailRelatedEventsSectionSkeleton />}
 			{!isLoading && isError && (
 				<p className="text-body2 text-text-tertiary py-8 text-center">
 					잠시 후 다시 시도해주세요

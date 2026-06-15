@@ -1,28 +1,28 @@
-"use client"
+"use client";
 
-import type { ReactElement } from "react"
+import type { ReactElement } from "react";
 import type {
 	EventPropertyType,
 	EventPropertyValue,
-} from "@/entities/event/model/eventStats"
-import { cn } from "@/shared/lib/utils"
-import PercentageBarChart from "@/shared/ui/PercentageBarChart"
-
+} from "@/entities/event/model/eventStats";
+import { cn } from "@/shared/lib/utils";
+import PercentageBarChart from "@/shared/ui/PercentageBarChart";
+import EventDetailPropertySectionSkeleton from "@/views/posthog/EventDetailPropertySectionSkeleton";
 
 const PROPERTY_TABS: { label: string; value: EventPropertyType }[] = [
 	{ label: "브라우저", value: "browser" },
 	{ label: "OS", value: "os" },
 	{ label: "페이지 경로", value: "current_url" },
 	{ label: "직전 경로", value: "prev_pageview" },
-]
+];
 
 interface EventDetailPropertySectionProps {
-	activeProperty: EventPropertyType
-	onPropertyChange: (property: EventPropertyType) => void
-	values: EventPropertyValue[] | undefined
-	isLoading: boolean
-	isError: boolean
-	className?: string
+	activeProperty: EventPropertyType;
+	onPropertyChange: (property: EventPropertyType) => void;
+	values: EventPropertyValue[] | undefined;
+	isLoading: boolean;
+	isError: boolean;
+	className?: string;
 }
 
 const EventDetailPropertySection = ({
@@ -33,8 +33,8 @@ const EventDetailPropertySection = ({
 	isError,
 	className,
 }: EventDetailPropertySectionProps): ReactElement => {
-	const hasData = !isLoading && !isError && values && values.length > 0
-	const isEmpty = !isLoading && !isError && values && values.length === 0
+	const hasData = !isLoading && !isError && values && values.length > 0;
+	const isEmpty = !isLoading && !isError && values && values.length === 0;
 
 	return (
 		<section className={cn("flex flex-col gap-3", className)}>
@@ -59,9 +59,7 @@ const EventDetailPropertySection = ({
 						</button>
 					))}
 				</div>
-				{isLoading && (
-					<p className="text-caption text-text-tertiary py-8 text-center">로딩 중...</p>
-				)}
+				{isLoading && <EventDetailPropertySectionSkeleton />}
 				{isError && (
 					<p className="text-body2 text-error py-8 text-center">
 						데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
@@ -75,7 +73,7 @@ const EventDetailPropertySection = ({
 				)}
 			</div>
 		</section>
-	)
-}
+	);
+};
 
-export default EventDetailPropertySection
+export default EventDetailPropertySection;

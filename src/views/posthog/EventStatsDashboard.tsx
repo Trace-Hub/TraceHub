@@ -11,6 +11,7 @@ import EventBarChart from "@/views/posthog/EventBarChart";
 import EventComparisonChart from "@/views/posthog/EventComparisonChart";
 import EventLineChart from "@/views/posthog/EventLineChart";
 import EventStatCard from "@/views/posthog/EventStatCard";
+import EventStatsDashboardSkeleton from "@/views/posthog/EventStatsDashboardSkeleton";
 
 const EventStatsDashboard = (): ReactElement => {
 	const [activeTab, setActiveTab] = useState<TabPeriod>("오늘");
@@ -21,9 +22,7 @@ const EventStatsDashboard = (): ReactElement => {
 		<div className="flex flex-col gap-6 p-6">
 			<PeriodTab value={activeTab} onChange={setActiveTab} />
 
-			{isLoading && (
-				<p className="text-body2 text-text-secondary">불러오는 중...</p>
-			)}
+			{isLoading && <EventStatsDashboardSkeleton />}
 			{isError && (
 				<p className="text-body2 text-error">데이터를 불러오지 못했습니다</p>
 			)}
