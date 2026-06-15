@@ -34,7 +34,7 @@ const EventDetailTrendSection = ({
 			</div>
 			<div className="p-4 rounded-xl border border-border-base bg-bg-base">
 				{isLoading && <EventDetailTrendSectionSkeleton />}
-				{trend && <EventDetailTrendChart trend={trend} />}
+				{!isLoading && trend && <EventDetailTrendChart trend={trend} />}
 			</div>
 		</section>
 	);
