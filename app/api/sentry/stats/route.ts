@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
-import type { ErrorStatsPeriod } from "@/entities/error/model/errorStats";
+import type {
+  ErrorStatPoint,
+  ErrorStatsPeriod,
+} from "@/entities/error/model/errorStats";
 import { buildDailySlots } from "@/entities/error/model/errorStatsUtils";
+
+interface SentryStatsResponse {
+  period: ErrorStatsPeriod;
+  stats: ErrorStatPoint[];
+}
 
 const SENTRY_HOST = "https://sentry.io";
 const VALID_PERIODS: ErrorStatsPeriod[] = ["24h", "7d", "30d"];
@@ -76,6 +84,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
 
     const response = await fetch(statsUrl.toString(), {
       headers: { Authorization: `Bearer ${SENTRY_AUTH_TOKEN}` },
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!response.ok) {
@@ -105,7 +114,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
         ? buildDailySlots(allStats)
         : allStats.slice(-PERIOD_LIMIT[period]);
 
-    return NextResponse.json({ period, stats });
+    return NextResponse.json({ period, stats } satisfies SentryStatsResponse);
   } catch (error) {
     console.error("Sentry Stats API error:", error);
     return NextResponse.json(

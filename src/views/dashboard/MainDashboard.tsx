@@ -9,6 +9,7 @@ import {
   calcChangeRate,
   getPeakLabel,
 } from "@/entities/event/model/eventStatsUtils";
+import { EVENT_TAB_TO_PERIOD } from "@/entities/event/model/eventStats";
 import { getEventLabel } from "@/shared/config/eventLabel";
 import StatusBadge from "@/shared/ui/StatusBadge";
 import ClassificationBadge from "@/shared/ui/ClassificationBadge";
@@ -17,6 +18,7 @@ import InsightLabel from "@/shared/ui/InsightLabel";
 import PeriodSelector from "@/shared/ui/PeriodSelector";
 import DropIcon from "@/shared/ui/icons/DropIcon";
 import LiftIcon from "@/shared/ui/icons/LiftIcon";
+import LinkIcon from "@/shared/ui/icons/LinkIcon";
 import ErrorTimeChart from "@/views/sentry/ErrorTimeChart";
 import dayjs from "@/shared/lib/dayjs";
 import { cn } from "@/shared/lib/utils";
@@ -27,10 +29,7 @@ import type {
   ErrorStatsPeriod,
   ErrorStatPoint,
 } from "@/entities/error/model/errorStats";
-import type {
-  EventStats,
-  Period as EventPeriod,
-} from "@/entities/event/model/eventStats";
+import type { EventStats } from "@/entities/event/model/eventStats";
 
 // 에러 카드 컴포넌트
 interface ErrorTopCardProps {
@@ -112,9 +111,10 @@ const ErrorTopCard = ({ issue }: ErrorTopCardProps): ReactElement => {
           href={issue.permalink}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-caption text-text-tertiary hover:text-text-secondary"
+          className="flex items-center gap-1 text-caption text-text-tertiary hover:text-text-secondary"
         >
-          Sentry에서 보기↗
+          Sentry에서 보기
+          <LinkIcon color="currentColor" />
         </a>
       </div>
     </div>
@@ -192,9 +192,15 @@ const EventTopCard = ({ event }: EventTopCardProps): ReactElement => {
           )}
           <span>{isOpen ? "해석 숨기기" : "해석 보기"}</span>
         </button>
-        <span className="text-caption text-text-tertiary">
-          PostHog에서 보기↗
-        </span>
+        <a
+          href={`https://us.posthog.com/project/${process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID}/events?eventType=${encodeURIComponent(event.event)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 text-caption text-text-tertiary hover:text-text-secondary"
+        >
+          PostHog에서 보기
+          <LinkIcon color="currentColor" />
+        </a>
       </div>
     </div>
   );
@@ -207,12 +213,6 @@ const PERIOD_MAP: Record<"오늘" | "7일" | "30일", ErrorStatsPeriod> = {
   "30일": "30d",
 };
 
-const EVENT_PERIOD_MAP: Record<"오늘" | "7일" | "30일", EventPeriod> = {
-  오늘: "day",
-  "7일": "week",
-  "30일": "month",
-};
-
 interface OverviewChartProps {
   type: "error" | "event";
   period: "오늘" | "7일" | "30일";
@@ -220,7 +220,7 @@ interface OverviewChartProps {
 
 const OverviewChart = ({ type, period }: OverviewChartProps): ReactElement => {
   const errorPeriod = PERIOD_MAP[period];
-  const eventPeriod = EVENT_PERIOD_MAP[period];
+  const eventPeriod = EVENT_TAB_TO_PERIOD[period];
 
   const { data: errorStats, isLoading: errorLoading } = useQuery({
     queryKey: ["sentry", "overview-stats", errorPeriod],
