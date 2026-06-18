@@ -1,5 +1,5 @@
 import type { ReactElement } from "react";
-import { Skeleton } from "@/shared/ui/skeleton";
+import Skeleton from "@/shared/ui/skeleton";
 
 const EventDetailRelatedEventsSectionSkeleton = (): ReactElement => {
 	return (
