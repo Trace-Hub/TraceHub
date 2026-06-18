@@ -1,17 +1,20 @@
-"use client"
+"use client";
 
-import type { ReactElement } from "react"
-import type { EventTrendPoint } from "@/entities/event/model/eventStats"
-import { cn } from "@/shared/lib/utils"
-import PeriodSelector, { type Period as TabPeriod } from "@/shared/ui/PeriodSelector"
-import EventDetailTrendChart from "@/views/posthog/EventDetailTrendChart"
+import type { ReactElement } from "react";
+import type { EventTrendPoint } from "@/entities/event/model/eventStats";
+import { cn } from "@/shared/lib/utils";
+import PeriodSelector, {
+	type Period as TabPeriod,
+} from "@/shared/ui/PeriodSelector";
+import EventDetailTrendChart from "@/views/posthog/EventDetailTrendChart";
+import EventDetailTrendSectionSkeleton from "@/views/posthog/EventDetailTrendSectionSkeleton";
 
 interface EventDetailTrendSectionProps {
-	trend: EventTrendPoint[] | undefined
-	isLoading: boolean
-	period: TabPeriod
-	onPeriodChange: (period: TabPeriod) => void
-	className?: string
+	trend: EventTrendPoint[] | undefined;
+	isLoading: boolean;
+	period: TabPeriod;
+	onPeriodChange: (period: TabPeriod) => void;
+	className?: string;
 }
 
 const EventDetailTrendSection = ({
@@ -30,13 +33,11 @@ const EventDetailTrendSection = ({
 				<PeriodSelector value={period} onChange={onPeriodChange} />
 			</div>
 			<div className="p-4 rounded-xl border border-border-base bg-bg-base">
-				{isLoading && (
-					<p className="text-caption text-text-tertiary py-8 text-center">로딩 중...</p>
-				)}
-				{trend && <EventDetailTrendChart trend={trend} />}
+				{isLoading && <EventDetailTrendSectionSkeleton />}
+				{!isLoading && trend && <EventDetailTrendChart trend={trend} />}
 			</div>
 		</section>
-	)
-}
+	);
+};
 
-export default EventDetailTrendSection
+export default EventDetailTrendSection;

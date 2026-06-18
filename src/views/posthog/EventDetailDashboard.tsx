@@ -90,7 +90,7 @@ const EventDetailDashboard = ({
 				pageEvents={hasPages ? (pageEventsData?.events ?? []) : []}
 				selectedPathname={selectedPathname}
 				onPathnameChange={setSelectedPathname}
-				isLoading={pagesLoading || (hasPages && pageEventsLoading)}
+				isLoading={pagesLoading || pageEventsLoading}
 				isError={pagesError || pageEventsError}
 			/>
 			<EventDetailPropertySection
