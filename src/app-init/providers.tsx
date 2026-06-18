@@ -5,6 +5,7 @@ import { PostHogProvider as PHProvider } from "posthog-js/react";
 import { type ReactElement, type ReactNode, Suspense, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PageviewTracker from "@/app-init/PageviewTracker";
+import Toaster from "@/shared/ui/sonner";
 
 interface PostHogProviderProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ const PostHogProvider = ({ children }: PostHogProviderProps): ReactElement => {
           <PageviewTracker />
         </Suspense>
         {children}
+        <Toaster />
       </PHProvider>
     </QueryClientProvider>
   );

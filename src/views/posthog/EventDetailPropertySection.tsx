@@ -1,11 +1,14 @@
 "use client";
 
 import type { ReactElement } from "react";
+import { useEffect } from "react";
+import { toast } from "sonner";
 import type {
 	EventPropertyType,
 	EventPropertyValue,
 } from "@/entities/event/model/eventStats";
 import { cn } from "@/shared/lib/utils";
+import EmptyState from "@/shared/ui/EmptyState";
 import PercentageBarChart from "@/shared/ui/PercentageBarChart";
 import EventDetailPropertySectionSkeleton from "@/views/posthog/EventDetailPropertySectionSkeleton";
 
@@ -36,10 +39,14 @@ const EventDetailPropertySection = ({
 	const hasData = !isLoading && !isError && values && values.length > 0;
 	const isEmpty = !isLoading && !isError && values && values.length === 0;
 
+	useEffect(() => {
+		if (isError) toast.error("속성 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+	}, [isError]);
+
 	return (
 		<section className={cn("flex flex-col gap-3", className)}>
 			<h3 className="text-body2 font-medium text-text-primary">속성별 분포</h3>
-			<div className="p-4 rounded-xl border border-border-base bg-bg-base">
+			<div className="p-4 rounded-xl border border-border-base bg-bg-base min-h-48 md:min-h-60">
 				<div className="flex gap-1 mb-4">
 					{PROPERTY_TABS.map((tab) => (
 						<button
@@ -60,17 +67,9 @@ const EventDetailPropertySection = ({
 					))}
 				</div>
 				{isLoading && <EventDetailPropertySectionSkeleton />}
-				{isError && (
-					<p className="text-body2 text-error py-8 text-center">
-						데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
-					</p>
-				)}
+				{isError && <EmptyState message="데이터를 불러오지 못했습니다" iconColor="var(--color-error)" />}
 				{hasData && <PercentageBarChart values={values} />}
-				{isEmpty && (
-					<p className="text-body2 text-text-tertiary py-8 text-center">
-						데이터가 없습니다
-					</p>
-				)}
+				{isEmpty && <EmptyState message="데이터가 없습니다" />}
 			</div>
 		</section>
 	);
