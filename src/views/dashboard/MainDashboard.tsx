@@ -11,115 +11,22 @@ import {
 } from "@/entities/event/model/eventStatsUtils";
 import { EVENT_TAB_TO_PERIOD } from "@/entities/event/model/eventStats";
 import { getEventLabel } from "@/shared/config/eventLabel";
-import StatusBadge from "@/shared/ui/StatusBadge";
-import ClassificationBadge from "@/shared/ui/ClassificationBadge";
 import ChangeRateBadge from "@/shared/ui/ChangeRateBadge";
+import ErrorCard from "@/shared/ui/ErrorCard";
 import InsightLabel from "@/shared/ui/InsightLabel";
 import PeriodSelector from "@/shared/ui/PeriodSelector";
 import DropIcon from "@/shared/ui/icons/DropIcon";
 import LiftIcon from "@/shared/ui/icons/LiftIcon";
 import LinkIcon from "@/shared/ui/icons/LinkIcon";
 import ErrorTimeChart from "@/views/sentry/ErrorTimeChart";
-import dayjs from "@/shared/lib/dayjs";
 import { cn } from "@/shared/lib/utils";
 import { apiClient } from "@/shared/api/client";
 import { useQuery } from "@tanstack/react-query";
 import type {
-  SentryIssue,
   ErrorStatsPeriod,
   ErrorStatPoint,
 } from "@/entities/error/model/errorStats";
 import type { EventStats } from "@/entities/event/model/eventStats";
-
-// 에러 카드 컴포넌트
-interface ErrorTopCardProps {
-  issue: SentryIssue;
-}
-
-const ErrorTopCard = ({ issue }: ErrorTopCardProps): ReactElement => {
-  const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
-
-  const handleCardClick = (): void => {
-    router.push(`/dashboard/errors/${issue.id}`);
-  };
-
-  return (
-    <div className="rounded-xl border border-border-base bg-bg-base overflow-hidden flex flex-col">
-      <button
-        type="button"
-        onClick={handleCardClick}
-        className="w-full p-4 flex flex-col gap-2 text-left hover:bg-bg-hover transition-colors flex-1 min-h-30"
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ClassificationBadge
-              variant={issue.isUnhandled ? "critical" : "new"}
-            />
-            <p className="text-body2 font-medium text-text-primary font-mono">
-              {issue.title}
-            </p>
-          </div>
-          <StatusBadge variant={issue.status} />
-        </div>
-        <p className="text-caption text-text-secondary">
-          발생:{" "}
-          <span className="font-medium">
-            {Number(issue.count).toLocaleString()}회
-          </span>
-          {" · "}영향 사용자:{" "}
-          <span className="font-medium">
-            {issue.userCount.toLocaleString()}명
-          </span>
-          {" · "}최초: {dayjs(issue.firstSeen).format("MM/DD")}
-          {" · "}마지막: {dayjs(issue.lastSeen).format("MM/DD HH:mm")}
-        </p>
-        <p className="text-caption text-text-tertiary">{issue.culprit}</p>
-      </button>
-
-      {isOpen && (
-        <div className="px-4 pb-3 flex flex-col gap-2">
-          <InsightLabel
-            variant="fact"
-            text={`${issue.title} 에러가 ${Number(issue.count).toLocaleString()}회 발생했습니다.`}
-          />
-          <InsightLabel
-            variant="comparison"
-            text="최근 발생 추이를 확인하고 이전 배포 시점과 비교해보세요."
-          />
-          <InsightLabel
-            variant="action"
-            text={`${issue.culprit} 파일을 확인하고 관련 코드를 점검하세요.`}
-          />
-        </div>
-      )}
-
-      <div className="flex items-center justify-between px-4 py-2">
-        <button
-          type="button"
-          onClick={() => setIsOpen((prev) => !prev)}
-          className="flex items-center gap-1 text-caption text-text-tertiary hover:text-text-secondary transition-colors"
-        >
-          {isOpen ? (
-            <LiftIcon color="var(--color-text-tertiary)" />
-          ) : (
-            <DropIcon color="var(--color-text-tertiary)" />
-          )}
-          <span>{isOpen ? "해석 숨기기" : "해석 보기"}</span>
-        </button>
-        <a
-          href={issue.permalink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-caption text-text-tertiary hover:text-text-secondary"
-        >
-          Sentry에서 보기
-          <LinkIcon color="currentColor" />
-        </a>
-      </div>
-    </div>
-  );
-};
 
 // 이벤트 카드 컴포넌트
 interface EventTopCardProps {
@@ -337,7 +244,7 @@ const MainDashboard = (): ReactElement => {
             <p className="text-caption text-text-tertiary py-4">로딩 중...</p>
           )}
           {topErrors.map((issue) => (
-            <ErrorTopCard key={issue.id} issue={issue} />
+            <ErrorCard key={issue.id} issue={issue} minHeightClass="min-h-30" />
           ))}
           {!errorLoading && topErrors.length === 0 && (
             <p className="text-body2 text-text-tertiary py-8 text-center">

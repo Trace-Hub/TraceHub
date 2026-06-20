@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation";
 import type { ReactElement } from "react";
 import { useErrorDetail } from "@/entities/error/api/getErrorDetail";
-import { formatIssueSummary } from "@/entities/error/model/errorStatsUtils";
+import {
+  formatIssueSummary,
+  getIssueClassifications,
+} from "@/entities/error/model/errorStatsUtils";
 import ErrorDetailDashboard from "@/views/sentry/ErrorDetailDashboard";
 import ClassificationBadge from "@/shared/ui/ClassificationBadge";
 import StatusBadge from "@/shared/ui/StatusBadge";
@@ -52,9 +55,9 @@ const ErrorDetailView = ({ issueId }: ErrorDetailViewProps): ReactElement => {
       {/* 이슈 헤더 카드 */}
       <div className="p-4 rounded-xl border border-border-base bg-bg-base flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <ClassificationBadge
-            variant={issue.isUnhandled ? "critical" : "dev"}
-          />
+          {getIssueClassifications(issue).map((variant) => (
+            <ClassificationBadge key={variant} variant={variant} />
+          ))}
           <StatusBadge variant={issue.status} />
         </div>
         <p className="text-h1 font-bold text-text-primary font-mono leading-snug">
