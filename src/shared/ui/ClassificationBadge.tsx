@@ -12,6 +12,8 @@ interface ClassificationBadgeProps {
   className?: string;
 }
 
+export type { ClassificationBadgeProps };
+
 const variantConfig = {
   new: {
     label: "신규",

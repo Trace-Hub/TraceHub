@@ -3,6 +3,9 @@ import type {
   ErrorStatPoint,
   SentryIssue,
 } from "@/entities/error/model/errorStats";
+import type { ClassificationBadgeProps } from "@/shared/ui/ClassificationBadge";
+
+type ClassificationVariant = ClassificationBadgeProps["variant"];
 
 const getYAxisTicks = (max: number): number[] => {
   if (max === 0) return [0, 5, 10, 15, 20];
@@ -51,4 +54,39 @@ const formatIssueSummary = (issue: SentryIssue): string => {
   return `최초: ${firstSeen} · 마지막: ${lastSeen} · 발생: ${count}회 · 영향 사용자: ${userCount}명`;
 };
 
-export { getYAxisTicks, buildDailySlots, formatIssueSummary };
+/**
+ * 이슈에 해당하는 분류 뱃지 목록을 반환 (중복 가능)
+ * - new: firstSeen이 7일 이내 + count === 1
+ * - critical: firstSeen이 7일 이내 + count >= 10 (급증)
+ * - dev: count > 1 (재발)
+ * - longterm: firstSeen이 7일 이상 경과
+ */
+const getIssueClassifications = (
+  issue: SentryIssue,
+): ClassificationVariant[] => {
+  const variants: ClassificationVariant[] = [];
+  const daysSinceFirst = dayjs().diff(dayjs(issue.firstSeen), "day");
+  const count = Number(issue.count);
+
+  if (daysSinceFirst < 7 && count === 1) {
+    variants.push("new");
+  }
+  if (daysSinceFirst < 7 && count >= 10) {
+    variants.push("critical");
+  }
+  if (count > 1) {
+    variants.push("dev");
+  }
+  if (daysSinceFirst >= 7) {
+    variants.push("longterm");
+  }
+
+  return variants.length > 0 ? variants : ["none"];
+};
+
+export {
+  getYAxisTicks,
+  buildDailySlots,
+  formatIssueSummary,
+  getIssueClassifications,
+};
