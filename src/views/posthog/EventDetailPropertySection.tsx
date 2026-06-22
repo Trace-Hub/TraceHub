@@ -1,8 +1,7 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { useEffect } from "react";
-import { toast } from "sonner";
+import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import type {
 	EventPropertyType,
 	EventPropertyValue,
@@ -39,9 +38,7 @@ const EventDetailPropertySection = ({
 	const hasData = !isLoading && !isError && values && values.length > 0;
 	const isEmpty = !isLoading && !isError && values && values.length === 0;
 
-	useEffect(() => {
-		if (isError) toast.error("속성 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
-	}, [isError]);
+	useApiErrorToast(isError, "속성 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
 
 	return (
 		<section className={cn("flex flex-col gap-3", className)}>

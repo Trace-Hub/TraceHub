@@ -1,8 +1,7 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { useEffect } from "react";
-import { toast } from "sonner";
+import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import type {
 	EventPageStat,
 	PageEventItem,
@@ -38,9 +37,7 @@ const EventDetailRelatedEventsSection = ({
 }: EventDetailRelatedEventsSectionProps): ReactElement => {
 	const isPagesEmpty = pages.length === 0;
 
-	useEffect(() => {
-		if (isError) toast.error("페이지별 이벤트 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
-	}, [isError]);
+	useApiErrorToast(isError, "페이지별 이벤트 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
 
 	const donutValues = pageEvents.map((e) => ({
 		value: getEventLabel(e.event),
