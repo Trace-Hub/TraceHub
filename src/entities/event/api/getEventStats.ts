@@ -3,6 +3,7 @@ import type {
 	EventStatsResponse,
 	Period,
 } from "@/entities/event/model/eventStats";
+import { EVENT_STATS_REFETCH_INTERVAL_MS } from "@/entities/event/model/eventStats";
 import { apiClient } from "@/shared/api/client";
 
 const getEventStats = async (
@@ -24,6 +25,9 @@ const useEventStats = (
 	return useQuery({
 		queryKey: ["events", "stats", period],
 		queryFn: ({ signal }) => getEventStats(period, signal),
+		staleTime: EVENT_STATS_REFETCH_INTERVAL_MS,
+		refetchOnWindowFocus: false,
+		refetchInterval: EVENT_STATS_REFETCH_INTERVAL_MS,
 	});
 };
 
