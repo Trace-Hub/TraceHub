@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactElement } from "react";
+import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import type {
 	EventPageStat,
 	PageEventItem,
@@ -8,6 +9,7 @@ import type {
 import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
 import { getEventLabel } from "@/shared/config/eventLabel";
 import { cn } from "@/shared/lib/utils";
+import EmptyState from "@/shared/ui/EmptyState";
 import PercentageBarChart, {
 	type PercentageBarChartItem,
 } from "@/shared/ui/PercentageBarChart";
@@ -34,6 +36,8 @@ const EventDetailRelatedEventsSection = ({
 	className,
 }: EventDetailRelatedEventsSectionProps): ReactElement => {
 	const isPagesEmpty = pages.length === 0;
+
+	useApiErrorToast(isError, "페이지별 이벤트 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
 
 	const donutValues = pageEvents.map((e) => ({
 		value: getEventLabel(e.event),
@@ -71,14 +75,14 @@ const EventDetailRelatedEventsSection = ({
 
 			{isLoading && <EventDetailRelatedEventsSectionSkeleton />}
 			{!isLoading && isError && (
-				<p className="text-body2 text-text-tertiary py-8 text-center">
-					잠시 후 다시 시도해주세요
-				</p>
+				<div className="flex min-h-48 items-center justify-center md:min-h-60">
+					<EmptyState message="데이터를 불러오지 못했습니다" iconColor="var(--color-error)" />
+				</div>
 			)}
 			{!isLoading && !isError && isChartEmpty && (
-				<p className="text-body2 text-text-tertiary py-8 text-center">
-					이벤트 데이터가 없습니다
-				</p>
+				<div className="flex min-h-48 items-center justify-center md:min-h-60">
+					<EmptyState message="이벤트 데이터가 없습니다" />
+				</div>
 			)}
 			{!isLoading && !isError && !isChartEmpty && (
 				<div className="flex flex-col gap-3 md:flex-row">
