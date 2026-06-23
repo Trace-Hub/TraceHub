@@ -9,8 +9,6 @@
    ============================================= */
 
 :root {
-    color-scheme: only light;
-
     /* Background */
     --color-bg-base: #FFFFFF;
     --color-bg-subtle: #FAFAFA;
