@@ -50,11 +50,15 @@ const ThemeProvider = ({ children }: ThemeProviderProps): ReactElement => {
   );
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const initial = stored ?? "system";
-    setThemeState(initial);
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const isValid =
+      stored === "light" || stored === "dark" || stored === "system";
+    const initial: Theme = isValid ? stored : "system";
+    if (initial !== theme) {
+      setThemeState(initial);
+    }
     applyTheme(initial);
-  }, [applyTheme]);
+  }, [theme, applyTheme]);
 
   useEffect(() => {
     if (theme !== "system") return;
