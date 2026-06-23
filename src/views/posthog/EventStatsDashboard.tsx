@@ -35,7 +35,7 @@ const EventStatsDashboard = (): ReactElement => {
 	const period = EVENT_TAB_TO_PERIOD[activeTab];
 	const { data, isLoading, isError, dataUpdatedAt } = useEventStats(period);
 
-	const [now, setNow] = useState(Date.now());
+	const [now, setNow] = useState(() => Date.now());
 	const toastShownRef = useRef(false);
 	const prevDataUpdatedAt = useRef(dataUpdatedAt);
 
