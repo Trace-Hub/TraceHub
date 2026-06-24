@@ -25,6 +25,12 @@ const PERIOD_LIMIT: Record<ErrorStatsPeriod, number> = {
   "30d": 30,
 };
 
+/** 당일 자정(0시 0분 0초) Date 객체를 반환 */
+const getStartOfToday = (): Date => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+};
+
 /**
  * Sentry API가 금일(아직 끝나지 않은 날) 버킷을 반환하지 않을 경우
  * 금일 슬롯을 count 0으로 추가하여 차트에 표시
@@ -32,19 +38,9 @@ const PERIOD_LIMIT: Record<ErrorStatsPeriod, number> = {
 const ensureTodaySlot = (stats: ErrorStatPoint[]): ErrorStatPoint[] => {
   if (stats.length === 0) return stats;
 
-  const now = new Date();
-  const todayStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    0,
-    0,
-    0,
-  );
-  const todayTimestamp = Math.floor(todayStart.getTime() / 1000);
+  const todayTimestamp = Math.floor(getStartOfToday().getTime() / 1000);
   const lastTimestamp = stats[stats.length - 1].timestamp;
 
-  // 마지막 데이터 포인트가 금일 이전이면 금일 슬롯 추가
   if (lastTimestamp < todayTimestamp) {
     return [...stats, { timestamp: todayTimestamp, count: 0 }];
   }
@@ -85,15 +81,8 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     statsUrl.searchParams.set("dataset", "errors");
 
     if (period === "24h") {
+      const startOfDay = getStartOfToday();
       const now = new Date();
-      const startOfDay = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        0,
-        0,
-        0,
-      );
       const endOfDay = new Date(
         now.getFullYear(),
         now.getMonth(),
@@ -107,13 +96,9 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     } else {
       const now = new Date();
       const daysBack = period === "7d" ? 7 : 30;
+      const startOfDay = getStartOfToday();
       const start = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate() - daysBack,
-        0,
-        0,
-        0,
+        startOfDay.getTime() - daysBack * 24 * 60 * 60 * 1000,
       );
       statsUrl.searchParams.set("start", start.toISOString());
       statsUrl.searchParams.set("end", now.toISOString());
