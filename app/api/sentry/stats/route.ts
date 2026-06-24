@@ -21,8 +21,34 @@ const PERIOD_INTERVAL: Record<ErrorStatsPeriod, string> = {
 
 const PERIOD_LIMIT: Record<ErrorStatsPeriod, number> = {
   "24h": 24,
-  "7d": 7,
-  "30d": 30,
+  "7d": 8,
+  "30d": 31,
+};
+
+/**
+ * Sentry API가 금일(아직 끝나지 않은 날) 버킷을 반환하지 않을 경우
+ * 금일 슬롯을 count 0으로 추가하여 차트에 표시
+ */
+const ensureTodaySlot = (stats: ErrorStatPoint[]): ErrorStatPoint[] => {
+  if (stats.length === 0) return stats;
+
+  const now = new Date();
+  const todayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0,
+    0,
+  );
+  const todayTimestamp = Math.floor(todayStart.getTime() / 1000);
+  const lastTimestamp = stats[stats.length - 1].timestamp;
+
+  // 마지막 데이터 포인트가 금일 이전이면 금일 슬롯 추가
+  if (lastTimestamp < todayTimestamp) {
+    return [...stats, { timestamp: todayTimestamp, count: 0 }];
+  }
+  return stats;
 };
 
 export const GET = async (request: Request): Promise<NextResponse> => {
@@ -79,7 +105,18 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       statsUrl.searchParams.set("start", startOfDay.toISOString());
       statsUrl.searchParams.set("end", endOfDay.toISOString());
     } else {
-      statsUrl.searchParams.set("period", period);
+      const now = new Date();
+      const daysBack = period === "7d" ? 6 : 29;
+      const start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - daysBack,
+        0,
+        0,
+        0,
+      );
+      statsUrl.searchParams.set("start", start.toISOString());
+      statsUrl.searchParams.set("end", now.toISOString());
     }
 
     const response = await fetch(statsUrl.toString(), {
@@ -112,7 +149,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     const stats =
       period === "24h"
         ? buildDailySlots(allStats)
-        : allStats.slice(-PERIOD_LIMIT[period]);
+        : ensureTodaySlot(allStats.slice(-PERIOD_LIMIT[period]));
 
     return NextResponse.json({ period, stats } satisfies SentryStatsResponse);
   } catch (error) {
