@@ -21,8 +21,8 @@ const PERIOD_INTERVAL: Record<ErrorStatsPeriod, string> = {
 
 const PERIOD_LIMIT: Record<ErrorStatsPeriod, number> = {
   "24h": 24,
-  "7d": 8,
-  "30d": 31,
+  "7d": 7,
+  "30d": 30,
 };
 
 /**
@@ -106,7 +106,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       statsUrl.searchParams.set("end", endOfDay.toISOString());
     } else {
       const now = new Date();
-      const daysBack = period === "7d" ? 6 : 29;
+      const daysBack = period === "7d" ? 7 : 30;
       const start = new Date(
         now.getFullYear(),
         now.getMonth(),
@@ -149,7 +149,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     const stats =
       period === "24h"
         ? buildDailySlots(allStats)
-        : ensureTodaySlot(allStats.slice(-PERIOD_LIMIT[period]));
+        : ensureTodaySlot(allStats).slice(-PERIOD_LIMIT[period]);
 
     return NextResponse.json({ period, stats } satisfies SentryStatsResponse);
   } catch (error) {
