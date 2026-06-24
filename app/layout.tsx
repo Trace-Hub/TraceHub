@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "@/styles/globals.css";
 import { cn } from "@/shared/lib/utils";
 import PostHogProvider from "@/app-init/providers";
+import { ThemeProvider } from "@/shared/providers/ThemeProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={cn(
         "h-full",
         "antialiased",
@@ -39,7 +41,9 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        <PostHogProvider>{children}</PostHogProvider>
+        <ThemeProvider>
+          <PostHogProvider>{children}</PostHogProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
