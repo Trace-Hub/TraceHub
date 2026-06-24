@@ -53,16 +53,18 @@ const ErrorCard = ({
           minHeightClass,
         )}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {classifications.map((variant) => (
-              <ClassificationBadge key={variant} variant={variant} />
-            ))}
-            <p className="text-body2 font-medium text-text-primary font-mono">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-1 shrink-0">
+              {classifications.map((variant) => (
+                <ClassificationBadge key={variant} variant={variant} />
+              ))}
+            </div>
+            <p className="text-body2 font-medium text-text-primary font-mono truncate">
               {issue.title}
             </p>
           </div>
-          <StatusBadge variant={issue.status} />
+          <StatusBadge variant={issue.status} className="shrink-0" />
         </div>
         <p className="text-caption text-text-secondary">
           발생:{" "}

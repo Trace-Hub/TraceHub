@@ -25,6 +25,28 @@ const PERIOD_LIMIT: Record<ErrorStatsPeriod, number> = {
   "30d": 30,
 };
 
+/** 당일 자정(0시 0분 0초) Date 객체를 반환 */
+const getStartOfToday = (): Date => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+};
+
+/**
+ * Sentry API가 금일(아직 끝나지 않은 날) 버킷을 반환하지 않을 경우
+ * 금일 슬롯을 count 0으로 추가하여 차트에 표시
+ */
+const ensureTodaySlot = (stats: ErrorStatPoint[]): ErrorStatPoint[] => {
+  if (stats.length === 0) return stats;
+
+  const todayTimestamp = Math.floor(getStartOfToday().getTime() / 1000);
+  const lastTimestamp = stats[stats.length - 1].timestamp;
+
+  if (lastTimestamp < todayTimestamp) {
+    return [...stats, { timestamp: todayTimestamp, count: 0 }];
+  }
+  return stats;
+};
+
 export const GET = async (request: Request): Promise<NextResponse> => {
   const SENTRY_AUTH_TOKEN = process.env.NEXT_SENTRY_API_TOKEN;
   const SENTRY_ORG = process.env.NEXT_SENTRY_ORG;
@@ -59,15 +81,8 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     statsUrl.searchParams.set("dataset", "errors");
 
     if (period === "24h") {
+      const startOfDay = getStartOfToday();
       const now = new Date();
-      const startOfDay = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        0,
-        0,
-        0,
-      );
       const endOfDay = new Date(
         now.getFullYear(),
         now.getMonth(),
@@ -79,7 +94,14 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       statsUrl.searchParams.set("start", startOfDay.toISOString());
       statsUrl.searchParams.set("end", endOfDay.toISOString());
     } else {
-      statsUrl.searchParams.set("period", period);
+      const now = new Date();
+      const daysBack = period === "7d" ? 7 : 30;
+      const startOfDay = getStartOfToday();
+      const start = new Date(
+        startOfDay.getTime() - daysBack * 24 * 60 * 60 * 1000,
+      );
+      statsUrl.searchParams.set("start", start.toISOString());
+      statsUrl.searchParams.set("end", now.toISOString());
     }
 
     const response = await fetch(statsUrl.toString(), {
@@ -112,7 +134,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     const stats =
       period === "24h"
         ? buildDailySlots(allStats)
-        : allStats.slice(-PERIOD_LIMIT[period]);
+        : ensureTodaySlot(allStats).slice(-PERIOD_LIMIT[period]);
 
     return NextResponse.json({ period, stats } satisfies SentryStatsResponse);
   } catch (error) {
