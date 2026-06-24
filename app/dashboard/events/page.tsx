@@ -1,8 +1,7 @@
-import type { ReactElement } from "react";
-import EventStatsDashboard from "@/views/posthog/EventStatsDashboard";
+import { redirect } from "next/navigation"
 
-const EventsPage = (): ReactElement => {
-	return <EventStatsDashboard />;
-};
+const EventsPage = (): never => {
+	redirect("/dashboard/events/trends")
+}
 
-export default EventsPage;
+export default EventsPage
