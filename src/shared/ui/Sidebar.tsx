@@ -59,19 +59,9 @@ const Sidebar = (): JSX.Element => {
 		})
 	}
 
-	// 클라이언트 사이드 네비게이션으로 하위 경로 진입 시 부모 메뉴 자동 펼침
-	useEffect(() => {
-		for (const item of NAV_ITEMS) {
-			if (item.children && pathname.startsWith(item.href)) {
-				setExpandedItems((prev) => {
-					if (prev.has(item.href)) return prev
-					const next = new Set(prev)
-					next.add(item.href)
-					return next
-				})
-			}
-		}
-	}, [pathname])
+	// 자식 경로 활성 여부를 파생값으로 계산 — Effect로 상태 동기화 시 cascading render 유발
+	const isPathUnder = (baseHref: string): boolean =>
+		pathname === baseHref || pathname.startsWith(`${baseHref}/`)
 
 	useEffect(() => {
 		if (!isOpen) return
@@ -147,8 +137,8 @@ const Sidebar = (): JSX.Element => {
 						const { label, href, exact, icon: Icon, children } = item
 
 						if (children) {
-							const isExpanded = expandedItems.has(href)
-							const isParentActive = pathname.startsWith(`${href}/`)
+							const isParentActive = isPathUnder(href)
+							const isExpanded = isParentActive || expandedItems.has(href)
 
 							const subMenuId = `subnav-${href.replace(/\//g, "-")}`
 
@@ -156,7 +146,10 @@ const Sidebar = (): JSX.Element => {
 								<div key={href}>
 									<button
 										type="button"
-										onClick={() => toggleExpanded(href)}
+										onClick={() => {
+											if (isParentActive) return
+											toggleExpanded(href)
+										}}
 										className={cn(
 											"w-full flex items-center gap-3 px-4 py-3",
 											"border-l-2 transition-interactive",
