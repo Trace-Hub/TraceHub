@@ -14,12 +14,24 @@ export interface NavItem {
 	href: string
 	// exact: true이면 pathname === href 일 때만 활성화 (하위 경로 제외)
 	exact?: boolean
-	icon: ComponentType<IconProps>
+	icon?: ComponentType<IconProps>
+	children?: NavItem[]
 }
 
 export const NAV_ITEMS: NavItem[] = [
 	{ label: "Main", href: "/dashboard", exact: true, icon: MainIcon },
-	{ label: "Events", href: "/dashboard/events", icon: EventIcon },
+	{
+		label: "Events",
+		href: "/dashboard/events",
+		icon: EventIcon,
+		children: [
+			{ label: "Trends", href: "/dashboard/events/trends" },
+			{ label: "Lifecycle", href: "/dashboard/events/lifecycle" },
+			{ label: "Retention", href: "/dashboard/events/retention" },
+			{ label: "Funnels", href: "/dashboard/events/funnels" },
+			{ label: "Paths", href: "/dashboard/events/paths" },
+		],
+	},
 	{ label: "Errors", href: "/dashboard/errors", icon: ErrorIcon },
 	{ label: "Settings", href: "/dashboard/settings", icon: SettingIcon },
 ]

@@ -4,6 +4,7 @@ import type { JSX } from "react"
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { AnimatePresence, motion } from "motion/react"
 import { cn } from "@/shared/lib/utils"
 import THIcon from "@/shared/ui/icons/THIcon"
 import MenuIcon from "@/shared/ui/icons/MenuIcon"
@@ -11,11 +12,56 @@ import { NAV_ITEMS } from "@/shared/config/navigation"
 
 const SIDEBAR_ID = "dashboard-sidebar"
 
+const ChevronIcon = ({ isOpen }: { isOpen: boolean }): JSX.Element => (
+	<svg
+		width="16"
+		height="16"
+		viewBox="0 0 16 16"
+		fill="none"
+		aria-hidden="true"
+		className={cn("ml-auto transition-transform duration-200", isOpen && "rotate-180")}
+	>
+		<path
+			d="M4 6l4 4 4-4"
+			stroke="currentColor"
+			strokeWidth="1.5"
+			strokeLinecap="round"
+			strokeLinejoin="round"
+		/>
+	</svg>
+)
+
 const Sidebar = (): JSX.Element => {
 	const pathname = usePathname()
 	const [isOpen, setIsOpen] = useState(false)
+	// lazy initializer로 pathname 기반 초기값을 동기 계산 — useEffect 방식은 첫 렌더에서 flash 유발
+	const [expandedItems, setExpandedItems] = useState<Set<string>>(() => {
+		const initial = new Set<string>()
+		for (const item of NAV_ITEMS) {
+			if (item.children && pathname.startsWith(item.href)) {
+				initial.add(item.href)
+			}
+		}
+		return initial
+	})
 
 	const handleClose = () => setIsOpen(false)
+
+	const toggleExpanded = (href: string) => {
+		setExpandedItems((prev) => {
+			const next = new Set(prev)
+			if (next.has(href)) {
+				next.delete(href)
+			} else {
+				next.add(href)
+			}
+			return next
+		})
+	}
+
+	// 자식 경로 활성 여부를 파생값으로 계산 — Effect로 상태 동기화 시 cascading render 유발
+	const isPathUnder = (baseHref: string): boolean =>
+		pathname === baseHref || pathname.startsWith(`${baseHref}/`)
 
 	useEffect(() => {
 		if (!isOpen) return
@@ -59,7 +105,7 @@ const Sidebar = (): JSX.Element => {
 					// 닫힌 상태에서 pointer-events 차단 — off-screen aside가 버튼 클릭을 가로채는 것 방지
 					isOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full pointer-events-none",
 					// PC: 항상 노출, 레이아웃 흐름에 포함
-					"lg:static lg:translate-x-0 lg:z-auto lg:min-h-full lg:pointer-events-auto",
+					"lg:static lg:translate-x-0 lg:z-auto lg:min-h-screen lg:pointer-events-auto",
 				)}
 				aria-label="사이드바 네비게이션"
 			>
@@ -87,7 +133,78 @@ const Sidebar = (): JSX.Element => {
 
 				{/* 네비게이션 메뉴 */}
 				<nav className="flex-1 py-2">
-					{NAV_ITEMS.map(({ label, href, exact, icon: Icon }) => {
+					{NAV_ITEMS.map((item) => {
+						const { label, href, exact, icon: Icon, children } = item
+
+						if (children) {
+							const isParentActive = isPathUnder(href)
+							const isExpanded = isParentActive || expandedItems.has(href)
+
+							const subMenuId = `subnav-${href.replace(/\//g, "-")}`
+
+							return (
+								<div key={href}>
+									<button
+										type="button"
+										onClick={() => {
+											if (isParentActive) return
+											toggleExpanded(href)
+										}}
+										className={cn(
+											"w-full flex items-center gap-3 px-4 py-3",
+											"border-l-2 transition-interactive",
+											isParentActive
+												? "border-l-primary text-primary"
+												: "border-l-transparent text-text-secondary hover:text-text-primary hover:bg-bg-hover",
+										)}
+										aria-expanded={isExpanded}
+										aria-controls={subMenuId}
+									>
+										{Icon && <Icon color={isParentActive ? "var(--color-primary)" : undefined} />}
+										<span className="text-body1 font-medium">{label}</span>
+										<ChevronIcon isOpen={isExpanded} />
+									</button>
+
+									<AnimatePresence initial={false}>
+									{isExpanded && (
+										<motion.ul
+											id={subMenuId}
+											initial={{ height: 0, opacity: 0 }}
+											animate={{ height: "auto", opacity: 1 }}
+											exit={{ height: 0, opacity: 0 }}
+											transition={{ duration: 0.2, ease: "easeInOut" }}
+											className="overflow-hidden"
+										>
+											{children.map((child) => {
+												const isChildActive =
+													pathname === child.href || pathname.startsWith(`${child.href}/`)
+
+												return (
+													<li key={child.href}>
+														<Link
+															href={child.href}
+															onClick={handleClose}
+															className={cn(
+																"flex items-center pl-11 pr-4 py-2",
+																"border-l-2 transition-interactive",
+																isChildActive
+																	? "border-l-primary text-primary"
+																	: "border-l-transparent text-text-secondary hover:text-text-primary hover:bg-bg-hover",
+															)}
+															aria-current={isChildActive ? "page" : undefined}
+														>
+															<span className="text-body2 font-medium">{child.label}</span>
+														</Link>
+													</li>
+												)
+											})}
+										</motion.ul>
+									)}
+								</AnimatePresence>
+								</div>
+							)
+						}
+
 						const isActive = exact
 							? pathname === href
 							: pathname === href || pathname.startsWith(`${href}/`)
@@ -106,7 +223,7 @@ const Sidebar = (): JSX.Element => {
 								)}
 								aria-current={isActive ? "page" : undefined}
 							>
-								<Icon color={isActive ? "var(--color-primary)" : undefined} />
+								{Icon && <Icon color={isActive ? "var(--color-primary)" : undefined} />}
 								<span className="text-body1 font-medium">{label}</span>
 							</Link>
 						)
