@@ -11,6 +11,7 @@ import { useErrorStats } from "@/entities/error/api/getErrorStats";
 import { useErrorTags } from "@/entities/error/api/getErrorTags";
 import ErrorTimeChart from "@/views/sentry/ErrorTimeChart";
 import ErrorTagChart from "@/views/sentry/ErrorTagChart";
+import EmptyState from "@/shared/ui/EmptyState";
 import PeriodSelector from "@/shared/ui/PeriodSelector";
 import InsightLabel from "@/shared/ui/InsightLabel";
 import type { Period } from "@/shared/ui/PeriodTab";
@@ -122,11 +123,7 @@ const ErrorDetailDashboard = ({
               로딩 중...
             </p>
           )}
-          {tagError && (
-            <p className="text-body2 text-text-tertiary py-8 text-center">
-              데이터가 없습니다
-            </p>
-          )}
+          {tagError && <EmptyState message="데이터가 없습니다" />}
           {!tagLoading && !tagError && tagData && tagData.values.length > 0 && (
             <ErrorTagChart values={tagData.values} />
           )}
@@ -134,9 +131,7 @@ const ErrorDetailDashboard = ({
             !tagError &&
             tagData &&
             tagData.values.length === 0 && (
-              <p className="text-body2 text-text-tertiary py-8 text-center">
-                데이터가 없습니다
-              </p>
+              <EmptyState message="데이터가 없습니다" />
             )}
 
           <div className="flex justify-end mt-2">

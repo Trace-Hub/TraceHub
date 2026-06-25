@@ -9,7 +9,9 @@ import {
 } from "@/entities/error/model/errorStatsUtils";
 import ErrorDetailDashboard from "@/views/sentry/ErrorDetailDashboard";
 import ClassificationBadge from "@/shared/ui/ClassificationBadge";
+import EmptyState from "@/shared/ui/EmptyState";
 import StatusBadge from "@/shared/ui/StatusBadge";
+import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 
 interface ErrorDetailViewProps {
   issueId: string;
@@ -18,6 +20,8 @@ interface ErrorDetailViewProps {
 const ErrorDetailView = ({ issueId }: ErrorDetailViewProps): ReactElement => {
   const router = useRouter();
   const { data: issue, isLoading, error } = useErrorDetail(issueId);
+
+  useApiErrorToast(!!error, "이슈 데이터를 불러오는 데 실패했습니다");
 
   const handleBack = (): void => {
     router.push("/dashboard/errors");
@@ -34,9 +38,10 @@ const ErrorDetailView = ({ issueId }: ErrorDetailViewProps): ReactElement => {
   if (error || !issue) {
     return (
       <div className="flex items-center justify-center h-full min-h-screen">
-        <p className="text-body2 text-error">
-          이슈 데이터를 불러오는 데 실패했습니다
-        </p>
+        <EmptyState
+          message="이슈 데이터를 불러오는 데 실패했습니다"
+          iconColor="var(--color-error)"
+        />
       </div>
     );
   }

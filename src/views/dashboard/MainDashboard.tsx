@@ -13,6 +13,7 @@ import { EVENT_TAB_TO_PERIOD } from "@/entities/event/model/eventStats";
 import { getEventLabel } from "@/shared/config/eventLabel";
 import ChangeRateBadge from "@/shared/ui/ChangeRateBadge";
 import ErrorCard from "@/shared/ui/ErrorCard";
+import EmptyState from "@/shared/ui/EmptyState";
 import InsightLabel from "@/shared/ui/InsightLabel";
 import PeriodSelector from "@/shared/ui/PeriodSelector";
 import DropIcon from "@/shared/ui/icons/DropIcon";
@@ -161,11 +162,7 @@ const OverviewChart = ({ type, period }: OverviewChartProps): ReactElement => {
           />
         );
     }
-    return (
-      <p className="text-body2 text-text-tertiary py-8 text-center">
-        데이터가 없습니다
-      </p>
-    );
+    return <EmptyState message="데이터가 없습니다" />;
   }
 
   if (eventLoading)
@@ -199,11 +196,7 @@ const OverviewChart = ({ type, period }: OverviewChartProps): ReactElement => {
       />
     );
   }
-  return (
-    <p className="text-body2 text-text-tertiary py-8 text-center">
-      데이터가 없습니다
-    </p>
-  );
+  return <EmptyState message="데이터가 없습니다" />;
 };
 
 // 메인 대시보드
@@ -247,9 +240,7 @@ const MainDashboard = (): ReactElement => {
             <ErrorCard key={issue.id} issue={issue} minHeightClass="min-h-30" />
           ))}
           {!errorLoading && topErrors.length === 0 && (
-            <p className="text-body2 text-text-tertiary py-8 text-center">
-              에러가 없습니다
-            </p>
+            <EmptyState message="에러가 없습니다" />
           )}
         </section>
 
@@ -264,9 +255,7 @@ const MainDashboard = (): ReactElement => {
             <EventTopCard key={ev.event} event={ev} />
           ))}
           {!eventLoading && topEvents.length === 0 && (
-            <p className="text-body2 text-text-tertiary py-8 text-center">
-              이벤트가 없습니다
-            </p>
+            <EmptyState message="이벤트가 없습니다" />
           )}
         </section>
       </div>

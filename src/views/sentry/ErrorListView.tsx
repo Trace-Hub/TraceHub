@@ -5,7 +5,9 @@ import type { ReactElement } from "react";
 import { useErrorList } from "@/entities/error/api/getErrorList";
 import type { ErrorStatus } from "@/entities/error/model/errorStats";
 import ErrorCard from "@/shared/ui/ErrorCard";
+import EmptyState from "@/shared/ui/EmptyState";
 import FilterBar from "@/shared/ui/FilterBar";
+import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import type { StatusFilterValue } from "@/shared/ui/StatusFilter";
 import type { EnvFilterValue } from "@/shared/ui/EnvFilter";
 
@@ -25,6 +27,8 @@ const ErrorListView = (): ReactElement => {
     status,
     environment: envFilter,
   });
+
+  useApiErrorToast(!!error, "이슈 목록을 불러오는 데 실패했습니다");
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -51,21 +55,12 @@ const ErrorListView = (): ReactElement => {
           로딩 중...
         </p>
       )}
-      {error && (
-        <p className="text-body2 text-error py-8 text-center">
-          이슈 목록을 불러오는 데 실패했습니다
-        </p>
-      )}
       {data && (
         <div className="flex flex-col gap-3">
           {data.issues.map((issue) => (
             <ErrorCard key={issue.id} issue={issue} defaultInsightOpen />
           ))}
-          {data.issues.length === 0 && (
-            <p className="text-body2 text-text-tertiary py-8 text-center">
-              이슈가 없습니다
-            </p>
-          )}
+          {data.issues.length === 0 && <EmptyState message="이슈가 없습니다" />}
         </div>
       )}
     </div>
