@@ -51,8 +51,10 @@ const escapeRegexPath = (path: string): string =>
 // 글로브 패턴 배열 → ClickHouse match() 단일 정규식으로 변환
 // OR 체인 대신 match() 한 줄을 쓰는 이유:
 // 경로 수에 무관하게 행당 정규식 평가가 1회로 고정되어 성능이 일정하게 유지됨
-const buildPathFilter = (): string => {
-	const patterns = TRACKED_PATHS.map((p) => {
+// specificPath를 전달하면 해당 경로만, 없으면 TRACKED_PATHS 전체를 필터
+const buildPathFilter = (specificPath?: string): string => {
+	const paths: readonly string[] = specificPath ? [specificPath] : TRACKED_PATHS;
+	const patterns = paths.map((p) => {
 		if (p.endsWith("/*")) {
 			const base = escapeRegexPath(p.slice(0, -2));
 			// (/.*)?  →  /posthog 자체와 /posthog/1 같은 하위 경로 모두 포함
@@ -62,6 +64,15 @@ const buildPathFilter = (): string => {
 	});
 	// ^(...)$로 감싸 부분 일치 방지 (/posthog-other 가 /posthog/* 에 걸리지 않도록)
 	return `match(properties.$pathname, '^(${patterns.join("|")})$')`;
+};
+
+// path 파라미터 검증과 pathFilter 생성을 한 번에 처리
+// 두 API route(events, events/kpi)에서 동일한 검증 로직이 반복되므로 단일 진실의 원천으로 관리
+const resolvePathFilter = (rawPath: string): string | null => {
+	if (rawPath !== "all" && !(TRACKED_PATHS as readonly string[]).includes(rawPath)) {
+		return null;
+	}
+	return buildPathFilter(rawPath === "all" ? undefined : rawPath);
 };
 
 const runHogQLQuery = async (query: string): Promise<PostHogQueryResult> => {
@@ -92,6 +103,7 @@ export {
 	buildKstPreviousPeriodFilter,
 	buildPathFilter,
 	KST_OFFSET,
+	resolvePathFilter,
 	runHogQLQuery,
 	sanitizeHogQLString,
 	VALID_PERIODS,

@@ -13,7 +13,14 @@ const EVENT_TAB_TO_PERIOD: Record<PeriodTab, Period> = {
 // PostHog HogQL 반영 지연(실측 약 5분) — refetchInterval과 카운트다운이 동일 값을 참조하도록 단일 상수로 관리
 const EVENT_STATS_REFETCH_INTERVAL_MS = 5 * 60 * 1000;
 
-export { EVENT_STATS_REFETCH_INTERVAL_MS, EVENT_TAB_TO_PERIOD };
+// EVENT_TAB_TO_PERIOD의 역방향 — URL 파라미터(day/week/month)를 TabPeriod로 복원할 때 사용
+const PERIOD_TO_TAB: Record<Period, PeriodTab> = {
+	day: "오늘",
+	week: "7일",
+	month: "30일",
+} as const;
+
+export { EVENT_STATS_REFETCH_INTERVAL_MS, EVENT_TAB_TO_PERIOD, PERIOD_TO_TAB };
 
 // PostHog HogQL 응답 중 사용하는 필드만
 interface PostHogQueryResult {
@@ -108,9 +115,32 @@ interface PageEventDistributionResponse {
 	events: PageEventItem[];
 }
 
+// KPI 대시보드 기간별 데이터 포인트 — 시간(오늘)·일자(7일) breakdown에 공통 사용
+interface KpiBreakdownPoint {
+	label: string;
+	activeUsers: number;
+	totalEvents: number;
+}
+
+// 오늘·7일 각 기간의 집계 결과 묶음
+interface EventKpiPeriod {
+	activeUsers: number;
+	totalEvents: number;
+	previousActiveUsers: number;
+	previousTotalEvents: number;
+	breakdown: KpiBreakdownPoint[];
+}
+
+interface EventKpiResponse {
+	today: EventKpiPeriod;
+	week: EventKpiPeriod;
+}
+
 export type {
 	EventDetailMetrics,
 	EventDetailResponse,
+	EventKpiPeriod,
+	EventKpiResponse,
 	EventPageStat,
 	EventPagesResponse,
 	EventPeriodCount,
@@ -120,6 +150,7 @@ export type {
 	EventStats,
 	EventStatsResponse,
 	EventTrendPoint,
+	KpiBreakdownPoint,
 	PageEventDistributionResponse,
 	PageEventItem,
 	Period,

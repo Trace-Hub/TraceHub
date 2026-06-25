@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import type { Period } from "@/entities/event/model/eventStats";
 import { fetchEventStatsServer } from "@/entities/event/api/fetchEventStatsServer";
-import { VALID_PERIODS } from "@/shared/lib/posthogServer";
+import { VALID_PERIODS, resolvePathFilter } from "@/shared/lib/posthogServer";
 
 export async function GET(request: Request): Promise<NextResponse> {
 	try {
 		const { searchParams } = new URL(request.url);
 		const rawPeriod = searchParams.get("period") ?? "day";
+		const rawPath = searchParams.get("path") ?? "all";
 
 		if (!VALID_PERIODS.includes(rawPeriod as Period)) {
 			return NextResponse.json(
@@ -18,7 +19,15 @@ export async function GET(request: Request): Promise<NextResponse> {
 			);
 		}
 
-		const data = await fetchEventStatsServer(rawPeriod as Period);
+		const pathFilter = resolvePathFilter(rawPath);
+		if (pathFilter === null) {
+			return NextResponse.json(
+				{ error: "유효하지 않은 path 값입니다." },
+				{ status: 400 },
+			);
+		}
+
+		const data = await fetchEventStatsServer(rawPeriod as Period, pathFilter);
 		return NextResponse.json(data);
 	} catch (error) {
 		console.error("PostHog Query API error:", error);

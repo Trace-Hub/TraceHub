@@ -9,12 +9,12 @@ import {
 	buildQueries,
 	toLabel,
 } from "@/entities/event/model/eventStatsUtils";
-import { buildPathFilter, runHogQLQuery } from "@/shared/lib/posthogServer";
+import { runHogQLQuery } from "@/shared/lib/posthogServer";
 
 const fetchEventStatsServer = async (
 	period: Period,
+	pathFilter: string,
 ): Promise<EventStatsResponse> => {
-	const pathFilter = buildPathFilter();
 	const { current: currentQuery, previous: previousQuery } = buildQueries(
 		period,
 		pathFilter,
