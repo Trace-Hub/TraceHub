@@ -19,14 +19,16 @@ import EventDetailTrendSection from "@/views/posthog/EventDetailTrendSection";
 
 interface EventDetailDashboardProps {
 	event: string;
+	initialPeriod?: TabPeriod;
 	className?: string;
 }
 
 const EventDetailDashboard = ({
 	event,
+	initialPeriod,
 	className,
 }: EventDetailDashboardProps): ReactElement => {
-	const [activePeriod, setActivePeriod] = useState<TabPeriod>("오늘");
+	const [activePeriod, setActivePeriod] = useState<TabPeriod>(initialPeriod ?? "오늘");
 	const [activeProperty, setActiveProperty] =
 		useState<EventPropertyType>("browser");
 	const [selectedPathname, setSelectedPathname] = useState("");

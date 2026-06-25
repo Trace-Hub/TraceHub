@@ -26,7 +26,7 @@ const formatCount = (v: number): string => Math.round(v).toLocaleString();
 const TODAY_X_TICKS = ["0시", "6시", "12시", "18시", "23시"];
 
 interface KpiSparklineProps {
-	breakdown: KpiBreakdownPoint[];
+	breakdown: EventKpiPeriod["breakdown"];
 	dataKey: "activeUsers" | "totalEvents";
 	color: string;
 	label: string;
