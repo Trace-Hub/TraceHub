@@ -20,6 +20,7 @@ import DropIcon from "@/shared/ui/icons/DropIcon";
 import LiftIcon from "@/shared/ui/icons/LiftIcon";
 import LinkIcon from "@/shared/ui/icons/LinkIcon";
 import ErrorTimeChart from "@/views/sentry/ErrorTimeChart";
+import MainDashboardSkeleton from "@/views/dashboard/MainDashboardSkeleton";
 import { cn } from "@/shared/lib/utils";
 import { apiClient } from "@/shared/api/client";
 import { useQuery } from "@tanstack/react-query";
@@ -219,6 +220,8 @@ const MainDashboard = (): ReactElement => {
       : (eventDataMonth?.events ?? [])
   ).slice(0, 3);
 
+  const isInitialLoading = errorLoading && eventLoading;
+
   return (
     <div className="flex flex-col gap-6 p-6">
       <div>
@@ -228,37 +231,39 @@ const MainDashboard = (): ReactElement => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="flex flex-col gap-3">
-          <h2 className="text-body1 font-medium text-text-primary">
-            에러 Top 3
-          </h2>
-          {errorLoading && (
-            <p className="text-caption text-text-tertiary py-4">로딩 중...</p>
-          )}
-          {topErrors.map((issue) => (
-            <ErrorCard key={issue.id} issue={issue} minHeightClass="min-h-30" />
-          ))}
-          {!errorLoading && topErrors.length === 0 && (
-            <EmptyState message="에러가 없습니다" />
-          )}
-        </section>
+      {isInitialLoading && <MainDashboardSkeleton />}
 
-        <section className="flex flex-col gap-3">
-          <h2 className="text-body1 font-medium text-text-primary">
-            이벤트 Top 3
-          </h2>
-          {eventLoading && (
-            <p className="text-caption text-text-tertiary py-4">로딩 중...</p>
-          )}
-          {topEvents.map((ev) => (
-            <EventTopCard key={ev.event} event={ev} />
-          ))}
-          {!eventLoading && topEvents.length === 0 && (
-            <EmptyState message="이벤트가 없습니다" />
-          )}
-        </section>
-      </div>
+      {!isInitialLoading && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <section className="flex flex-col gap-3">
+            <h2 className="text-body1 font-medium text-text-primary">
+              에러 Top 3
+            </h2>
+            {topErrors.map((issue) => (
+              <ErrorCard
+                key={issue.id}
+                issue={issue}
+                minHeightClass="min-h-30"
+              />
+            ))}
+            {!errorLoading && topErrors.length === 0 && (
+              <EmptyState message="에러가 없습니다" />
+            )}
+          </section>
+
+          <section className="flex flex-col gap-3">
+            <h2 className="text-body1 font-medium text-text-primary">
+              이벤트 Top 3
+            </h2>
+            {topEvents.map((ev) => (
+              <EventTopCard key={ev.event} event={ev} />
+            ))}
+            {!eventLoading && topEvents.length === 0 && (
+              <EmptyState message="이벤트가 없습니다" />
+            )}
+          </section>
+        </div>
+      )}
 
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">

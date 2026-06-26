@@ -8,6 +8,7 @@ import ErrorCard from "@/shared/ui/ErrorCard";
 import EmptyState from "@/shared/ui/EmptyState";
 import FilterBar from "@/shared/ui/FilterBar";
 import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
+import ErrorListSkeleton from "@/views/sentry/ErrorListSkeleton";
 import type { StatusFilterValue } from "@/shared/ui/StatusFilter";
 import type { EnvFilterValue } from "@/shared/ui/EnvFilter";
 
@@ -20,7 +21,7 @@ const STATUS_MAP: Record<StatusFilterValue, ErrorStatus | undefined> = {
 
 const ErrorListView = (): ReactElement => {
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
-  const [envFilter, setEnvFilter] = useState<EnvFilterValue>("production");
+  const [envFilter, setEnvFilter] = useState<EnvFilterValue>("development");
 
   const status = STATUS_MAP[statusFilter];
   const { data, isLoading, error } = useErrorList({
@@ -50,10 +51,12 @@ const ErrorListView = (): ReactElement => {
       />
 
       {/* 목록 */}
-      {isLoading && (
-        <p className="text-body2 text-text-tertiary py-8 text-center">
-          로딩 중...
-        </p>
+      {isLoading && <ErrorListSkeleton />}
+      {!isLoading && error && (
+        <EmptyState
+          message="이슈 목록을 불러오는 데 실패했습니다"
+          iconColor="var(--color-error)"
+        />
       )}
       {data && (
         <div className="flex flex-col gap-3">

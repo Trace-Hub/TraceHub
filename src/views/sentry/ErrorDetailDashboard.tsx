@@ -12,6 +12,7 @@ import { useErrorTags } from "@/entities/error/api/getErrorTags";
 import ErrorTimeChart from "@/views/sentry/ErrorTimeChart";
 import ErrorTagChart from "@/views/sentry/ErrorTagChart";
 import EmptyState from "@/shared/ui/EmptyState";
+import Skeleton from "@/shared/ui/skeleton";
 import PeriodSelector from "@/shared/ui/PeriodSelector";
 import InsightLabel from "@/shared/ui/InsightLabel";
 import type { Period } from "@/shared/ui/PeriodTab";
@@ -81,12 +82,8 @@ const ErrorDetailDashboard = ({
           <PeriodSelector value={activePeriod} onChange={setActivePeriod} />
         </div>
         <div className="p-4 rounded-xl border border-border-base bg-bg-base">
-          {statsLoading && (
-            <p className="text-caption text-text-tertiary py-8 text-center">
-              로딩 중...
-            </p>
-          )}
-          {statsData && (
+          {statsLoading && <Skeleton className="h-52 w-full" />}
+          {!statsLoading && statsData && (
             <ErrorTimeChart stats={statsData.stats} period={period} />
           )}
         </div>
@@ -119,11 +116,18 @@ const ErrorDetailDashboard = ({
           </div>
 
           {tagLoading && (
-            <p className="text-caption text-text-tertiary py-8 text-center">
-              로딩 중...
-            </p>
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-4/5" />
+              <Skeleton className="h-8 w-3/5" />
+            </div>
           )}
-          {tagError && <EmptyState message="데이터가 없습니다" />}
+          {tagError && (
+            <EmptyState
+              message="데이터를 불러오지 못했습니다"
+              iconColor="var(--color-error)"
+            />
+          )}
           {!tagLoading && !tagError && tagData && tagData.values.length > 0 && (
             <ErrorTagChart values={tagData.values} />
           )}

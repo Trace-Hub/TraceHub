@@ -8,6 +8,7 @@ import {
   getIssueClassifications,
 } from "@/entities/error/model/errorStatsUtils";
 import ErrorDetailDashboard from "@/views/sentry/ErrorDetailDashboard";
+import ErrorDetailSkeleton from "@/views/sentry/ErrorDetailSkeleton";
 import ClassificationBadge from "@/shared/ui/ClassificationBadge";
 import EmptyState from "@/shared/ui/EmptyState";
 import StatusBadge from "@/shared/ui/StatusBadge";
@@ -28,11 +29,7 @@ const ErrorDetailView = ({ issueId }: ErrorDetailViewProps): ReactElement => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full min-h-screen">
-        <p className="text-body2 text-text-tertiary">로딩 중...</p>
-      </div>
-    );
+    return <ErrorDetailSkeleton />;
   }
 
   if (error || !issue) {
