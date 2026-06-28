@@ -20,6 +20,7 @@ import DropIcon from "@/shared/ui/icons/DropIcon";
 import LiftIcon from "@/shared/ui/icons/LiftIcon";
 import LinkIcon from "@/shared/ui/icons/LinkIcon";
 import ErrorTimeChart from "@/views/sentry/ErrorTimeChart";
+import MainDashboardSkeleton from "@/views/dashboard/MainDashboardSkeleton";
 import { cn } from "@/shared/lib/utils";
 import { apiClient } from "@/shared/api/client";
 import { useQuery } from "@tanstack/react-query";
@@ -210,7 +211,8 @@ const MainDashboard = (): ReactElement => {
     status: "unresolved",
   });
   const { data: eventData, isLoading: eventLoading } = useEventStats("week");
-  const { data: eventDataMonth } = useEventStats("month");
+  const { data: eventDataMonth, isLoading: eventMonthLoading } =
+    useEventStats("month");
 
   const topErrors = errorData?.issues.slice(0, 3) ?? [];
   const topEvents = (
@@ -218,6 +220,8 @@ const MainDashboard = (): ReactElement => {
       ? eventData.events
       : (eventDataMonth?.events ?? [])
   ).slice(0, 3);
+
+  const isInitialLoading = errorLoading || eventLoading || eventMonthLoading;
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -228,73 +232,77 @@ const MainDashboard = (): ReactElement => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <section className="flex flex-col gap-3">
-          <h2 className="text-body1 font-medium text-text-primary">
-            에러 Top 3
-          </h2>
-          {errorLoading && (
-            <p className="text-caption text-text-tertiary py-4">로딩 중...</p>
-          )}
-          {topErrors.map((issue) => (
-            <ErrorCard key={issue.id} issue={issue} minHeightClass="min-h-30" />
-          ))}
-          {!errorLoading && topErrors.length === 0 && (
-            <EmptyState message="에러가 없습니다" />
-          )}
-        </section>
+      {isInitialLoading && <MainDashboardSkeleton />}
 
-        <section className="flex flex-col gap-3">
-          <h2 className="text-body1 font-medium text-text-primary">
-            이벤트 Top 3
-          </h2>
-          {eventLoading && (
-            <p className="text-caption text-text-tertiary py-4">로딩 중...</p>
-          )}
-          {topEvents.map((ev) => (
-            <EventTopCard key={ev.event} event={ev} />
-          ))}
-          {!eventLoading && topEvents.length === 0 && (
-            <EmptyState message="이벤트가 없습니다" />
-          )}
-        </section>
-      </div>
+      {!isInitialLoading && (
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <section className="flex flex-col gap-3">
+              <h2 className="text-body1 font-medium text-text-primary">
+                에러 Top 3
+              </h2>
+              {topErrors.map((issue) => (
+                <ErrorCard
+                  key={issue.id}
+                  issue={issue}
+                  minHeightClass="min-h-30"
+                />
+              ))}
+              {!errorLoading && topErrors.length === 0 && (
+                <EmptyState message="에러가 없습니다" />
+              )}
+            </section>
 
-      <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setChartType("error")}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-body2 font-medium transition-colors",
-                chartType === "error"
-                  ? "bg-error text-white"
-                  : "text-text-secondary hover:text-text-primary border border-border-base",
+            <section className="flex flex-col gap-3">
+              <h2 className="text-body1 font-medium text-text-primary">
+                이벤트 Top 3
+              </h2>
+              {topEvents.map((ev) => (
+                <EventTopCard key={ev.event} event={ev} />
+              ))}
+              {!eventLoading && topEvents.length === 0 && (
+                <EmptyState message="이벤트가 없습니다" />
               )}
-            >
-              에러
-            </button>
-            <button
-              type="button"
-              onClick={() => setChartType("event")}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-body2 font-medium transition-colors",
-                chartType === "event"
-                  ? "bg-primary text-white"
-                  : "text-text-secondary hover:text-text-primary border border-border-base",
-              )}
-            >
-              이벤트
-            </button>
+            </section>
           </div>
-          <PeriodSelector value={chartPeriod} onChange={setChartPeriod} />
-        </div>
-        <h3 className="text-body2 font-medium text-text-primary">
-          {chartType === "error" ? "에러 발생 추이" : "이벤트 발생 추이"}
-        </h3>
-        <OverviewChart type={chartType} period={chartPeriod} />
-      </section>
+
+          <section className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setChartType("error")}
+                  className={cn(
+                    "px-3 py-1.5 rounded-md text-body2 font-medium transition-colors",
+                    chartType === "error"
+                      ? "bg-error text-white"
+                      : "text-text-secondary hover:text-text-primary border border-border-base",
+                  )}
+                >
+                  에러
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartType("event")}
+                  className={cn(
+                    "px-3 py-1.5 rounded-md text-body2 font-medium transition-colors",
+                    chartType === "event"
+                      ? "bg-primary text-white"
+                      : "text-text-secondary hover:text-text-primary border border-border-base",
+                  )}
+                >
+                  이벤트
+                </button>
+              </div>
+              <PeriodSelector value={chartPeriod} onChange={setChartPeriod} />
+            </div>
+            <h3 className="text-body2 font-medium text-text-primary">
+              {chartType === "error" ? "에러 발생 추이" : "이벤트 발생 추이"}
+            </h3>
+            <OverviewChart type={chartType} period={chartPeriod} />
+          </section>
+        </>
+      )}
     </div>
   );
 };
