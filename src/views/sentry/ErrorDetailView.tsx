@@ -13,6 +13,7 @@ import ClassificationBadge from "@/shared/ui/ClassificationBadge";
 import EmptyState from "@/shared/ui/EmptyState";
 import StatusBadge from "@/shared/ui/StatusBadge";
 import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
+import dayjs from "@/shared/lib/dayjs";
 
 interface ErrorDetailViewProps {
   issueId: string;
@@ -71,6 +72,28 @@ const ErrorDetailView = ({ issueId }: ErrorDetailViewProps): ReactElement => {
         <p className="text-caption text-text-secondary">
           {formatIssueSummary(issue)}
         </p>
+      </div>
+
+      {/* 요약 카드 */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="flex flex-col gap-1 p-4 rounded-xl border border-border-subtle bg-bg-card">
+          <span className="text-caption text-text-tertiary">총 발생 횟수</span>
+          <span className="text-h1 font-bold text-text-primary">
+            {Number(issue.count).toLocaleString()}회
+          </span>
+        </div>
+        <div className="flex flex-col gap-1 p-4 rounded-xl border border-border-subtle bg-bg-card">
+          <span className="text-caption text-text-tertiary">영향 사용자</span>
+          <span className="text-h1 font-bold text-text-primary">
+            {issue.userCount.toLocaleString()}명
+          </span>
+        </div>
+        <div className="flex flex-col gap-1 p-4 rounded-xl border border-border-subtle bg-bg-card">
+          <span className="text-caption text-text-tertiary">경과 일수</span>
+          <span className="text-h1 font-bold text-text-primary">
+            {dayjs().diff(dayjs(issue.firstSeen), "day")}일
+          </span>
+        </div>
       </div>
 
       {/* 인사이트 + 차트 */}
