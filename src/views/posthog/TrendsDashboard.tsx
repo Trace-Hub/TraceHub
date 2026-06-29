@@ -52,18 +52,13 @@ const TrendsDashboard = (): ReactElement => {
 	);
 
 	const prevDataUpdatedAt = useRef(0);
-	// 리마운트/탭 전환 직후 첫 번째 refetch는 "갱신"이 아니므로 토스트를 건너뜀
-	const skipNextSuccessToast = useRef(true);
 
 	useEffect(() => {
 		if (dataUpdatedAt === 0) return;
 
+		// prevDataUpdatedAt === 0이면 최초 로드이므로 성공 토스트를 건너뜀
 		if (prevDataUpdatedAt.current !== 0) {
-			if (skipNextSuccessToast.current) {
-				skipNextSuccessToast.current = false;
-			} else {
-				toast.success("데이터가 최신화되었습니다.", { id: UPDATE_TOAST_ID });
-			}
+			toast.success("데이터가 최신화되었습니다.", { id: UPDATE_TOAST_ID });
 		}
 		prevDataUpdatedAt.current = dataUpdatedAt;
 
@@ -78,7 +73,6 @@ const TrendsDashboard = (): ReactElement => {
 	// 탭·경로 전환 시 ref 초기화 — 첫 로드를 갱신으로 오인해 성공 토스트가 뜨는 오류 방지
 	const resetToastRefs = () => {
 		prevDataUpdatedAt.current = 0;
-		skipNextSuccessToast.current = true;
 	};
 
 	const handleTabChange = (next: TabPeriod) => {
@@ -166,7 +160,7 @@ const TrendsDashboard = (): ReactElement => {
 							onKeyDown={(e) => {
 								if (e.key === "Enter") setCommittedQuery(searchInput);
 							}}
-							placeholder="이벤트명 검색"
+							placeholder="Enter로 검색"
 							aria-label="이벤트명 검색"
 							className="pl-9 pr-3 py-1 w-80 rounded-md border border-border-base bg-bg-card text-body2 text-text-primary placeholder:text-text-tertiary outline-none focus:border-border-focus transition-colors duration-150"
 						/>

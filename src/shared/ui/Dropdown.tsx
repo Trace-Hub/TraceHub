@@ -58,6 +58,8 @@ const Dropdown = <T extends string>({
 			</button>
 			{isOpen && (
 				<div
+					role="listbox"
+					aria-label={ariaLabel}
 					className={cn(
 						"absolute left-0 top-full mt-1 z-50",
 						"min-w-full w-max",
@@ -69,6 +71,8 @@ const Dropdown = <T extends string>({
 						<button
 							key={opt.value}
 							type="button"
+							role="option"
+							aria-selected={opt.value === value}
 							onKeyDown={handleKeyDown}
 							onClick={() => {
 								onChange(opt.value);

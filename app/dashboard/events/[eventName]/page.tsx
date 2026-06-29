@@ -14,7 +14,8 @@ const EventDetailPage = async ({ params, searchParams }: EventDetailPageProps): 
 	// URL 인코딩된 $pageview 같은 이벤트명 복원
 	const eventName = decodeURIComponent(rawEventName)
 	const label = getEventLabel(eventName)
-	const initialPeriod = rawPeriod !== undefined ? PERIOD_TO_TAB[rawPeriod as keyof typeof PERIOD_TO_TAB] : undefined
+	const isPeriod = (v: string): v is keyof typeof PERIOD_TO_TAB => v in PERIOD_TO_TAB
+	const initialPeriod = rawPeriod && isPeriod(rawPeriod) ? PERIOD_TO_TAB[rawPeriod] : undefined
 
 	return (
 		<div className="flex flex-col gap-6 p-6">

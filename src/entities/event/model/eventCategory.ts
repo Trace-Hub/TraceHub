@@ -20,6 +20,7 @@ const classifyEvent = (event: string): EventCategory => {
 	if (INTERACTION_EVENTS.has(event)) return "interaction";
 	// $ 접두사 이벤트 중 내비게이션에 속하지 않는 것 (autocapture, identify 등)
 	if (event.startsWith("$")) return "system";
+	// 분류되지 않은 커스텀 이벤트 — "all" 탭에서만 노출됨
 	return "all";
 };
 
