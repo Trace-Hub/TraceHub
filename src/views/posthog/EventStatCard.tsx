@@ -38,7 +38,7 @@ const EventStatCard = ({
 			)}
 		>
 			<Link
-				href={`/dashboard/events/${encodeURIComponent(event)}`}
+				href={`/dashboard/events/${encodeURIComponent(event)}?period=${period}`}
 				className="flex flex-col gap-4 -mx-4 -mt-4 px-4 pt-4 pb-0 rounded-t-xl hover:bg-bg-hover transition-colors duration-150"
 			>
 				<div className="flex items-center justify-between">
