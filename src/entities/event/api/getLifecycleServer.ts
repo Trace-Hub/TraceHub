@@ -12,7 +12,7 @@ import {
 	runHogQLQuery,
 } from "@/shared/lib/posthogServer";
 
-const fetchLifecycleServer = async (
+const getLifecycleServer = async (
 	period: LifecyclePeriod,
 ): Promise<LifecycleResponse> => {
 	const pathFilter = buildPathFilter();
@@ -39,4 +39,4 @@ const fetchLifecycleServer = async (
 	return classifyLifecycle(rows, period);
 };
 
-export { fetchLifecycleServer };
+export { getLifecycleServer };

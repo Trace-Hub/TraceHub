@@ -36,8 +36,8 @@ const VALID_LIFECYCLE_PERIODS: LifecyclePeriod[] = ["week", "month"];
 
 // HogQL 조회 범위 — active window + tier1 + tier2 전부 커버
 const LIFECYCLE_LOOKBACK_DAYS: Record<LifecyclePeriod, number> = {
-	week: 60, // 7일 active + 23일 tier1 + 30일 tier2
-	month: 90, // 30일 active + 30일 tier1 + 30일 tier2
+	week: 60, // 7일 active(0~6) + 23일 tier1(7~29) + 30일 tier2(30~59)
+	month: 90, // 30일 active(0~29) + 30일 tier1(30~59) + 30일 tier2(60~89)
 };
 
 // "활성" 기준 일수
@@ -46,15 +46,15 @@ const LIFECYCLE_ACTIVE_WINDOW: Record<LifecyclePeriod, number> = {
 	month: 30,
 };
 
-// Tier-1 비활성 상한 (마지막 활성으로부터 경과 일수)
-// week: 8–30일, month: 31–60일
+// Tier-1 비활성 상한 (마지막 활성으로부터 경과 일수, exclusive)
+// week: 7–29일, month: 30–59일
 const LIFECYCLE_TIER1_END: Record<LifecyclePeriod, number> = {
 	week: 30,
 	month: 60,
 };
 
-// Tier-2 비활성 상한 (Disappearing)
-// week: 31–60일, month: 61–90일
+// Tier-2 비활성 상한 (Disappearing, exclusive)
+// week: 30–59일, month: 60–89일
 const LIFECYCLE_TIER2_END: Record<LifecyclePeriod, number> = {
 	week: 60,
 	month: 90,
@@ -115,9 +115,7 @@ const classifyLifecycle = (
 	let activeCount = 0;
 	let previousActiveCount = 0;
 
-	const prevWindowStart = activeWindow + 1;
-	const prevWindowEnd = activeWindow * 2;
-
+	// half-open 구간: current [0, activeWindow), previous [activeWindow, activeWindow*2)
 	for (const [, dates] of personDatesMap) {
 		const sortedDates = [...dates].sort();
 		const lastActive = sortedDates[sortedDates.length - 1];
@@ -126,26 +124,26 @@ const classifyLifecycle = (
 		// 직전 동일 윈도우(비교 기준) 내 활성 여부
 		const wasActiveInPrevWindow = sortedDates.some((d) => {
 			const daysAgo = today.diff(dayjs(d), "day");
-			return daysAgo >= prevWindowStart && daysAgo <= prevWindowEnd;
+			return daysAgo >= activeWindow && daysAgo < activeWindow * 2;
 		});
 		if (wasActiveInPrevWindow) previousActiveCount++;
 
-		if (daysSinceLast <= activeWindow) {
+		if (daysSinceLast < activeWindow) {
 			// 활성 사용자 — 현재 윈도우 내 방문 횟수로 세분화
 			activeCount++;
 			const visitCount = sortedDates.filter(
-				(d) => today.diff(dayjs(d), "day") <= activeWindow,
+				(d) => today.diff(dayjs(d), "day") < activeWindow,
 			).length;
 
 			if (visitCount === 1) counts.new++;
 			else if (visitCount <= 3) counts.evaluating++;
 			else counts.engaged++;
-		} else if (daysSinceLast <= tier1End) {
+		} else if (daysSinceLast < tier1End) {
 			// Tier-1 비활성: 전체 방문 횟수로 Bounced vs Lapsing 구분
 			const totalVisits = dates.size;
 			if (totalVisits === 1) counts.bounced++;
 			else counts.lapsing++;
-		} else if (daysSinceLast <= tier2End) {
+		} else if (daysSinceLast < tier2End) {
 			counts.disappearing++;
 		}
 		// tier2End 초과 — 룩백 범위 밖이므로 분류 제외

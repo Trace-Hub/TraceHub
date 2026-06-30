@@ -14,8 +14,7 @@ const LifecycleTotalChart = ({
 	segments,
 	totalCount,
 }: LifecycleTotalChartProps): ReactElement => {
-	// 최대값 기준으로 바 너비를 정규화 — 가장 큰 세그먼트가 100%
-	const maxCount = Math.max(...segments.map((s) => s.count), 1);
+	const safeTotal = Math.max(totalCount, 1);
 
 	return (
 		<div className="rounded-xl border border-border-subtle bg-bg-card p-5 flex flex-col gap-4">
@@ -30,7 +29,7 @@ const LifecycleTotalChart = ({
 
 			<div className="flex flex-col gap-3">
 				{segments.map((seg) => {
-					const barWidth = (seg.count / maxCount) * 100;
+					const barWidth = (seg.count / safeTotal) * 100;
 
 					return (
 						<div key={seg.key} className="flex items-center gap-3">

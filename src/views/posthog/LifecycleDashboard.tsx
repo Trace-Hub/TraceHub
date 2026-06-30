@@ -7,6 +7,7 @@ import {
 	LIFECYCLE_TAB_TO_PERIOD,
 	type LifecycleTab,
 } from "@/entities/event/model/lifecycle";
+import dayjs from "@/shared/lib/dayjs";
 import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import EmptyState from "@/shared/ui/EmptyState";
 import LifecycleActiveSection from "@/views/posthog/LifecycleActiveSection";
@@ -15,19 +16,8 @@ import LifecycleSegmentCards from "@/views/posthog/LifecycleSegmentCards";
 import LifecycleTotalChart from "@/views/posthog/LifecycleTotalChart";
 
 // ISO timestamp → "Jun 25 2026 - 10:19PM KST"
-const formatTimestamp = (isoString: string): string => {
-	const date = new Date(isoString);
-	const formatted = date.toLocaleString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-		hour: "2-digit",
-		minute: "2-digit",
-		timeZone: "Asia/Seoul",
-		hour12: true,
-	});
-	return `${formatted} KST`;
-};
+const formatTimestamp = (isoString: string): string =>
+	`${dayjs(isoString).tz("Asia/Seoul").format("MMM D YYYY - hh:mmA")} KST`;
 
 const LifecycleDashboard = (): ReactElement => {
 	const [activeTab, setActiveTab] = useState<LifecycleTab>("7일");

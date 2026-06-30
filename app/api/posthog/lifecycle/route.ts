@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchLifecycleServer } from "@/entities/event/api/fetchLifecycleServer";
+import { getLifecycleServer } from "@/entities/event/api/getLifecycleServer";
 import type { LifecyclePeriod } from "@/entities/event/model/lifecycle";
 import { VALID_LIFECYCLE_PERIODS } from "@/entities/event/model/lifecycle";
 
@@ -18,7 +18,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 			);
 		}
 
-		const data = await fetchLifecycleServer(rawPeriod as LifecyclePeriod);
+		const data = await getLifecycleServer(rawPeriod as LifecyclePeriod);
 		return NextResponse.json(data);
 	} catch (error) {
 		console.error("Lifecycle API error:", error);

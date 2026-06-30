@@ -84,7 +84,6 @@ const LifecycleActiveSection = ({
 								</button>
 							))}
 						</div>
-						<span className="text-caption text-text-tertiary">days</span>
 					</div>
 				</div>
 

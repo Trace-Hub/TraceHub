@@ -27,9 +27,10 @@ const getSegmentDescription = (
 	period: LifecyclePeriod,
 ): string => {
 	const w = LIFECYCLE_ACTIVE_WINDOW[period];
-	const t1Start = w + 1;
-	const t1End = LIFECYCLE_TIER1_END[period];
-	const t2End = LIFECYCLE_TIER2_END[period];
+	const t1Start = w;
+	const t1End = LIFECYCLE_TIER1_END[period] - 1;
+	const t2Start = LIFECYCLE_TIER1_END[period];
+	const t2End = LIFECYCLE_TIER2_END[period] - 1;
 
 	const descriptions: Record<LifecycleSegmentKey, string> = {
 		new: `최근 ${w}일 내 첫 방문한 신규 사용자`,
@@ -37,7 +38,7 @@ const getSegmentDescription = (
 		engaged: `최근 ${w}일 내 4회 이상 방문한 핵심 사용자`,
 		bounced: `1회 방문 후 ${t1Start}–${t1End}일 미방문 사용자`,
 		lapsing: `다수 방문 후 ${t1Start}–${t1End}일 미방문 사용자`,
-		disappearing: `${t1End + 1}–${t2End}일 비활성 사용자`,
+		disappearing: `${t2Start}–${t2End}일 비활성 사용자`,
 	};
 
 	return descriptions[key];
