@@ -1,11 +1,8 @@
-import type { ReactElement } from "react"
+import type { ReactElement } from "react";
+import LifecycleDashboard from "@/views/posthog/LifecycleDashboard";
 
 const LifecyclePage = (): ReactElement => {
-	return (
-		<div className="flex flex-1 items-center justify-center p-6">
-			<p className="text-text-secondary">준비 중</p>
-		</div>
-	)
-}
+	return <LifecycleDashboard />;
+};
 
-export default LifecyclePage
+export default LifecyclePage;
