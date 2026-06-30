@@ -40,6 +40,15 @@ const ErrorListView = (): ReactElement => {
     useState<ClassificationFilter>("all");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isComposing, setIsComposing] = useState(false);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !isComposing) {
+      const trimmed = searchInput.trim();
+      setSearchQuery(trimmed);
+      if (trimmed === "") setSearchInput("");
+    }
+  };
 
   const status = STATUS_MAP[statusFilter];
   const { data, isLoading, error } = useErrorList({
@@ -117,9 +126,9 @@ const ErrorListView = (): ReactElement => {
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") setSearchQuery(searchInput);
-            }}
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => setIsComposing(false)}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Enter로 에러 검색"
             aria-label="에러 검색"
             className="w-full pl-9 pr-3 py-1 rounded-md border border-border-base bg-bg-card text-body2 text-text-primary placeholder:text-text-tertiary outline-none focus:border-border-focus transition-colors"
