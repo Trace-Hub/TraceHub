@@ -27,6 +27,19 @@ const ErrorDetailSkeleton = ({
         <Skeleton className="h-3 w-80" />
       </div>
 
+      {/* 요약 카드 */}
+      <div className="grid grid-cols-3 gap-3">
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="flex flex-col gap-1 p-4 rounded-xl border border-border-subtle bg-bg-card"
+          >
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-6 w-20" />
+          </div>
+        ))}
+      </div>
+
       {/* 인사이트 섹션 */}
       <section className="flex flex-col gap-2 p-4 rounded-xl border border-border-base bg-bg-base">
         <div className="flex items-start gap-2 px-2 py-3 border-l-4 border-l-primary bg-bg-subtle rounded-xs">
