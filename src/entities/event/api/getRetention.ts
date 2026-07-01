@@ -15,6 +15,8 @@ const useRetention = (): UseQueryResult<RetentionResponse, Error> => {
 		queryKey: ["events", "retention"],
 		queryFn: ({ signal }) => getRetention(signal),
 		refetchOnWindowFocus: false,
+		// SSR prefetchQuery로 채운 데이터를 마운트 시 재요청하지 않도록 5분간 fresh 유지
+		staleTime: 5 * 60 * 1000,
 	})
 }
 

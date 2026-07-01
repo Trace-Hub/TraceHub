@@ -1,19 +1,15 @@
 import type { PostHogQueryResult } from "@/entities/event/model/eventStats"
 import { buildRetentionResponse } from "@/entities/event/model/retention"
 import type { RetentionResponse } from "@/entities/event/model/retention"
+import dayjs from "@/shared/lib/dayjs"
 import { KST_OFFSET, runHogQLQuery } from "@/shared/lib/posthogServer"
 
-// KST 기준 이번 주 월요일 — toMonday() HogQL 함수와 동일한 기준으로 맞춤
+// KST 기준 이번 주 월요일 — HogQL toMonday()와 동일한 ISO week(월요일 시작) 기준
 const getKstMondayIso = (): string => {
-	const kstMs = Date.now() + 9 * 60 * 60 * 1000
-	const d = new Date(kstMs)
-	const dow = d.getUTCDay() // 0=Sun, 1=Mon
-	const daysToMonday = dow === 0 ? 6 : dow - 1
-	const monday = new Date(kstMs - daysToMonday * 24 * 60 * 60 * 1000)
-	const y = monday.getUTCFullYear()
-	const m = String(monday.getUTCMonth() + 1).padStart(2, "0")
-	const day = String(monday.getUTCDate()).padStart(2, "0")
-	return `${y}-${m}-${day}`
+	const now = dayjs().tz("Asia/Seoul")
+	// day() 0=Sun → 6일 전 월요일, 1~6 → (dow-1)일 전 월요일
+	const daysToMonday = now.day() === 0 ? 6 : now.day() - 1
+	return now.subtract(daysToMonday, "day").format("YYYY-MM-DD")
 }
 
 const getRetentionServer = async (): Promise<RetentionResponse> => {

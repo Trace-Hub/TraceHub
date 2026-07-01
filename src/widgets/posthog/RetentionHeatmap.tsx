@@ -102,14 +102,19 @@ const RetentionHeatmap = ({
 											"relative px-3 py-2 text-center font-mono tabular-nums group/cell",
 											cellClass,
 										)}
+										tabIndex={count !== null && !isW0 ? 0 : undefined}
 										aria-label={
-											rate !== null ? `Week ${w} 잔존율 ${rate}%` : "데이터 없음"
+											rate !== null
+												? count !== null
+													? `Week ${w} 잔존율 ${rate}%, ${count.toLocaleString()}명`
+													: `Week ${w} 잔존율 ${rate}%`
+												: "데이터 없음"
 										}
 									>
 										{rate !== null ? `${rate}%` : ""}
 										{count !== null && !isW0 && (
 											<div
-												className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/cell:block z-20"
+												className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover/cell:block group-focus-within/cell:block z-20"
 												role="tooltip"
 											>
 												<div className="rounded-md bg-bg-overlay border border-border-subtle px-2 py-1 text-text-primary shadow-md whitespace-nowrap">

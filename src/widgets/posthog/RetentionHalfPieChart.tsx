@@ -28,7 +28,8 @@ const RetentionHalfPieChart = ({
 		totalTrackedUsers > 0
 			? Math.round((retainedUsersCount / totalTrackedUsers) * 1000) / 10
 			: 0
-	const notRetainedPct = Math.round((100 - retainedPct) * 10) / 10
+	const notRetainedPct =
+		totalTrackedUsers > 0 ? Math.round((100 - retainedPct) * 10) / 10 : 0
 
 	const chartData = [
 		{
