@@ -1,10 +1,20 @@
+import { HydrationBoundary, QueryClient, dehydrate } from "@tanstack/react-query"
 import type { ReactElement } from "react"
+import { getRetentionServer } from "@/entities/event/api/getRetentionServer"
+import RetentionDashboard from "@/views/posthog/RetentionDashboard"
 
-const RetentionPage = (): ReactElement => {
+const RetentionPage = async (): Promise<ReactElement> => {
+	const queryClient = new QueryClient()
+
+	await queryClient.prefetchQuery({
+		queryKey: ["events", "retention"],
+		queryFn: getRetentionServer,
+	})
+
 	return (
-		<div className="flex flex-1 items-center justify-center p-6">
-			<p className="text-text-secondary">준비 중</p>
-		</div>
+		<HydrationBoundary state={dehydrate(queryClient)}>
+			<RetentionDashboard />
+		</HydrationBoundary>
 	)
 }
 
