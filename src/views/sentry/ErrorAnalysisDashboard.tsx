@@ -17,11 +17,17 @@ import { cn } from "@/shared/lib/utils";
 type BadgeVariant = ClassificationBadgeProps["variant"];
 
 type ErrorCategory = "server" | "client" | "other";
+type EnvFilterValue = "production" | "development";
 
 const CATEGORY_OPTIONS: { value: ErrorCategory; label: string }[] = [
   { value: "server", label: "Server Error (5xx)" },
   { value: "client", label: "Client Error (4xx)" },
   { value: "other", label: "Other" },
+];
+
+const ENV_OPTIONS: { value: EnvFilterValue; label: string }[] = [
+  { value: "development", label: "Development" },
+  { value: "production", label: "Production" },
 ];
 
 /**
@@ -66,9 +72,10 @@ const BADGE_CONFIG: {
 
 const ErrorAnalysisDashboard = (): ReactElement => {
   const [category, setCategory] = useState<ErrorCategory>("server");
+  const [envFilter, setEnvFilter] = useState<EnvFilterValue>("development");
 
   const { data, isLoading, error } = useErrorList({
-    environment: "development",
+    environment: envFilter,
   });
 
   useApiErrorToast(!!error, "에러 통계를 불러오는 데 실패했습니다");
@@ -202,6 +209,12 @@ const ErrorAnalysisDashboard = (): ReactElement => {
           onChange={setCategory}
           options={CATEGORY_OPTIONS}
           ariaLabel="에러 분류 선택"
+        />
+        <Dropdown
+          value={envFilter}
+          onChange={setEnvFilter}
+          options={ENV_OPTIONS}
+          ariaLabel="환경 필터"
         />
       </div>
 

@@ -26,8 +26,11 @@ const attachHttpStatusTag = (event: ErrorEvent): ErrorEvent => {
       "http.status_code": statusCode,
     };
 
-    // 기본 스택 그룹핑 + status_code로 추가 분리
-    event.fingerprint = ["{{ default }}", statusCode];
+    // 기본 스택 그룹핑 + status_code로 추가 분리 (기존 fingerprint 보존)
+    event.fingerprint = [
+      ...(event.fingerprint ?? ["{{ default }}"]),
+      statusCode,
+    ];
   }
   return event;
 };

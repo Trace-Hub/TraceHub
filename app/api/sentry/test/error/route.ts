@@ -6,7 +6,8 @@ import { NextResponse } from "next/server";
  */
 export const GET = (request: Request): NextResponse => {
   const { searchParams } = new URL(request.url);
-  const status = Number(searchParams.get("status") ?? "500");
+  const raw = Number(searchParams.get("status") ?? "500");
+  const status = Number.isInteger(raw) && raw >= 100 && raw <= 599 ? raw : 500;
 
   return NextResponse.json(
     { error: `테스트 에러: HTTP ${status}` },

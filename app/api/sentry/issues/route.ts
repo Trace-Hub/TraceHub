@@ -88,6 +88,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
               headers: {
                 Authorization: `Bearer ${SENTRY_AUTH_TOKEN}`,
               },
+              signal: AbortSignal.timeout(10000),
             },
           );
           if (tagRes.ok) {
@@ -96,7 +97,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
             return { ...issue, httpStatusCode: topValue ?? undefined };
           }
         } catch {
-          // 태그 조회 실패 시 무시
+          // 태그 조회 실패 또는 타임아웃 시 무시
         }
         return issue;
       }),
