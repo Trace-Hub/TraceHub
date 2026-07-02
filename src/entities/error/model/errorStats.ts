@@ -25,6 +25,7 @@ interface SentryIssue {
   annotations: string[];
   shortId: string;
   permalink: string;
+  httpStatusCode?: string;
 }
 
 interface ErrorListResponse {

@@ -78,7 +78,33 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       }),
     );
 
-    return NextResponse.json({ issues } satisfies ErrorListResponse);
+    // 각 이슈의 http.status_code 태그를 병렬 조회
+    const issuesWithStatus = await Promise.all(
+      issues.map(async (issue) => {
+        try {
+          const tagRes = await fetch(
+            `${SENTRY_HOST}/api/0/organizations/${SENTRY_ORG}/issues/${issue.id}/tags/http.status_code/`,
+            {
+              headers: {
+                Authorization: `Bearer ${SENTRY_AUTH_TOKEN}`,
+              },
+            },
+          );
+          if (tagRes.ok) {
+            const tagData = await tagRes.json();
+            const topValue = tagData?.topValues?.[0]?.value;
+            return { ...issue, httpStatusCode: topValue ?? undefined };
+          }
+        } catch {
+          // 태그 조회 실패 시 무시
+        }
+        return issue;
+      }),
+    );
+
+    return NextResponse.json({
+      issues: issuesWithStatus,
+    } satisfies ErrorListResponse);
   } catch (error) {
     console.error("Sentry API error:", error);
     return NextResponse.json(

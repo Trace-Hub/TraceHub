@@ -1,8 +1,7 @@
-import type { ReactElement } from "react";
-import ErrorListView from "@/views/sentry/ErrorListView";
+import { redirect } from "next/navigation";
 
-const ErrorsPage = (): ReactElement => {
-  return <ErrorListView />;
+const ErrorsPage = (): never => {
+  redirect("/dashboard/errors/list");
 };
 
 export default ErrorsPage;

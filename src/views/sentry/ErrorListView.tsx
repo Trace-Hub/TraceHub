@@ -10,16 +10,27 @@ import Dropdown from "@/shared/ui/Dropdown";
 import type { DropdownOption } from "@/shared/ui/Dropdown";
 import ErrorCard from "@/shared/ui/ErrorCard";
 import EmptyState from "@/shared/ui/EmptyState";
-import FilterBar from "@/shared/ui/FilterBar";
 import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import ErrorListSkeleton from "@/views/sentry/ErrorListSkeleton";
-import type { StatusFilterValue } from "@/shared/ui/StatusFilter";
-import type { EnvFilterValue } from "@/shared/ui/EnvFilter";
 
+type StatusFilterValue = "all" | "unresolved" | "ignored" | "resolved";
+type EnvFilterValue = "production" | "development";
 type ClassificationFilter = "all" | ClassificationBadgeProps["variant"];
 
+const STATUS_OPTIONS: DropdownOption<StatusFilterValue>[] = [
+  { value: "all", label: "상태 전체" },
+  { value: "unresolved", label: "미해결" },
+  { value: "ignored", label: "무시됨" },
+  { value: "resolved", label: "해결됨" },
+];
+
+const ENV_OPTIONS: DropdownOption<EnvFilterValue>[] = [
+  { value: "development", label: "Development" },
+  { value: "production", label: "Production" },
+];
+
 const CLASSIFICATION_OPTIONS: DropdownOption<ClassificationFilter>[] = [
-  { value: "all", label: "전체" },
+  { value: "all", label: "분류 전체" },
   { value: "new", label: "신규" },
   { value: "dev", label: "재발" },
   { value: "critical", label: "급증" },
@@ -82,23 +93,28 @@ const ErrorListView = (): ReactElement => {
         </p>
       </div>
 
-      {/* 필터바 */}
-      <FilterBar
-        statusValue={statusFilter}
-        envValue={envFilter}
-        onStatusChange={setStatusFilter}
-        onEnvChange={setEnvFilter}
-        className="rounded-xl"
-      />
-
-      {/* 분류 필터 + 검색 */}
+      {/* 필터 드롭다운 + 검색 */}
       <div className="flex items-center justify-between">
-        <Dropdown
-          value={classificationFilter}
-          onChange={setClassificationFilter}
-          options={CLASSIFICATION_OPTIONS}
-          ariaLabel="분류 필터"
-        />
+        <div className="flex items-center gap-2">
+          <Dropdown
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={STATUS_OPTIONS}
+            ariaLabel="상태 필터"
+          />
+          <Dropdown
+            value={classificationFilter}
+            onChange={setClassificationFilter}
+            options={CLASSIFICATION_OPTIONS}
+            ariaLabel="분류 필터"
+          />
+          <Dropdown
+            value={envFilter}
+            onChange={setEnvFilter}
+            options={ENV_OPTIONS}
+            ariaLabel="환경 필터"
+          />
+        </div>
         <div className="relative w-64">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
