@@ -6,4 +6,5 @@ const TRACKING_EVENT = {
     INPUT_FOCUSED: "input_focus",
 } as const;
 
+
 export default TRACKING_EVENT;
