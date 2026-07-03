@@ -75,7 +75,10 @@ const resolvePathFilter = (rawPath: string): string | null => {
 	return buildPathFilter(rawPath === "all" ? undefined : rawPath);
 };
 
-const runHogQLQuery = async (query: string): Promise<PostHogQueryResult> => {
+const runHogQLQuery = async (
+	query: string,
+	timeoutMs = 10_000,
+): Promise<PostHogQueryResult> => {
 	if (!POSTHOG_HOST || !POSTHOG_API_KEY || !POSTHOG_PROJECT_ID) {
 		throw new Error("PostHog 환경변수가 설정되지 않았습니다");
 	}
@@ -88,7 +91,7 @@ const runHogQLQuery = async (query: string): Promise<PostHogQueryResult> => {
 				Authorization: `Bearer ${POSTHOG_API_KEY}`,
 			},
 			body: JSON.stringify({ query: { kind: "HogQLQuery", query } }),
-			signal: AbortSignal.timeout(10_000),
+			signal: AbortSignal.timeout(timeoutMs),
 		},
 	);
 	if (!response.ok) {
