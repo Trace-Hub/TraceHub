@@ -50,6 +50,79 @@ const SentryTestPage = (): ReactElement => {
         >
           유저 정보 포함 에러 전송
         </button>
+
+        <hr className="border-border-subtle my-2" />
+
+        <p className="text-body2 font-medium text-text-primary">
+          HTTP 상태 코드별 에러 테스트
+        </p>
+
+        <button
+          type="button"
+          onClick={async () => {
+            const res = await fetch("/api/sentry/test/error?status=400");
+            if (!res.ok) {
+              captureError(new Error(`HTTP ${res.status}: Bad Request`), {
+                "http.status_code": res.status,
+              });
+            }
+            alert(`✅ 400 에러 전송 완료! (status: ${res.status})`);
+          }}
+          className="px-4 py-2 rounded-md bg-warning text-white text-body2 font-medium active:scale-95 transition-transform"
+        >
+          400 Bad Request 에러 전송
+        </button>
+
+        <button
+          type="button"
+          onClick={async () => {
+            const res = await fetch("/api/sentry/test/error?status=403");
+            if (!res.ok) {
+              captureError(new Error(`HTTP ${res.status}: Forbidden`), {
+                "http.status_code": res.status,
+              });
+            }
+            alert(`✅ 403 에러 전송 완료! (status: ${res.status})`);
+          }}
+          className="px-4 py-2 rounded-md bg-surge text-white text-body2 font-medium active:scale-95 transition-transform"
+        >
+          403 Forbidden 에러 전송
+        </button>
+
+        <button
+          type="button"
+          onClick={async () => {
+            const res = await fetch("/api/sentry/test/error?status=404");
+            if (!res.ok) {
+              captureError(new Error(`HTTP ${res.status}: Not Found`), {
+                "http.status_code": res.status,
+              });
+            }
+            alert(`✅ 404 에러 전송 완료! (status: ${res.status})`);
+          }}
+          className="px-4 py-2 rounded-md bg-text-secondary text-white text-body2 font-medium active:scale-95 transition-transform"
+        >
+          404 Not Found 에러 전송
+        </button>
+
+        <button
+          type="button"
+          onClick={async () => {
+            const res = await fetch("/api/sentry/test/error?status=500");
+            if (!res.ok) {
+              captureError(
+                new Error(`HTTP ${res.status}: Internal Server Error`),
+                {
+                  "http.status_code": res.status,
+                },
+              );
+            }
+            alert(`✅ 500 에러 전송 완료! (status: ${res.status})`);
+          }}
+          className="px-4 py-2 rounded-md bg-error text-white text-body2 font-medium active:scale-95 transition-transform"
+        >
+          500 Internal Server Error 전송
+        </button>
       </div>
 
       <p className="text-caption text-text-tertiary">
