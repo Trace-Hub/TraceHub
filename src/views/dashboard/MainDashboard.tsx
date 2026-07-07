@@ -21,6 +21,7 @@ import LiftIcon from "@/shared/ui/icons/LiftIcon";
 import LinkIcon from "@/shared/ui/icons/LinkIcon";
 import ErrorTimeChart from "@/views/sentry/ErrorTimeChart";
 import MainDashboardSkeleton from "@/views/dashboard/MainDashboardSkeleton";
+import useConnectionCheck from "@/shared/hooks/useConnectionCheck";
 import { cn } from "@/shared/lib/utils";
 import { apiClient } from "@/shared/api/client";
 import { useQuery } from "@tanstack/react-query";
@@ -202,6 +203,8 @@ const OverviewChart = ({ type, period }: OverviewChartProps): ReactElement => {
 
 // 메인 대시보드
 const MainDashboard = (): ReactElement => {
+  useConnectionCheck();
+
   const [chartType, setChartType] = useState<"error" | "event">("error");
   const [chartPeriod, setChartPeriod] = useState<"오늘" | "7일" | "30일">(
     "오늘",
