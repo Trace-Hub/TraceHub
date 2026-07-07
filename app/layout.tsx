@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import { cn } from "@/shared/lib/utils";
 import PostHogProvider from "@/app-init/providers";
 import { ThemeProvider } from "@/shared/providers/ThemeProvider";
+import { THEME_STORAGE_KEY } from "@/shared/config/theme";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -40,6 +41,15 @@ export default function RootLayout({
         inter.variable,
       )}
     >
+      <head>
+        {/* FOUC 방지: JS 번들 로드 전에 다크모드 클래스를 즉시 적용하기 위한 인라인 스크립트.
+            외부 입력 없이 하드코딩된 문자열만 사용하므로 XSS 위험 없음. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");var d=t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme:dark)").matches);if(d)document.documentElement.classList.add("dark")}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <ThemeProvider>
           <PostHogProvider>{children}</PostHogProvider>
