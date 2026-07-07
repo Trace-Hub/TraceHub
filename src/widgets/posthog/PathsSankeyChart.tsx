@@ -1,6 +1,10 @@
 "use client";
 
-import type { MouseEvent as ReactMouseEvent, ReactElement } from "react";
+import type {
+	ReactElement,
+	MouseEvent as ReactMouseEvent,
+	SVGProps,
+} from "react";
 import { useMemo, useRef, useState } from "react";
 import {
 	Sankey,
@@ -169,7 +173,9 @@ const PathsSankeyChart = ({
 	);
 	const edgeByKey = useMemo(
 		() =>
-			new Map(flows.edges.map((e) => [`${e.step}::${e.source}::${e.target}`, e])),
+			new Map(
+				flows.edges.map((e) => [`${e.step}::${e.source}::${e.target}`, e]),
+			),
 		[flows],
 	);
 	const sankeyData: SankeyData = useMemo(
@@ -253,7 +259,12 @@ const PathsSankeyChart = ({
 		);
 	};
 
-	const renderLink = (props: SankeyLinkProps): ReactElement => {
+	// recharts SankeyLinkOptions 함수형은 반환 타입을 ReactElement<SVGProps<SVGPathElement>>로
+	// 요구한다 — 제네릭 없는 ReactElement는 <path>를 반환해도 props 타입이 unknown으로
+	// 추론되어 할당되지 않는다
+	const renderLink = (
+		props: SankeyLinkProps,
+	): ReactElement<SVGProps<SVGPathElement>> => {
 		const sourceX = safeNum(props.sourceX);
 		const targetX = safeNum(props.targetX);
 		const sourceY = safeNum(props.sourceY);
