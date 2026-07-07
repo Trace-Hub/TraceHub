@@ -4,16 +4,14 @@ import type {
   ErrorListResponse,
   ErrorStatus,
 } from "@/entities/error/model/errorStats";
+import { getSentryConfig, sentryFetch } from "@/shared/api/sentryClient";
 
-const SENTRY_HOST = "https://sentry.io";
 const VALID_STATUSES: ErrorStatus[] = ["unresolved", "ignored", "resolved"];
 
 export const GET = async (request: Request): Promise<NextResponse> => {
-  const SENTRY_AUTH_TOKEN = process.env.NEXT_SENTRY_API_TOKEN;
-  const SENTRY_ORG = process.env.NEXT_SENTRY_ORG;
-  const SENTRY_PROJECT = process.env.NEXT_SENTRY_PROJECT;
+  const config = getSentryConfig();
 
-  if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG || !SENTRY_PROJECT) {
+  if (!config || !config.project) {
     return NextResponse.json(
       { error: "Sentry 환경변수가 설정되지 않았습니다" },
       { status: 500 },
@@ -26,7 +24,6 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     const environment = searchParams.get("environment") ?? "";
     const query = searchParams.get("query") ?? "";
 
-    // status 허용값 검증
     if (!VALID_STATUSES.includes(rawStatus as ErrorStatus)) {
       return NextResponse.json(
         {
@@ -44,13 +41,9 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       ...(environment && { environment }),
     });
 
-    const response = await fetch(
-      `${SENTRY_HOST}/api/0/projects/${SENTRY_ORG}/${SENTRY_PROJECT}/issues/?${params}`,
-      {
-        headers: {
-          Authorization: `Bearer ${SENTRY_AUTH_TOKEN}`,
-        },
-      },
+    const response = await sentryFetch(
+      `/api/0/projects/${config.org}/${config.project}/issues/?${params}`,
+      config,
     );
 
     if (!response.ok) {
@@ -82,14 +75,9 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     const issuesWithStatus = await Promise.all(
       issues.map(async (issue) => {
         try {
-          const tagRes = await fetch(
-            `${SENTRY_HOST}/api/0/organizations/${SENTRY_ORG}/issues/${issue.id}/tags/http.status_code/`,
-            {
-              headers: {
-                Authorization: `Bearer ${SENTRY_AUTH_TOKEN}`,
-              },
-              signal: AbortSignal.timeout(10000),
-            },
+          const tagRes = await sentryFetch(
+            `/api/0/organizations/${config.org}/issues/${issue.id}/tags/http.status_code/`,
+            config,
           );
           if (tagRes.ok) {
             const tagData = await tagRes.json();
