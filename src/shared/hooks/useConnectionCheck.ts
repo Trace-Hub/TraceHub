@@ -8,9 +8,9 @@ interface ConnectionTestResponse {
 }
 
 const REASON_MESSAGES: Record<string, string> = {
-  env_missing: "환경변수가 설정되지 않았습니다.",
-  invalid_token: "API 토큰이 유효하지 않습니다.",
-  api_error: "API 연결에 실패했습니다.",
+  env_missing: "환경변수 미설정",
+  invalid_token: "API 토큰 유효하지 않음",
+  api_error: "API 연결 실패",
 };
 
 /**
@@ -37,20 +37,16 @@ const useConnectionCheck = (): void => {
 
       if (sentryRes.status === "fulfilled" && !sentryRes.value.connected) {
         const reason =
-          REASON_MESSAGES[sentryRes.value.reason ?? ""] ??
-          "연결에 실패했습니다.";
-        toast.error(`Sentry 연동 실패: ${reason}`, {
-          description: "Settings에서 연동 설정을 확인하세요.",
+          REASON_MESSAGES[sentryRes.value.reason ?? ""] ?? "연결 실패";
+        toast.error(`Sentry 연동 실패 — ${reason}`, {
           duration: 5000,
         });
       }
 
       if (posthogRes.status === "fulfilled" && !posthogRes.value.connected) {
         const reason =
-          REASON_MESSAGES[posthogRes.value.reason ?? ""] ??
-          "연결에 실패했습니다.";
-        toast.error(`PostHog 연동 실패: ${reason}`, {
-          description: "Settings에서 연동 설정을 확인하세요.",
+          REASON_MESSAGES[posthogRes.value.reason ?? ""] ?? "연결 실패";
+        toast.error(`PostHog 연동 실패 — ${reason}`, {
           duration: 5000,
         });
       }
