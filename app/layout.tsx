@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import { cn } from "@/shared/lib/utils";
 import PostHogProvider from "@/app-init/providers";
 import { ThemeProvider } from "@/shared/providers/ThemeProvider";
+import { THEME_STORAGE_KEY } from "@/shared/config/theme";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -45,7 +46,7 @@ export default function RootLayout({
             외부 입력 없이 하드코딩된 문자열만 사용하므로 XSS 위험 없음. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("tracehub-theme");var d=t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme:dark)").matches);if(d)document.documentElement.classList.add("dark")}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");var d=t==="dark"||(t!=="light"&&window.matchMedia("(prefers-color-scheme:dark)").matches);if(d)document.documentElement.classList.add("dark")}catch(e){}})()`,
           }}
         />
       </head>

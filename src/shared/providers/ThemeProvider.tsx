@@ -8,6 +8,7 @@ import {
   useCallback,
 } from "react";
 import type { ReactElement, ReactNode } from "react";
+import { THEME_STORAGE_KEY } from "@/shared/config/theme";
 
 type Theme = "light" | "dark" | "system";
 
@@ -21,7 +22,7 @@ const ThemeContext = createContext<ThemeContextValue>({
   setTheme: () => {},
 });
 
-const STORAGE_KEY = "tracehub-theme";
+const STORAGE_KEY = THEME_STORAGE_KEY;
 
 interface ThemeProviderProps {
   children: ReactNode;
