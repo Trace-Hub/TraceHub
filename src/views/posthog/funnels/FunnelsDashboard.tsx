@@ -13,10 +13,10 @@ import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import AnimatedNumber from "@/shared/ui/AnimatedNumber";
 import Dropdown from "@/shared/ui/Dropdown";
 import EmptyState from "@/shared/ui/EmptyState";
-import FunnelDashboardSkeleton from "@/widgets/posthog/FunnelDashboardSkeleton";
-import FunnelStepCards from "@/widgets/posthog/FunnelStepCards";
-import FunnelTrendChart from "@/widgets/posthog/FunnelTrendChart";
-import FunnelVisualChart from "@/widgets/posthog/FunnelVisualChart";
+import FunnelDashboardSkeleton from "@/widgets/posthog/funnels/FunnelDashboardSkeleton";
+import FunnelStepCards from "@/widgets/posthog/funnels/FunnelStepCards";
+import FunnelTrendChart from "@/widgets/posthog/funnels/FunnelTrendChart";
+import FunnelVisualChart from "@/widgets/posthog/funnels/FunnelVisualChart";
 
 const FUNNEL_TABS: FunnelTab[] = ["7일", "30일"];
 

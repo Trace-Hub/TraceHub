@@ -13,10 +13,10 @@ import EmptyState from "@/shared/ui/EmptyState"
 import type { Period as PeriodTabValue } from "@/shared/ui/PeriodTab"
 import PeriodTab from "@/shared/ui/PeriodTab"
 import Skeleton from "@/shared/ui/skeleton"
-import PathDropdown from "@/views/posthog/PathDropdown"
-import PathStepDropdown from "@/views/posthog/PathStepDropdown"
-import PathsDashboardSkeleton from "@/widgets/posthog/PathsDashboardSkeleton"
-import PathsSankeyChart from "@/widgets/posthog/PathsSankeyChart"
+import PathDropdown from "@/shared/ui/PathDropdown"
+import PathStepDropdown from "@/views/posthog/paths/PathStepDropdown"
+import PathsDashboardSkeleton from "@/widgets/posthog/paths/PathsDashboardSkeleton"
+import PathsSankeyChart from "@/widgets/posthog/paths/PathsSankeyChart"
 
 const DEFAULT_STEP_COUNT: PathStepCount = 3
 // "all" = 전체 경로(시작점 필터 없음) — 사용자별 실제 첫 방문 페이지가 Step 0이 된다

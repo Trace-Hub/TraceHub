@@ -1,5 +1,5 @@
 import type { ReactElement } from "react"
-import PathsFlowTestNav from "@/views/posthog/PathsFlowTestNav"
+import PathsFlowTestNav from "@/views/posthog/dev/PathsFlowTestNav"
 
 interface PosthogSubPageProps {
 	params: Promise<{ id: string }>

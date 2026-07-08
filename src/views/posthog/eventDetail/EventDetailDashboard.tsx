@@ -11,11 +11,11 @@ import { EVENT_TAB_TO_PERIOD } from "@/entities/event/model/eventStats";
 import { calcChangeRate } from "@/entities/event/model/eventStatsUtils";
 import { cn } from "@/shared/lib/utils";
 import type { Period as TabPeriod } from "@/shared/ui/PeriodSelector";
-import EventDetailInsightSection from "@/views/posthog/EventDetailInsightSection";
-import EventDetailMetricsSection from "@/views/posthog/EventDetailMetricsSection";
-import EventDetailPropertySection from "@/views/posthog/EventDetailPropertySection";
-import EventDetailRelatedEventsSection from "@/views/posthog/EventDetailRelatedEventsSection";
-import EventDetailTrendSection from "@/views/posthog/EventDetailTrendSection";
+import EventDetailInsightSection from "@/widgets/posthog/eventDetail/EventDetailInsightSection";
+import EventDetailMetricsSection from "@/widgets/posthog/eventDetail/EventDetailMetricsSection";
+import EventDetailPropertySection from "@/widgets/posthog/eventDetail/EventDetailPropertySection";
+import EventDetailRelatedEventsSection from "@/widgets/posthog/eventDetail/EventDetailRelatedEventsSection";
+import EventDetailTrendSection from "@/widgets/posthog/eventDetail/EventDetailTrendSection";
 
 interface EventDetailDashboardProps {
 	event: string;

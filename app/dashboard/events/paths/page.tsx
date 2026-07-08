@@ -3,7 +3,7 @@ import type { ReactElement } from "react"
 import { getPathFlowsServer } from "@/entities/event/api/getPathFlowsServer"
 import { getPathsKpiServer } from "@/entities/event/api/getPathsKpiServer"
 import type { PathStepCount } from "@/entities/event/model/paths"
-import PathsDashboard from "@/views/posthog/PathsDashboard"
+import PathsDashboard from "@/views/posthog/paths/PathsDashboard"
 
 const DEFAULT_PERIOD = "week"
 const DEFAULT_STEP_COUNT: PathStepCount = 3

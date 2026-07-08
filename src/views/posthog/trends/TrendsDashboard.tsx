@@ -17,18 +17,18 @@ import { getEventLabel } from "@/shared/config/eventLabel";
 import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import EmptyState from "@/shared/ui/EmptyState";
 import type { Period as TabPeriod } from "@/shared/ui/PeriodTab";
-import CategoryDropdown from "@/views/posthog/CategoryDropdown";
-import CountdownText from "@/views/posthog/CountdownText";
-import EventBarChart from "@/views/posthog/EventBarChart";
-import EventComparisonChart from "@/views/posthog/EventComparisonChart";
-import EventLineChart from "@/views/posthog/EventLineChart";
-import EventStatCard from "@/views/posthog/EventStatCard";
-import EventStatsDashboardSkeleton from "@/views/posthog/EventStatsDashboardSkeleton";
+import CategoryDropdown from "@/views/posthog/trends/CategoryDropdown";
+import CountdownText from "@/widgets/posthog/trends/CountdownText";
+import EventBarChart from "@/widgets/posthog/trends/EventBarChart";
+import EventComparisonChart from "@/widgets/posthog/trends/EventComparisonChart";
+import EventLineChart from "@/widgets/posthog/trends/EventLineChart";
+import EventStatCard from "@/widgets/posthog/trends/EventStatCard";
+import EventStatsDashboardSkeleton from "@/widgets/posthog/trends/EventStatsDashboardSkeleton";
 import KpiDualPanel, {
 	KpiDualPanelSkeleton,
-} from "@/views/posthog/KpiDualPanel";
-import PathDropdown from "@/views/posthog/PathDropdown";
-import PeriodDropdown from "@/views/posthog/PeriodDropdown";
+} from "@/widgets/posthog/trends/KpiDualPanel";
+import PathDropdown from "@/shared/ui/PathDropdown";
+import PeriodDropdown from "@/views/posthog/trends/PeriodDropdown";
 
 const TOAST_WARN_MS = 5_000;
 const UPDATE_TOAST_ID = "update";
