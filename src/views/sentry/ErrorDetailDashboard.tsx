@@ -16,6 +16,7 @@ import Skeleton from "@/shared/ui/skeleton";
 import PeriodSelector from "@/shared/ui/PeriodSelector";
 import InsightLabel from "@/shared/ui/InsightLabel";
 import type { Period } from "@/shared/ui/PeriodTab";
+import { PERIOD_TAB_MAP } from "@/shared/config/dropdownOptions";
 import { cn } from "@/shared/lib/utils";
 
 interface ErrorDetailDashboardProps {
@@ -29,12 +30,6 @@ const TAG_TABS: { label: string; value: ErrorTagType }[] = [
   { label: "환경", value: "environment" },
 ];
 
-const TAB_TO_PERIOD: Record<Period, ErrorStatsPeriod> = {
-  오늘: "24h",
-  "7일": "7d",
-  "30일": "30d",
-};
-
 const ErrorDetailDashboard = ({
   issue,
   className,
@@ -42,7 +37,7 @@ const ErrorDetailDashboard = ({
   const [activePeriod, setActivePeriod] = useState<Period>("오늘");
   const [activeTag, setActiveTag] = useState<ErrorTagType>("browser.name");
 
-  const period = TAB_TO_PERIOD[activePeriod];
+  const period = PERIOD_TAB_MAP[activePeriod];
   const { data: statsData, isLoading: statsLoading } = useErrorStats(
     issue.id,
     period,
