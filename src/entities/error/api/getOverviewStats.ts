@@ -6,7 +6,7 @@ import type {
 import { apiClient } from "@/shared/api/client";
 
 interface OverviewStatsResponse {
-  period: string;
+  period: ErrorStatsPeriod;
   stats: ErrorStatPoint[];
 }
 
