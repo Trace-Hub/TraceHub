@@ -3,7 +3,11 @@ import type {
   ErrorStatsResponse,
   ErrorStatsPeriod,
 } from "@/entities/error/model/errorStats";
-import { getSentryConfig, sentryFetch } from "@/shared/api/sentryClient";
+import {
+  getSentryConfig,
+  sentryFetch,
+  SENTRY_HOST,
+} from "@/shared/api/sentryClient";
 
 const VALID_PERIODS: ErrorStatsPeriod[] = ["24h", "7d", "30d"];
 
@@ -31,7 +35,7 @@ export const GET = async (
 ): Promise<NextResponse> => {
   const config = getSentryConfig();
 
-  if (!config || !config.project) {
+  if (!config) {
     return NextResponse.json(
       { error: "Sentry 환경변수가 설정되지 않았습니다" },
       { status: 500 },
@@ -68,7 +72,7 @@ export const GET = async (
     // URLSearchParams로 안전하게 쿼리 조합
     const statsUrl = new URL(
       `/api/0/organizations/${encodeURIComponent(config.org)}/events-stats/`,
-      "https://sentry.io",
+      SENTRY_HOST,
     );
     statsUrl.searchParams.set("field", "count()");
     statsUrl.searchParams.set("query", `issue.id:${id}`);

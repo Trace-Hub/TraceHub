@@ -4,7 +4,11 @@ import type {
   ErrorStatsPeriod,
 } from "@/entities/error/model/errorStats";
 import { buildDailySlots } from "@/entities/error/model/errorStatsUtils";
-import { getSentryConfig, sentryFetch } from "@/shared/api/sentryClient";
+import {
+  getSentryConfig,
+  sentryFetch,
+  SENTRY_HOST,
+} from "@/shared/api/sentryClient";
 
 interface SentryStatsResponse {
   period: ErrorStatsPeriod;
@@ -73,7 +77,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
 
     const statsUrl = new URL(
       `/api/0/organizations/${encodeURIComponent(config.org)}/events-stats/`,
-      "https://sentry.io",
+      SENTRY_HOST,
     );
     statsUrl.searchParams.set("field", "count()");
     statsUrl.searchParams.set("interval", interval);
