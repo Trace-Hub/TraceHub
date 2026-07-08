@@ -4,7 +4,7 @@ import type { ReactElement } from "react";
 import { useState } from "react";
 import { FUNNEL_CONFIG } from "@/shared/config/funnelConfig";
 import { trackEvent } from "@/shared/lib/posthog";
-import PathsFlowTestNav from "@/views/posthog/PathsFlowTestNav";
+import PathsFlowTestNav from "@/views/posthog/dev/PathsFlowTestNav";
 
 type EventFeedback = Record<string, boolean>;
 type TrackingKey = Parameters<typeof trackEvent>[0];

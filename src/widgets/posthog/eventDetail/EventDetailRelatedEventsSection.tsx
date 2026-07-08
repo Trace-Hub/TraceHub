@@ -13,8 +13,8 @@ import EmptyState from "@/shared/ui/EmptyState";
 import PercentageBarChart, {
 	type PercentageBarChartItem,
 } from "@/shared/ui/PercentageBarChart";
-import EventDetailRelatedEventsSectionSkeleton from "@/views/posthog/EventDetailRelatedEventsSectionSkeleton";
-import EventRelatedDonutChart from "@/views/posthog/EventRelatedDonutChart";
+import EventDetailRelatedEventsSectionSkeleton from "@/widgets/posthog/eventDetail/EventDetailRelatedEventsSectionSkeleton";
+import EventRelatedDonutChart from "@/widgets/posthog/eventDetail/EventRelatedDonutChart";
 
 interface EventDetailRelatedEventsSectionProps {
 	pages: EventPageStat[];

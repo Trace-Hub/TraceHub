@@ -6,7 +6,7 @@ import {
   captureMessage,
   setSentryUser,
 } from "@/shared/lib/sentry";
-import PathsFlowTestNav from "@/views/posthog/PathsFlowTestNav";
+import PathsFlowTestNav from "@/views/posthog/dev/PathsFlowTestNav";
 
 const SentryTestPage = (): ReactElement => {
   return (

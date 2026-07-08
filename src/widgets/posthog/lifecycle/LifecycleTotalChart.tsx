@@ -3,7 +3,7 @@ import type { LifecycleSegmentData } from "@/entities/event/model/lifecycle";
 import {
 	SEGMENT_COLORS,
 	SEGMENT_LABELS,
-} from "@/views/posthog/model/lifecycleSegmentConfig";
+} from "@/widgets/posthog/lifecycle/model/lifecycleSegmentConfig";
 
 interface LifecycleTotalChartProps {
 	segments: LifecycleSegmentData[];

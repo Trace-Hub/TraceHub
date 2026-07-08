@@ -11,7 +11,7 @@ import Skeleton from "@/shared/ui/skeleton";
 import Dropdown from "@/shared/ui/Dropdown";
 import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
-import EventRelatedDonutChart from "@/views/posthog/EventRelatedDonutChart";
+import EventRelatedDonutChart from "@/widgets/posthog/eventDetail/EventRelatedDonutChart";
 import { cn } from "@/shared/lib/utils";
 
 type BadgeVariant = ClassificationBadgeProps["variant"];

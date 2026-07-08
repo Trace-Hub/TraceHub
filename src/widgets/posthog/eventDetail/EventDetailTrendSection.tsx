@@ -6,8 +6,8 @@ import { cn } from "@/shared/lib/utils";
 import PeriodSelector, {
 	type Period as TabPeriod,
 } from "@/shared/ui/PeriodSelector";
-import EventDetailTrendChart from "@/views/posthog/EventDetailTrendChart";
-import EventDetailTrendSectionSkeleton from "@/views/posthog/EventDetailTrendSectionSkeleton";
+import EventDetailTrendChart from "@/widgets/posthog/eventDetail/EventDetailTrendChart";
+import EventDetailTrendSectionSkeleton from "@/widgets/posthog/eventDetail/EventDetailTrendSectionSkeleton";
 
 interface EventDetailTrendSectionProps {
 	trend: EventTrendPoint[] | undefined;

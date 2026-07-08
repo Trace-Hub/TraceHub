@@ -7,10 +7,10 @@ import useApiErrorToast from "@/shared/hooks/useApiErrorToast"
 import AnimatedNumber from "@/shared/ui/AnimatedNumber"
 import EmptyState from "@/shared/ui/EmptyState"
 import MetricCard from "@/shared/ui/MetricCard"
-import RetentionComboChart from "@/widgets/posthog/RetentionComboChart"
-import RetentionDashboardSkeleton from "@/widgets/posthog/RetentionDashboardSkeleton"
-import RetentionHalfPieChart from "@/widgets/posthog/RetentionHalfPieChart"
-import RetentionHeatmap from "@/widgets/posthog/RetentionHeatmap"
+import RetentionComboChart from "@/widgets/posthog/retention/RetentionComboChart"
+import RetentionDashboardSkeleton from "@/widgets/posthog/retention/RetentionDashboardSkeleton"
+import RetentionHalfPieChart from "@/widgets/posthog/retention/RetentionHalfPieChart"
+import RetentionHeatmap from "@/widgets/posthog/retention/RetentionHeatmap"
 
 const formatPct = (v: number): string => `${v.toFixed(1)}%`
 const formatCount = (v: number): string => Math.round(v).toLocaleString()
