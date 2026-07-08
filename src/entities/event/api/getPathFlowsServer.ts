@@ -1,7 +1,11 @@
 import type { Period, PostHogQueryResult } from "@/entities/event/model/eventStats"
 import type { PathFlowsResponse, PathStepCount, PathVisitRow } from "@/entities/event/model/paths"
 import { PATH_PERIOD_TO_DAYS, buildPathFlows } from "@/entities/event/model/paths"
-import { buildPathFilter, runHogQLQuery } from "@/shared/lib/posthogServer"
+import {
+	buildPathFilter,
+	EXTENDED_QUERY_TIMEOUT_MS,
+	runHogQLQuery,
+} from "@/shared/lib/posthogServer"
 
 const getPathFlowsServer = async (
 	startPath: string | null,
@@ -48,7 +52,7 @@ const getPathFlowsServer = async (
 		LIMIT 50000
 	`
 
-	const result: PostHogQueryResult = await runHogQLQuery(query, 30_000)
+	const result: PostHogQueryResult = await runHogQLQuery(query, EXTENDED_QUERY_TIMEOUT_MS)
 
 	const rows: PathVisitRow[] = result.results.map((row) => {
 		// HogQL 결과는 비타입 배열 — 쿼리 컬럼 순서 [session_id, path, visited_at]로 지정했으므로 안전

@@ -6,6 +6,7 @@ import type {
 import {
 	buildKstPeriodFilter,
 	buildPathFilter,
+	EXTENDED_QUERY_TIMEOUT_MS,
 	INVALID_PERIOD_ERROR_MESSAGE,
 	parsePeriodParam,
 	runHogQLQuery,
@@ -45,7 +46,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 				WHERE ${pathnameFilter}${periodFilter}
 				AND ${pathFilter}
 			`,
-				30_000,
+				EXTENDED_QUERY_TIMEOUT_MS,
 			),
 			runHogQLQuery(
 				`
@@ -57,7 +58,7 @@ export async function GET(request: Request): Promise<NextResponse> {
 				ORDER BY count DESC
 				LIMIT 5
 			`,
-				30_000,
+				EXTENDED_QUERY_TIMEOUT_MS,
 			),
 		]);
 

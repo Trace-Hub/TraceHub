@@ -10,7 +10,12 @@ import {
 	FUNNEL_LOOKBACK_DAYS,
 } from "@/entities/event/model/funnel";
 import { getFunnelById } from "@/shared/config/funnelConfig";
-import { KST_OFFSET, runHogQLQuery, sanitizeHogQLString } from "@/shared/lib/posthogServer";
+import {
+	EXTENDED_QUERY_TIMEOUT_MS,
+	KST_OFFSET,
+	runHogQLQuery,
+	sanitizeHogQLString,
+} from "@/shared/lib/posthogServer";
 
 const getFunnelServer = async (
 	funnelId: string,
@@ -42,7 +47,10 @@ const getFunnelServer = async (
 	`;
 
 	// 30일 쿼리는 최대 50000행을 반환하므로 기본 10s보다 긴 타임아웃 필요
-	const result: PostHogQueryResult = await runHogQLQuery(query, 30_000);
+	const result: PostHogQueryResult = await runHogQLQuery(
+		query,
+		EXTENDED_QUERY_TIMEOUT_MS,
+	);
 
 	const rows: FunnelRawRow[] = result.results.map((row) => {
 		const [personId, event, date] = row as [string, string, string];

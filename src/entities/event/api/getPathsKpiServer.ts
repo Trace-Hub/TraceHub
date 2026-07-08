@@ -1,7 +1,11 @@
 import type { Period, PostHogQueryResult } from "@/entities/event/model/eventStats"
 import type { PathsKpiResponse, PathVisitRow } from "@/entities/event/model/paths"
 import { PATH_PERIOD_TO_DAYS, buildPathsKpi } from "@/entities/event/model/paths"
-import { buildPathFilter, runHogQLQuery } from "@/shared/lib/posthogServer"
+import {
+	buildPathFilter,
+	EXTENDED_QUERY_TIMEOUT_MS,
+	runHogQLQuery,
+} from "@/shared/lib/posthogServer"
 
 const getPathsKpiServer = async (period: Period): Promise<PathsKpiResponse> => {
 	// TRACKED_PATHS 전체 대상, 세션별 첫/마지막 방문 판별을 위해 person_id가 아닌 session_id로 묶는다
@@ -25,7 +29,7 @@ const getPathsKpiServer = async (period: Period): Promise<PathsKpiResponse> => {
 		LIMIT 50000
 	`
 
-	const result: PostHogQueryResult = await runHogQLQuery(query, 30_000)
+	const result: PostHogQueryResult = await runHogQLQuery(query, EXTENDED_QUERY_TIMEOUT_MS)
 
 	const rows: PathVisitRow[] = result.results.map((row) => {
 		// HogQL 결과는 비타입 배열 — 쿼리 컬럼 순서 [session_id, path, visited_at]로 지정했으므로 안전

@@ -91,6 +91,10 @@ const resolvePathFilter = (rawPath: string): string | null => {
 	return buildPathFilter(rawPath === "all" ? undefined : rawPath);
 };
 
+// TRACKED_PATHS 전체를 넓게 스캔하는 KPI/flow/lifecycle류 쿼리가 공통으로 쓰는
+// 연장 타임아웃 — 기본 10s로는 트래픽이 많은 기간에 타임아웃될 수 있다
+const EXTENDED_QUERY_TIMEOUT_MS = 30_000;
+
 const runHogQLQuery = async (
 	query: string,
 	timeoutMs = 10_000,
@@ -122,6 +126,7 @@ export {
 	buildKstPeriodFilter,
 	buildKstPreviousPeriodFilter,
 	buildPathFilter,
+	EXTENDED_QUERY_TIMEOUT_MS,
 	INVALID_PERIOD_ERROR_MESSAGE,
 	isValidPathParam,
 	KST_OFFSET,
