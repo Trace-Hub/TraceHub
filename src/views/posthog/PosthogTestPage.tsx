@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 import { useState } from "react";
 import { FUNNEL_CONFIG } from "@/shared/config/funnelConfig";
 import { trackEvent } from "@/shared/lib/posthog";
+import PathsFlowTestNav from "@/views/posthog/PathsFlowTestNav";
 
 type EventFeedback = Record<string, boolean>;
 type TrackingKey = Parameters<typeof trackEvent>[0];
@@ -63,6 +64,8 @@ const PosthogTestPage = (): ReactElement => {
 					확인하세요.
 				</p>
 			</div>
+
+			<PathsFlowTestNav />
 
 			{/* 기본 이벤트 */}
 			<section className="flex flex-col gap-3 p-5 rounded-xl border border-border-subtle bg-bg-card">

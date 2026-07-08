@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import type {
 	PageEventDistributionResponse,
 	PageEventItem,
-	Period,
 } from "@/entities/event/model/eventStats";
 import {
 	buildKstPeriodFilter,
 	buildPathFilter,
+	EXTENDED_QUERY_TIMEOUT_MS,
+	INVALID_PERIOD_ERROR_MESSAGE,
+	parsePeriodParam,
 	runHogQLQuery,
 	sanitizeHogQLString,
-	VALID_PERIODS,
 } from "@/shared/lib/posthogServer";
 
 export async function GET(request: Request): Promise<NextResponse> {
@@ -19,19 +20,14 @@ export async function GET(request: Request): Promise<NextResponse> {
 		const rawPathname = searchParams.get("pathname") ?? "";
 		const rawPeriod = searchParams.get("period") ?? "day";
 
-		// Period[] 타입의 includes()에 string을 넘기기 위해 as 필요
-		if (!VALID_PERIODS.includes(rawPeriod as Period)) {
+		const period = parsePeriodParam(rawPeriod);
+		if (period === null) {
 			return NextResponse.json(
-				{
-					error:
-						"유효하지 않은 period 값입니다. day | week | month 중 하나를 사용하세요.",
-				},
+				{ error: INVALID_PERIOD_ERROR_MESSAGE },
 				{ status: 400 },
 			);
 		}
 
-		// includes() 검증 완료 후 안전한 단언
-		const period = rawPeriod as Period;
 		const periodFilter = buildKstPeriodFilter(period);
 		const pathFilter = buildPathFilter();
 
@@ -40,14 +36,20 @@ export async function GET(request: Request): Promise<NextResponse> {
 			? `properties.$pathname = '${sanitizeHogQLString(rawPathname)}' AND `
 			: "";
 
+		// pathname 미지정("전체 페이지") 시 TRACKED_PATHS 전체(현재 "/" 포함, 최대 트래픽 경로)를
+		// 스캔해 기본 10s를 넘을 수 있음 — getPathsKpiServer.ts와 동일하게 30s로 완화
 		const [totalResult, eventsResult] = await Promise.all([
-			runHogQLQuery(`
+			runHogQLQuery(
+				`
 				SELECT count()
 				FROM events
 				WHERE ${pathnameFilter}${periodFilter}
 				AND ${pathFilter}
-			`),
-			runHogQLQuery(`
+			`,
+				EXTENDED_QUERY_TIMEOUT_MS,
+			),
+			runHogQLQuery(
+				`
 				SELECT event, count() AS count
 				FROM events
 				WHERE ${pathnameFilter}${periodFilter}
@@ -55,7 +57,9 @@ export async function GET(request: Request): Promise<NextResponse> {
 				GROUP BY event
 				ORDER BY count DESC
 				LIMIT 5
-			`),
+			`,
+				EXTENDED_QUERY_TIMEOUT_MS,
+			),
 		]);
 
 		const totalCount = Number(totalResult.results[0]?.[0] ?? 0);
