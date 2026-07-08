@@ -2,6 +2,7 @@
 
 import type {
 	ReactElement,
+	FocusEvent as ReactFocusEvent,
 	MouseEvent as ReactMouseEvent,
 	SVGProps,
 } from "react";
@@ -232,8 +233,20 @@ const PathsSankeyChart = ({
 			hoveredNode?.node.step === node.step &&
 			hoveredNode.node.path === node.path;
 
+		// SVG 도형(<g>)이라 recharts 레이아웃을 깨지 않고는 실제 <button>으로 바꿀 수 없다 —
+		// role="button"이 스크린리더 지원이 가장 넓은 현실적 대안이다
 		return (
-			<g>
+			// biome-ignore lint/a11y/useSemanticElements: SVG 도형을 <button>으로 대체 불가
+			<g
+				tabIndex={0}
+				role="button"
+				aria-label={`${node.name} 노드 상세 정보`}
+				// 마우스 hover(Sankey의 onMouseEnter/Leave)와 동일한 상세 카드를 키보드
+				// 포커스로도 열 수 있어야 한다 — 그렇지 않으면 키보드 사용자는
+				// Continuing/Dropping off 수치를 영영 볼 수 없다
+				onFocus={(e) => handleElementEnter(props, "node", e)}
+				onBlur={() => handleElementLeave(props, "node")}
+			>
 				<rect
 					x={x}
 					y={y}
@@ -272,8 +285,13 @@ const PathsSankeyChart = ({
 		const sourceControlX = safeNum(props.sourceControlX);
 		const targetControlX = safeNum(props.targetControlX);
 		const linkWidth = safeNum(props.linkWidth);
+		// aria-label용 — handleElementEnter가 클릭/포커스 시 조회하는 것과 동일한 payload
+		const { source, target } = props.payload;
+		const sourceNode = source as unknown as PathSankeyNodePayload;
+		const targetNode = target as unknown as PathSankeyNodePayload;
 
 		return (
+			// biome-ignore lint/a11y/useSemanticElements: SVG 도형을 <button>으로 대체 불가
 			<path
 				d={`M${sourceX},${sourceY}C${sourceControlX},${sourceY} ${targetControlX},${targetY} ${targetX},${targetY}`}
 				fill="none"
@@ -281,16 +299,38 @@ const PathsSankeyChart = ({
 				strokeOpacity={0.25}
 				strokeWidth={Math.max(linkWidth, 1)}
 				className="cursor-pointer"
+				tabIndex={0}
+				role="button"
+				aria-label={`${sourceNode.name} → ${targetNode.name} 이동 상세 정보`}
+				onFocus={(e) => handleElementEnter(props, "link", e)}
+				onBlur={() => handleElementLeave(props, "link")}
 			/>
 		);
 	};
 
+	// 키보드 포커스는 마우스 좌표(clientX/clientY)가 없다 — 포커스된 요소 자신의
+	// 바운딩 박스 중심을 기준으로 삼아 hover와 동일한 위치 근처에 툴팁을 띄운다
+	const getPointerPosition = (
+		e:
+			| ReactMouseEvent<SVGGraphicsElement>
+			| ReactFocusEvent<SVGGraphicsElement>,
+	): { x: number; y: number } => {
+		if ("clientX" in e) return { x: e.clientX, y: e.clientY };
+		const box = e.currentTarget.getBoundingClientRect();
+		return { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+	};
+
 	// Sankey의 onMouseEnter/Leave는 node/link를 하나의 콜백으로 넘기므로,
-	// type으로 분기한 뒤에도 TS가 item의 구체 타입을 좁히지 못해 단언이 필요하다
+	// type으로 분기한 뒤에도 TS가 item의 구체 타입을 좁히지 못해 단언이 필요하다.
+	// 마우스 hover와 키보드 focus 양쪽에서 재사용 — renderNode/renderLink가
+	// 만드는 요소의 onFocus에서도 그대로 호출한다 (마우스 전용이면 키보드
+	// 사용자는 Continuing/Dropping off 카드나 엣지 툴팁을 영영 볼 수 없다)
 	const handleElementEnter = (
 		item: SankeyNodeProps | SankeyLinkProps,
 		type: SankeyElementType,
-		e: ReactMouseEvent<SVGGraphicsElement>,
+		e:
+			| ReactMouseEvent<SVGGraphicsElement>
+			| ReactFocusEvent<SVGGraphicsElement>,
 	): void => {
 		if (type === "node") {
 			const node = (item as SankeyNodeProps)
@@ -298,8 +338,8 @@ const PathsSankeyChart = ({
 			const stat = nodeStatByKey.get(nodeKey(node.step, node.path));
 			const container = containerRef.current;
 			if (!stat || !container) return;
-			// recharts가 넘겨주는 x/y 대신, 실제로 마우스가 올라간 DOM 요소의 위치를 직접 읽어
-			// 컨테이너 기준 좌표로 변환한다 — margin 처리 방식에 의존하지 않기 위함
+			// recharts가 넘겨주는 x/y 대신, 실제로 마우스가 올라간(또는 포커스된) DOM 요소의
+			// 위치를 직접 읽어 컨테이너 기준 좌표로 변환한다 — margin 처리 방식에 의존하지 않기 위함
 			const nodeBox = e.currentTarget.getBoundingClientRect();
 			const containerBox = container.getBoundingClientRect();
 			setHoveredNode({
@@ -321,14 +361,15 @@ const PathsSankeyChart = ({
 			`${sourceNode.step}::${sourceNode.path}::${targetNode.path}`,
 		);
 		if (!edge) return;
+		const { x, y } = getPointerPosition(e);
 		setHoveredLink({
 			source: sourceNode.name,
 			target: targetNode.name,
 			count: edge.count,
 			ratio: edge.ratio,
 			avgTimeMs: edge.avgTimeMs,
-			x: e.clientX,
-			y: e.clientY,
+			x,
+			y,
 		});
 	};
 
