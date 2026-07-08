@@ -4,29 +4,20 @@ import type {
   ErrorStatsPeriod,
 } from "@/entities/error/model/errorStats";
 import {
+  VALID_PERIODS,
+  PERIOD_INTERVAL,
+  PERIOD_LIMIT,
+} from "@/entities/error/model/errorStats";
+import {
   getSentryConfig,
   sentryFetch,
   SENTRY_HOST,
 } from "@/shared/api/sentryClient";
 
-const VALID_PERIODS: ErrorStatsPeriod[] = ["24h", "7d", "30d"];
-
-const PERIOD_INTERVAL: Record<ErrorStatsPeriod, string> = {
-  "24h": "1h",
-  "7d": "1d",
-  "30d": "1d",
-};
-
 const PERIOD_PARAM: Record<ErrorStatsPeriod, string> = {
   "24h": "24h",
   "7d": "7d",
   "30d": "30d",
-};
-
-const PERIOD_LIMIT: Record<ErrorStatsPeriod, number> = {
-  "24h": 24,
-  "7d": 7,
-  "30d": 30,
 };
 
 export const GET = async (

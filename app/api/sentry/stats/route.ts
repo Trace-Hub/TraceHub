@@ -3,6 +3,11 @@ import type {
   ErrorStatPoint,
   ErrorStatsPeriod,
 } from "@/entities/error/model/errorStats";
+import {
+  VALID_PERIODS,
+  PERIOD_INTERVAL,
+  PERIOD_LIMIT,
+} from "@/entities/error/model/errorStats";
 import { buildDailySlots } from "@/entities/error/model/errorStatsUtils";
 import {
   getSentryConfig,
@@ -14,20 +19,6 @@ interface SentryStatsResponse {
   period: ErrorStatsPeriod;
   stats: ErrorStatPoint[];
 }
-
-const VALID_PERIODS: ErrorStatsPeriod[] = ["24h", "7d", "30d"];
-
-const PERIOD_INTERVAL: Record<ErrorStatsPeriod, string> = {
-  "24h": "1h",
-  "7d": "1d",
-  "30d": "1d",
-};
-
-const PERIOD_LIMIT: Record<ErrorStatsPeriod, number> = {
-  "24h": 24,
-  "7d": 7,
-  "30d": 30,
-};
 
 /** 당일 자정(0시 0분 0초) Date 객체를 반환 */
 const getStartOfToday = (): Date => {

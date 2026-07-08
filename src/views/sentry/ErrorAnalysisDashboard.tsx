@@ -11,23 +11,19 @@ import Skeleton from "@/shared/ui/skeleton";
 import Dropdown from "@/shared/ui/Dropdown";
 import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
+import { ENV_OPTIONS } from "@/shared/config/dropdownOptions";
+import type { EnvFilterValue } from "@/shared/config/dropdownOptions";
 import EventRelatedDonutChart from "@/views/posthog/EventRelatedDonutChart";
 import { cn } from "@/shared/lib/utils";
 
 type BadgeVariant = ClassificationBadgeProps["variant"];
 
 type ErrorCategory = "server" | "client" | "other";
-type EnvFilterValue = "production" | "development";
 
 const CATEGORY_OPTIONS: { value: ErrorCategory; label: string }[] = [
   { value: "server", label: "Server Error (5xx)" },
   { value: "client", label: "Client Error (4xx)" },
   { value: "other", label: "Other" },
-];
-
-const ENV_OPTIONS: { value: EnvFilterValue; label: string }[] = [
-  { value: "development", label: "Development" },
-  { value: "production", label: "Production" },
 ];
 
 /**

@@ -74,3 +74,20 @@ export type {
   ErrorTagValue,
   ErrorTagResponse,
 };
+
+// Sentry stats API에서 공통으로 사용하는 기간 관련 상수
+const VALID_PERIODS: ErrorStatsPeriod[] = ["24h", "7d", "30d"];
+
+const PERIOD_INTERVAL: Record<ErrorStatsPeriod, string> = {
+  "24h": "1h",
+  "7d": "1d",
+  "30d": "1d",
+};
+
+const PERIOD_LIMIT: Record<ErrorStatsPeriod, number> = {
+  "24h": 24,
+  "7d": 7,
+  "30d": 30,
+};
+
+export { VALID_PERIODS, PERIOD_INTERVAL, PERIOD_LIMIT };
