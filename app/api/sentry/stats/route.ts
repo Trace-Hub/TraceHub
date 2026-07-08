@@ -4,13 +4,17 @@ import type {
   ErrorStatsPeriod,
 } from "@/entities/error/model/errorStats";
 import { buildDailySlots } from "@/entities/error/model/errorStatsUtils";
+import {
+  getSentryConfig,
+  sentryFetch,
+  SENTRY_HOST,
+} from "@/shared/api/sentryClient";
 
 interface SentryStatsResponse {
   period: ErrorStatsPeriod;
   stats: ErrorStatPoint[];
 }
 
-const SENTRY_HOST = "https://sentry.io";
 const VALID_PERIODS: ErrorStatsPeriod[] = ["24h", "7d", "30d"];
 
 const PERIOD_INTERVAL: Record<ErrorStatsPeriod, string> = {
@@ -48,10 +52,9 @@ const ensureTodaySlot = (stats: ErrorStatPoint[]): ErrorStatPoint[] => {
 };
 
 export const GET = async (request: Request): Promise<NextResponse> => {
-  const SENTRY_AUTH_TOKEN = process.env.NEXT_SENTRY_API_TOKEN;
-  const SENTRY_ORG = process.env.NEXT_SENTRY_ORG;
+  const config = getSentryConfig();
 
-  if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG) {
+  if (!config) {
     return NextResponse.json(
       { error: "Sentry 환경변수가 설정되지 않았습니다" },
       { status: 500 },
@@ -73,7 +76,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     const interval = PERIOD_INTERVAL[period];
 
     const statsUrl = new URL(
-      `/api/0/organizations/${encodeURIComponent(SENTRY_ORG)}/events-stats/`,
+      `/api/0/organizations/${encodeURIComponent(config.org)}/events-stats/`,
       SENTRY_HOST,
     );
     statsUrl.searchParams.set("field", "count()");
@@ -104,10 +107,10 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       statsUrl.searchParams.set("end", now.toISOString());
     }
 
-    const response = await fetch(statsUrl.toString(), {
-      headers: { Authorization: `Bearer ${SENTRY_AUTH_TOKEN}` },
-      signal: AbortSignal.timeout(10000),
-    });
+    const response = await sentryFetch(
+      statsUrl.pathname + statsUrl.search,
+      config,
+    );
 
     if (!response.ok) {
       throw new Error(`Sentry API responded with ${response.status}`);

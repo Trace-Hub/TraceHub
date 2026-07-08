@@ -3,18 +3,17 @@ import type {
   ErrorTagResponse,
   ErrorTagType,
 } from "@/entities/error/model/errorStats";
+import { getSentryConfig, sentryFetch } from "@/shared/api/sentryClient";
 
-const SENTRY_HOST = "https://sentry.io";
 const VALID_TAGS: ErrorTagType[] = ["browser.name", "os.name", "environment"];
 
 export const GET = async (
   _request: Request,
   { params }: { params: Promise<{ id: string; tag: string[] }> },
 ): Promise<NextResponse> => {
-  const SENTRY_AUTH_TOKEN = process.env.NEXT_SENTRY_API_TOKEN;
-  const SENTRY_ORG = process.env.NEXT_SENTRY_ORG;
+  const config = getSentryConfig();
 
-  if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG) {
+  if (!config) {
     return NextResponse.json(
       { error: "Sentry 환경변수가 설정되지 않았습니다" },
       { status: 500 },
@@ -35,11 +34,9 @@ export const GET = async (
       );
     }
 
-    const response = await fetch(
-      `${SENTRY_HOST}/api/0/organizations/${encodeURIComponent(SENTRY_ORG)}/issues/${id}/tags/${tag}/`,
-      {
-        headers: { Authorization: `Bearer ${SENTRY_AUTH_TOKEN}` },
-      },
+    const response = await sentryFetch(
+      `/api/0/organizations/${encodeURIComponent(config.org)}/issues/${id}/tags/${tag}/`,
+      config,
     );
 
     if (!response.ok) {

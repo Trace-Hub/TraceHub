@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 import type { SentryIssue } from "@/entities/error/model/errorStats";
-
-const SENTRY_HOST = "https://sentry.io";
+import { getSentryConfig, sentryFetch } from "@/shared/api/sentryClient";
 
 export const GET = async (
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> => {
-  const SENTRY_AUTH_TOKEN = process.env.NEXT_SENTRY_API_TOKEN;
-  const SENTRY_ORG = process.env.NEXT_SENTRY_ORG;
+  const config = getSentryConfig();
 
-  if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG) {
+  if (!config) {
     return NextResponse.json(
       { error: "Sentry 환경변수가 설정되지 않았습니다" },
       { status: 500 },
@@ -27,11 +25,9 @@ export const GET = async (
       );
     }
 
-    const response = await fetch(
-      `${SENTRY_HOST}/api/0/organizations/${encodeURIComponent(SENTRY_ORG)}/issues/${id}/`,
-      {
-        headers: { Authorization: `Bearer ${SENTRY_AUTH_TOKEN}` },
-      },
+    const response = await sentryFetch(
+      `/api/0/organizations/${encodeURIComponent(config.org)}/issues/${id}/`,
+      config,
     );
 
     if (!response.ok) {

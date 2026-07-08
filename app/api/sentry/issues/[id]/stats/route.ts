@@ -3,8 +3,12 @@ import type {
   ErrorStatsResponse,
   ErrorStatsPeriod,
 } from "@/entities/error/model/errorStats";
+import {
+  getSentryConfig,
+  sentryFetch,
+  SENTRY_HOST,
+} from "@/shared/api/sentryClient";
 
-const SENTRY_HOST = "https://sentry.io";
 const VALID_PERIODS: ErrorStatsPeriod[] = ["24h", "7d", "30d"];
 
 const PERIOD_INTERVAL: Record<ErrorStatsPeriod, string> = {
@@ -29,11 +33,9 @@ export const GET = async (
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> => {
-  const SENTRY_AUTH_TOKEN = process.env.NEXT_SENTRY_API_TOKEN;
-  const SENTRY_ORG = process.env.NEXT_SENTRY_ORG;
-  const SENTRY_PROJECT = process.env.NEXT_SENTRY_PROJECT;
+  const config = getSentryConfig();
 
-  if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG || !SENTRY_PROJECT) {
+  if (!config) {
     return NextResponse.json(
       { error: "Sentry 환경변수가 설정되지 않았습니다" },
       { status: 500 },
@@ -69,7 +71,7 @@ export const GET = async (
 
     // URLSearchParams로 안전하게 쿼리 조합
     const statsUrl = new URL(
-      `/api/0/organizations/${encodeURIComponent(SENTRY_ORG)}/events-stats/`,
+      `/api/0/organizations/${encodeURIComponent(config.org)}/events-stats/`,
       SENTRY_HOST,
     );
     statsUrl.searchParams.set("field", "count()");
@@ -102,9 +104,10 @@ export const GET = async (
       statsUrl.searchParams.set("period", periodParam);
     }
 
-    const response = await fetch(statsUrl.toString(), {
-      headers: { Authorization: `Bearer ${SENTRY_AUTH_TOKEN}` },
-    });
+    const response = await sentryFetch(
+      statsUrl.pathname + statsUrl.search,
+      config,
+    );
 
     if (!response.ok) {
       throw new Error(`Sentry API responded with ${response.status}`);
