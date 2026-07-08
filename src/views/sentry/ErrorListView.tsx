@@ -11,10 +11,11 @@ import type { DropdownOption } from "@/shared/ui/Dropdown";
 import ErrorCard from "@/shared/ui/ErrorCard";
 import EmptyState from "@/shared/ui/EmptyState";
 import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
+import { ENV_OPTIONS } from "@/shared/config/dropdownOptions";
+import type { EnvFilterValue } from "@/shared/config/dropdownOptions";
 import ErrorListSkeleton from "@/views/sentry/ErrorListSkeleton";
 
 type StatusFilterValue = "all" | "unresolved" | "ignored" | "resolved";
-type EnvFilterValue = "production" | "development";
 type ClassificationFilter = "all" | ClassificationBadgeProps["variant"];
 
 const STATUS_OPTIONS: DropdownOption<StatusFilterValue>[] = [
@@ -22,11 +23,6 @@ const STATUS_OPTIONS: DropdownOption<StatusFilterValue>[] = [
   { value: "unresolved", label: "미해결" },
   { value: "ignored", label: "무시됨" },
   { value: "resolved", label: "해결됨" },
-];
-
-const ENV_OPTIONS: DropdownOption<EnvFilterValue>[] = [
-  { value: "development", label: "Development" },
-  { value: "production", label: "Production" },
 ];
 
 const CLASSIFICATION_OPTIONS: DropdownOption<ClassificationFilter>[] = [
