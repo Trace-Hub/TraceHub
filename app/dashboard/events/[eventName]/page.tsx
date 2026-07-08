@@ -1,7 +1,7 @@
 import type { ReactElement } from "react"
 import { PERIOD_TO_TAB } from "@/entities/event/model/eventStats"
 import { getEventLabel } from "@/shared/config/eventLabel"
-import EventDetailDashboard from "@/views/posthog/EventDetailDashboard"
+import EventDetailDashboard from "@/views/posthog/eventDetail/EventDetailDashboard"
 
 interface EventDetailPageProps {
 	params: Promise<{ eventName: string }>

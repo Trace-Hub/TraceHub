@@ -3,7 +3,7 @@ import type { ReactElement } from "react"
 import { fetchEventKpiServer } from "@/entities/event/api/fetchEventKpiServer"
 import { fetchEventStatsServer } from "@/entities/event/api/fetchEventStatsServer"
 import { buildPathFilter } from "@/shared/lib/posthogServer"
-import TrendsDashboard from "@/views/posthog/TrendsDashboard"
+import TrendsDashboard from "@/views/posthog/trends/TrendsDashboard"
 
 const TrendsPage = async (): Promise<ReactElement> => {
 	const queryClient = new QueryClient()

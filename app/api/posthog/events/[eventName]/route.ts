@@ -12,10 +12,11 @@ import {
 	buildKstPeriodFilter,
 	buildKstPreviousPeriodFilter,
 	buildPathFilter,
+	INVALID_PERIOD_ERROR_MESSAGE,
 	KST_OFFSET,
+	parsePeriodParam,
 	runHogQLQuery,
 	sanitizeHogQLString,
-	VALID_PERIODS,
 } from "@/shared/lib/posthogServer";
 
 interface EventDetailResponse {
@@ -45,19 +46,14 @@ export async function GET(
 		const { searchParams } = new URL(request.url);
 		const rawPeriod = searchParams.get("period") ?? "day";
 
-		// Period[] 타입의 includes()에 string을 넘기기 위해 as 필요
-		if (!VALID_PERIODS.includes(rawPeriod as Period)) {
+		const period = parsePeriodParam(rawPeriod);
+		if (period === null) {
 			return NextResponse.json(
-				{
-					error:
-						"유효하지 않은 period 값입니다. day | week | month 중 하나를 사용하세요.",
-				},
+				{ error: INVALID_PERIOD_ERROR_MESSAGE },
 				{ status: 400 },
 			);
 		}
 
-		// includes() 검증 완료 후 안전한 단언
-		const period = rawPeriod as Period;
 		const periodFilter = buildKstPeriodFilter(period);
 		const trendUnit = buildTrendUnit(period);
 		const previousPeriodFilter = buildKstPreviousPeriodFilter(period);

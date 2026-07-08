@@ -9,7 +9,7 @@ import {
 	YAxis,
 } from "recharts";
 import type { EventStats } from "@/entities/event/model/eventStats";
-import { buildCountData } from "@/views/posthog/model/eventChartUtils";
+import { buildCountData } from "@/widgets/posthog/trends/model/eventChartUtils";
 import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
 import { getEventLabel } from "@/shared/config/eventLabel";
 import { cn } from "@/shared/lib/utils";

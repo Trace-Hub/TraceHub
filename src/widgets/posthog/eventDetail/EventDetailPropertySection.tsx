@@ -9,7 +9,7 @@ import type {
 import { cn } from "@/shared/lib/utils";
 import EmptyState from "@/shared/ui/EmptyState";
 import PercentageBarChart from "@/shared/ui/PercentageBarChart";
-import EventDetailPropertySectionSkeleton from "@/views/posthog/EventDetailPropertySectionSkeleton";
+import EventDetailPropertySectionSkeleton from "@/widgets/posthog/eventDetail/EventDetailPropertySectionSkeleton";
 
 const PROPERTY_TABS: { label: string; value: EventPropertyType }[] = [
 	{ label: "브라우저", value: "browser" },

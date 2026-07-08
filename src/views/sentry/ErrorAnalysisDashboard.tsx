@@ -13,7 +13,7 @@ import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
 import { ENV_OPTIONS } from "@/shared/config/dropdownOptions";
 import type { EnvFilterValue } from "@/shared/config/dropdownOptions";
-import EventRelatedDonutChart from "@/views/posthog/EventRelatedDonutChart";
+import EventRelatedDonutChart from "@/widgets/posthog/eventDetail/EventRelatedDonutChart";
 import { cn } from "@/shared/lib/utils";
 
 type BadgeVariant = ClassificationBadgeProps["variant"];

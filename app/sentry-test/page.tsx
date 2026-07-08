@@ -6,6 +6,7 @@ import {
   captureMessage,
   setSentryUser,
 } from "@/shared/lib/sentry";
+import PathsFlowTestNav from "@/views/posthog/dev/PathsFlowTestNav";
 
 const SentryTestPage = (): ReactElement => {
   return (
@@ -13,6 +14,8 @@ const SentryTestPage = (): ReactElement => {
       <h1 className="text-h1 font-bold text-text-primary">
         Sentry 에러 전송 테스트
       </h1>
+
+      <PathsFlowTestNav />
 
       <div className="flex flex-col gap-3 max-w-sm">
         <button

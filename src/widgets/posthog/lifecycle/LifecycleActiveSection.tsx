@@ -13,7 +13,7 @@ import {
 	ACTIVE_SEGMENT_KEYS,
 	SEGMENT_COLORS,
 	SEGMENT_LABELS,
-} from "@/views/posthog/model/lifecycleSegmentConfig";
+} from "@/widgets/posthog/lifecycle/model/lifecycleSegmentConfig";
 
 interface LifecycleActiveSectionProps {
 	activeCount: number;

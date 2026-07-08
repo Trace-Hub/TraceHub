@@ -5,7 +5,7 @@ import { calcChangeRate } from "@/entities/event/model/eventStatsUtils";
 import { getEventLabel } from "@/shared/config/eventLabel";
 import { cn } from "@/shared/lib/utils";
 import ChangeRateBadge from "@/shared/ui/ChangeRateBadge";
-import EventInsight from "@/views/posthog/EventInsight";
+import EventInsight from "@/widgets/posthog/trends/EventInsight";
 
 interface EventStatCardProps {
 	event: string;

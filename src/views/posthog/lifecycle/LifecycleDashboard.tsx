@@ -10,10 +10,10 @@ import {
 import dayjs from "@/shared/lib/dayjs";
 import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import EmptyState from "@/shared/ui/EmptyState";
-import LifecycleActiveSection from "@/views/posthog/LifecycleActiveSection";
-import LifecycleDashboardSkeleton from "@/views/posthog/LifecycleDashboardSkeleton";
-import LifecycleSegmentCards from "@/views/posthog/LifecycleSegmentCards";
-import LifecycleTotalChart from "@/views/posthog/LifecycleTotalChart";
+import LifecycleActiveSection from "@/widgets/posthog/lifecycle/LifecycleActiveSection";
+import LifecycleDashboardSkeleton from "@/widgets/posthog/lifecycle/LifecycleDashboardSkeleton";
+import LifecycleSegmentCards from "@/widgets/posthog/lifecycle/LifecycleSegmentCards";
+import LifecycleTotalChart from "@/widgets/posthog/lifecycle/LifecycleTotalChart";
 
 // ISO timestamp → "Jun 25 2026 - 10:19PM KST"
 const formatTimestamp = (isoString: string): string =>
