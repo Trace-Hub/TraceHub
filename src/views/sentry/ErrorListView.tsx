@@ -41,6 +41,14 @@ const STATUS_MAP: Record<StatusFilterValue, ErrorStatus | undefined> = {
   resolved: "resolved",
 };
 
+// URL 파라미터 key별 기본값 — 기본값일 때 URL에서 제거
+const DEFAULT_PARAM_VALUES: Record<string, string> = {
+  status: "all",
+  env: "development",
+  classification: "all",
+  q: "",
+};
+
 const ErrorListView = (): ReactElement => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -59,20 +67,15 @@ const ErrorListView = (): ReactElement => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") ?? "");
   const [isComposing, setIsComposing] = useState(false);
 
-  // URL 쿼리 파라미터 동기화
+  // URL 쿼리 파라미터 동기화 — key별 기본값일 때만 URL에서 제거
   const syncParams = useCallback(
     (params: Record<string, string>) => {
       const current = new URLSearchParams(searchParams.toString());
       for (const [key, value] of Object.entries(params)) {
-        if (
-          value &&
-          value !== "all" &&
-          value !== "development" &&
-          value !== ""
-        ) {
-          current.set(key, value);
-        } else {
+        if (value === DEFAULT_PARAM_VALUES[key]) {
           current.delete(key);
+        } else {
+          current.set(key, value);
         }
       }
       const query = current.toString();

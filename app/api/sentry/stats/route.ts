@@ -20,10 +20,21 @@ interface SentryStatsResponse {
   stats: ErrorStatPoint[];
 }
 
-/** 당일 자정(0시 0분 0초) Date 객체를 반환 */
-const getStartOfToday = (): Date => {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/** KST 기준 당일 0시의 UTC 타임스탬프(초)를 반환 */
+const getKstTodayTimestamp = (): number => {
+  const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+  const startOfDayKstMs =
+    Date.UTC(
+      nowKst.getUTCFullYear(),
+      nowKst.getUTCMonth(),
+      nowKst.getUTCDate(),
+      0,
+      0,
+      0,
+    ) - KST_OFFSET_MS;
+  return Math.floor(startOfDayKstMs / 1000);
 };
 
 /**
@@ -33,7 +44,7 @@ const getStartOfToday = (): Date => {
 const ensureTodaySlot = (stats: ErrorStatPoint[]): ErrorStatPoint[] => {
   if (stats.length === 0) return stats;
 
-  const todayTimestamp = Math.floor(getStartOfToday().getTime() / 1000);
+  const todayTimestamp = getKstTodayTimestamp();
   const lastTimestamp = stats[stats.length - 1].timestamp;
 
   if (lastTimestamp < todayTimestamp) {
@@ -75,7 +86,6 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     statsUrl.searchParams.set("dataset", "errors");
 
     if (period === "24h") {
-      const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
       const nowKst = new Date(Date.now() + KST_OFFSET_MS);
       const startOfDayKst = new Date(
         Date.UTC(
@@ -87,13 +97,11 @@ export const GET = async (request: Request): Promise<NextResponse> => {
           0,
         ),
       );
-      // KST 0시를 UTC로 변환
       const startUtc = new Date(startOfDayKst.getTime() - KST_OFFSET_MS);
       const endUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000 - 1);
       statsUrl.searchParams.set("start", startUtc.toISOString());
       statsUrl.searchParams.set("end", endUtc.toISOString());
     } else {
-      const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
       const nowKst = new Date(Date.now() + KST_OFFSET_MS);
       const startOfDayKst = new Date(
         Date.UTC(

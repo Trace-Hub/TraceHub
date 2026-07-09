@@ -14,27 +14,37 @@ const getYAxisTicks = (max: number): number[] => {
 };
 
 /**
- * 당일 0시~23시 24슬롯을 강제 생성하고 API 데이터를 매핑
+ * 당일 KST 0시~23시 24슬롯을 강제 생성하고 API 데이터를 매핑
+ * 서버/클라이언트 환경 무관하게 KST 기준으로 동작
  */
 const buildDailySlots = (allStats: ErrorStatPoint[]): ErrorStatPoint[] => {
-  const now = new Date();
-  const startOfDay = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    0,
-    0,
-    0,
-  );
+  const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+  const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+  const todayKstDate = `${nowKst.getUTCFullYear()}-${String(nowKst.getUTCMonth() + 1).padStart(2, "0")}-${String(nowKst.getUTCDate()).padStart(2, "0")}`;
+
+  // KST 0시를 UTC 타임스탬프로 변환
+  const startOfDayKstAsUtc =
+    Date.UTC(
+      nowKst.getUTCFullYear(),
+      nowKst.getUTCMonth(),
+      nowKst.getUTCDate(),
+      0,
+      0,
+      0,
+    ) - KST_OFFSET_MS;
+
   const slots: ErrorStatPoint[] = [];
 
   for (let h = 0; h < 24; h++) {
-    const slotTime = new Date(startOfDay.getTime() + h * 3600 * 1000);
-    const slotTimestamp = Math.floor(slotTime.getTime() / 1000);
+    const slotTimestamp = Math.floor(
+      (startOfDayKstAsUtc + h * 3600 * 1000) / 1000,
+    );
     const match = allStats.find((s) => {
-      const sHour = new Date(s.timestamp * 1000).getHours();
-      const sDate = new Date(s.timestamp * 1000).toDateString();
-      return sHour === h && sDate === now.toDateString();
+      // API 타임스탬프를 KST로 변환하여 시간/날짜 비교
+      const sKst = new Date(s.timestamp * 1000 + KST_OFFSET_MS);
+      const sHour = sKst.getUTCHours();
+      const sDate = `${sKst.getUTCFullYear()}-${String(sKst.getUTCMonth() + 1).padStart(2, "0")}-${String(sKst.getUTCDate()).padStart(2, "0")}`;
+      return sHour === h && sDate === todayKstDate;
     });
     slots.push({ timestamp: slotTimestamp, count: match?.count ?? 0 });
   }
