@@ -85,7 +85,7 @@ const ErrorCard = ({
         <div className="px-4 pb-3 flex flex-col gap-2">
           <InsightLabel
             variant="fact"
-            text={`${issue.title} 에러가 ${Number(issue.count).toLocaleString()}회 발생했습니다. 영향 사용자는 ${issue.userCount.toLocaleString()}명입니다.`}
+            text={`에러가 ${Number(issue.count).toLocaleString()}회 발생했습니다. 영향 사용자는 ${issue.userCount.toLocaleString()}명입니다.`}
           />
           <InsightLabel
             variant="comparison"

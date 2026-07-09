@@ -75,27 +75,43 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     statsUrl.searchParams.set("dataset", "errors");
 
     if (period === "24h") {
-      const startOfDay = getStartOfToday();
-      const now = new Date();
-      const endOfDay = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        23,
-        59,
-        59,
+      const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+      const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+      const startOfDayKst = new Date(
+        Date.UTC(
+          nowKst.getUTCFullYear(),
+          nowKst.getUTCMonth(),
+          nowKst.getUTCDate(),
+          0,
+          0,
+          0,
+        ),
       );
-      statsUrl.searchParams.set("start", startOfDay.toISOString());
-      statsUrl.searchParams.set("end", endOfDay.toISOString());
+      // KST 0시를 UTC로 변환
+      const startUtc = new Date(startOfDayKst.getTime() - KST_OFFSET_MS);
+      const endUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000 - 1);
+      statsUrl.searchParams.set("start", startUtc.toISOString());
+      statsUrl.searchParams.set("end", endUtc.toISOString());
     } else {
-      const now = new Date();
+      const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+      const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+      const startOfDayKst = new Date(
+        Date.UTC(
+          nowKst.getUTCFullYear(),
+          nowKst.getUTCMonth(),
+          nowKst.getUTCDate(),
+          0,
+          0,
+          0,
+        ),
+      );
+      const startUtc = new Date(startOfDayKst.getTime() - KST_OFFSET_MS);
       const daysBack = period === "7d" ? 7 : 30;
-      const startOfDay = getStartOfToday();
       const start = new Date(
-        startOfDay.getTime() - daysBack * 24 * 60 * 60 * 1000,
+        startUtc.getTime() - daysBack * 24 * 60 * 60 * 1000,
       );
       statsUrl.searchParams.set("start", start.toISOString());
-      statsUrl.searchParams.set("end", now.toISOString());
+      statsUrl.searchParams.set("end", new Date().toISOString());
     }
 
     const response = await sentryFetch(

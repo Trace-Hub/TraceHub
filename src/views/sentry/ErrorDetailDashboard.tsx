@@ -17,6 +17,7 @@ import PeriodSelector from "@/shared/ui/PeriodSelector";
 import InsightLabel from "@/shared/ui/InsightLabel";
 import type { Period } from "@/shared/ui/PeriodTab";
 import { PERIOD_TAB_MAP } from "@/shared/config/dropdownOptions";
+import LinkIcon from "@/shared/ui/icons/LinkIcon";
 import { cn } from "@/shared/lib/utils";
 
 interface ErrorDetailDashboardProps {
@@ -54,7 +55,7 @@ const ErrorDetailDashboard = ({
       <section className="flex flex-col gap-2 p-4 rounded-xl border border-border-base bg-bg-base">
         <InsightLabel
           variant="fact"
-          text={`${issue.title} 에러가 ${issue.count}회 발생했습니다. 영향 사용자는 ${issue.userCount}명입니다.`}
+          text={`에러가 ${issue.count}회 발생했습니다. 영향 사용자는 ${issue.userCount}명입니다.`}
         />
         <InsightLabel
           variant="comparison"
@@ -138,9 +139,10 @@ const ErrorDetailDashboard = ({
               href={issue.permalink}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-caption text-text-tertiary hover:text-text-secondary"
+              className="flex items-center gap-1 text-caption text-text-tertiary hover:text-text-secondary"
             >
-              Sentry에서 보기↗
+              Sentry에서 보기
+              <LinkIcon color="currentColor" />
             </a>
           </div>
         </div>
