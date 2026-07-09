@@ -1,0 +1,141 @@
+import { NextResponse } from "next/server";
+import type {
+  ErrorStatPoint,
+  ErrorStatsPeriod,
+} from "@/entities/error/model/errorStats";
+import {
+  VALID_PERIODS,
+  PERIOD_INTERVAL,
+  PERIOD_LIMIT,
+} from "@/entities/error/model/errorStats";
+import { buildDailySlots } from "@/entities/error/model/errorStatsUtils";
+import {
+  getSentryConfig,
+  sentryFetch,
+  SENTRY_HOST,
+} from "@/shared/api/sentryClient";
+
+interface SentryStatsResponse {
+  period: ErrorStatsPeriod;
+  stats: ErrorStatPoint[];
+}
+
+/** 당일 자정(0시 0분 0초) Date 객체를 반환 */
+const getStartOfToday = (): Date => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+};
+
+/**
+ * Sentry API가 금일(아직 끝나지 않은 날) 버킷을 반환하지 않을 경우
+ * 금일 슬롯을 count 0으로 추가하여 차트에 표시
+ */
+const ensureTodaySlot = (stats: ErrorStatPoint[]): ErrorStatPoint[] => {
+  if (stats.length === 0) return stats;
+
+  const todayTimestamp = Math.floor(getStartOfToday().getTime() / 1000);
+  const lastTimestamp = stats[stats.length - 1].timestamp;
+
+  if (lastTimestamp < todayTimestamp) {
+    return [...stats, { timestamp: todayTimestamp, count: 0 }];
+  }
+  return stats;
+};
+
+export const GET = async (request: Request): Promise<NextResponse> => {
+  const config = getSentryConfig();
+
+  if (!config) {
+    return NextResponse.json(
+      { error: "Sentry 환경변수가 설정되지 않았습니다" },
+      { status: 500 },
+    );
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const rawPeriod = searchParams.get("period") ?? "24h";
+
+    if (!VALID_PERIODS.includes(rawPeriod as ErrorStatsPeriod)) {
+      return NextResponse.json(
+        { error: "유효하지 않은 period 값입니다." },
+        { status: 400 },
+      );
+    }
+
+    const period = rawPeriod as ErrorStatsPeriod;
+    const interval = PERIOD_INTERVAL[period];
+
+    const statsUrl = new URL(
+      `/api/0/organizations/${encodeURIComponent(config.org)}/events-stats/`,
+      SENTRY_HOST,
+    );
+    statsUrl.searchParams.set("field", "count()");
+    statsUrl.searchParams.set("interval", interval);
+    statsUrl.searchParams.set("dataset", "errors");
+
+    if (period === "24h") {
+      const startOfDay = getStartOfToday();
+      const now = new Date();
+      const endOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59,
+      );
+      statsUrl.searchParams.set("start", startOfDay.toISOString());
+      statsUrl.searchParams.set("end", endOfDay.toISOString());
+    } else {
+      const now = new Date();
+      const daysBack = period === "7d" ? 7 : 30;
+      const startOfDay = getStartOfToday();
+      const start = new Date(
+        startOfDay.getTime() - daysBack * 24 * 60 * 60 * 1000,
+      );
+      statsUrl.searchParams.set("start", start.toISOString());
+      statsUrl.searchParams.set("end", now.toISOString());
+    }
+
+    const response = await sentryFetch(
+      statsUrl.pathname + statsUrl.search,
+      config,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Sentry API responded with ${response.status}`);
+    }
+
+    const raw: unknown = await response.json();
+
+    if (
+      typeof raw !== "object" ||
+      raw === null ||
+      !("data" in raw) ||
+      !Array.isArray((raw as { data: unknown }).data)
+    ) {
+      throw new Error("Sentry API 응답 형식이 올바르지 않습니다");
+    }
+
+    const allStats = (
+      raw as { data: [number, { count: number }[]][] }
+    ).data.map(([timestamp, values]) => ({
+      timestamp,
+      count: values[0]?.count ?? 0,
+    }));
+
+    const stats =
+      period === "24h"
+        ? buildDailySlots(allStats)
+        : ensureTodaySlot(allStats).slice(-PERIOD_LIMIT[period]);
+
+    return NextResponse.json({ period, stats } satisfies SentryStatsResponse);
+  } catch (error) {
+    console.error("Sentry Stats API error:", error);
+    return NextResponse.json(
+      { error: "통계 데이터를 불러오는 데 실패했습니다" },
+      { status: 500 },
+    );
+  }
+};

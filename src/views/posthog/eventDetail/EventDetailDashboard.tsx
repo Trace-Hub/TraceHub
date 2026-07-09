@@ -1,0 +1,109 @@
+"use client";
+
+import type { ReactElement } from "react";
+import { useState } from "react";
+import { useEventDetail } from "@/entities/event/api/getEventDetail";
+import { useEventPages } from "@/entities/event/api/getEventPages";
+import { useEventProperty } from "@/entities/event/api/getEventProperty";
+import { usePageEventDistribution } from "@/entities/event/api/getPageEventDistribution";
+import type { EventPropertyType } from "@/entities/event/model/eventStats";
+import { EVENT_TAB_TO_PERIOD } from "@/entities/event/model/eventStats";
+import { calcChangeRate } from "@/entities/event/model/eventStatsUtils";
+import { cn } from "@/shared/lib/utils";
+import type { Period as TabPeriod } from "@/shared/ui/PeriodSelector";
+import EventDetailInsightSection from "@/widgets/posthog/eventDetail/EventDetailInsightSection";
+import EventDetailMetricsSection from "@/widgets/posthog/eventDetail/EventDetailMetricsSection";
+import EventDetailPropertySection from "@/widgets/posthog/eventDetail/EventDetailPropertySection";
+import EventDetailRelatedEventsSection from "@/widgets/posthog/eventDetail/EventDetailRelatedEventsSection";
+import EventDetailTrendSection from "@/widgets/posthog/eventDetail/EventDetailTrendSection";
+
+interface EventDetailDashboardProps {
+	event: string;
+	initialPeriod?: TabPeriod;
+	className?: string;
+}
+
+const EventDetailDashboard = ({
+	event,
+	initialPeriod,
+	className,
+}: EventDetailDashboardProps): ReactElement => {
+	const [activePeriod, setActivePeriod] = useState<TabPeriod>(initialPeriod ?? "오늘");
+	const [activeProperty, setActiveProperty] =
+		useState<EventPropertyType>("browser");
+	const [selectedPathname, setSelectedPathname] = useState("");
+
+	const period = EVENT_TAB_TO_PERIOD[activePeriod];
+
+	const handlePeriodChange = (next: TabPeriod) => {
+		setActivePeriod(next);
+		// 기간이 바뀌면 페이지 목록이 새로 패칭되므로 선택 상태를 초기화
+		setSelectedPathname("");
+	};
+
+	const { data: detailData, isLoading: detailLoading } = useEventDetail(
+		event,
+		period,
+	);
+	const {
+		data: propertyData,
+		isLoading: propertyLoading,
+		isError: propertyError,
+	} = useEventProperty(event, activeProperty, period);
+	const {
+		data: pagesData,
+		isLoading: pagesLoading,
+		isError: pagesError,
+	} = useEventPages(event, period);
+	const hasPages = (pagesData?.pages.length ?? 0) > 0;
+	const {
+		data: pageEventsData,
+		isLoading: pageEventsLoading,
+		isError: pageEventsError,
+	} = usePageEventDistribution(selectedPathname, period);
+
+	const changeRate = detailData
+		? calcChangeRate(
+				detailData.metrics.totalCount,
+				detailData.metrics.previousTotal,
+			)
+		: 0;
+
+	return (
+		<div className={cn("flex flex-col gap-6", className)}>
+			<EventDetailMetricsSection
+				metrics={detailData?.metrics}
+				changeRate={changeRate}
+			/>
+			<EventDetailInsightSection
+				event={event}
+				totalCount={detailData?.metrics.totalCount ?? 0}
+				changeRate={changeRate}
+				period={period}
+			/>
+			<EventDetailTrendSection
+				trend={detailData?.trend}
+				isLoading={detailLoading}
+				period={activePeriod}
+				onPeriodChange={handlePeriodChange}
+			/>
+			<EventDetailRelatedEventsSection
+				pages={pagesData?.pages ?? []}
+				pageEvents={hasPages ? (pageEventsData?.events ?? []) : []}
+				selectedPathname={selectedPathname}
+				onPathnameChange={setSelectedPathname}
+				isLoading={pagesLoading || pageEventsLoading}
+				isError={pagesError || pageEventsError}
+			/>
+			<EventDetailPropertySection
+				activeProperty={activeProperty}
+				onPropertyChange={setActiveProperty}
+				values={propertyData?.values}
+				isLoading={propertyLoading}
+				isError={propertyError}
+			/>
+		</div>
+	);
+};
+
+export default EventDetailDashboard;

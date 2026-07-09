@@ -1,0 +1,137 @@
+import type {
+	Period,
+	PostHogQueryResult,
+} from "@/entities/event/model/eventStats";
+import { TRACKED_PATHS } from "@/shared/config/trackedPaths";
+import { parsePathBucket } from "@/shared/lib/parsePathBucket";
+
+// NEXT_POSTHOG_PERSONAL_API_KEY 는 NEXT_PUBLIC_ 접두사가 없어 클라이언트 번들에서 undefined.
+// 따라서 본 모듈은 사실상 server-only 로 동작한다.
+
+const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST;
+const POSTHOG_API_KEY = process.env.NEXT_POSTHOG_PERSONAL_API_KEY;
+const POSTHOG_PROJECT_ID = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_ID;
+
+// HogQL 은 toTimezone() 함수를 미지원하므로 INTERVAL 산술로 KST(UTC+9) 오프셋 적용
+const KST_OFFSET = "INTERVAL 9 HOUR";
+
+// HogQL 문자열 리터럴 내 역슬래시·단일 따옴표를 이스케이프 — ClickHouse는 \를 이스케이프
+// 문자로 해석하므로 \를 먼저 처리한 뒤 '를 이스케이프해야 이중 치환 오류를 막을 수 있음
+const sanitizeHogQLString = (value: string): string =>
+	value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+
+const VALID_PERIODS: Period[] = ["day", "week", "month"];
+
+const INVALID_PERIOD_ERROR_MESSAGE =
+	"유효하지 않은 period 값입니다. day | week | month 중 하나를 사용하세요.";
+
+// rawPeriod 검증과 Period로의 단언을 한 번에 처리
+// 여러 API route(events, events/[eventName], events/[eventName]/pages,
+// events/[eventName]/property/[propertyType], pages/events, paths, paths/kpi)에서
+// 동일한 검증 로직이 반복되므로 단일 진실의 원천으로 관리
+const parsePeriodParam = (rawPeriod: string): Period | null =>
+	VALID_PERIODS.includes(rawPeriod as Period) ? (rawPeriod as Period) : null;
+
+const buildKstPeriodFilter = (period: Period): string => {
+	switch (period) {
+		case "day":
+			return `toDate(timestamp + ${KST_OFFSET}) = toDate(now() + ${KST_OFFSET})`;
+		case "week":
+			return `toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 6`;
+		case "month":
+			return `toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 29`;
+	}
+};
+
+const buildKstPreviousPeriodFilter = (period: Period): string => {
+	switch (period) {
+		case "day":
+			return `toDate(timestamp + ${KST_OFFSET}) = toDate(now() + ${KST_OFFSET}) - 1`;
+		case "week":
+			return `toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 13 AND toDate(timestamp + ${KST_OFFSET}) <= toDate(now() + ${KST_OFFSET}) - 7`;
+		case "month":
+			return `toDate(timestamp + ${KST_OFFSET}) >= toDate(now() + ${KST_OFFSET}) - 59 AND toDate(timestamp + ${KST_OFFSET}) <= toDate(now() + ${KST_OFFSET}) - 30`;
+	}
+};
+
+// RE2(ClickHouse 정규식 엔진)에서 특수문자로 해석되는 문자를 이스케이프
+// 경로에 . 등이 포함될 때 의도치 않은 매칭 방지
+const escapeRegexPath = (path: string): string =>
+	path.replace(/[.+*?()|[\]{}^$\\]/g, "\\$&");
+
+// 글로브 패턴 배열 → ClickHouse match() 단일 정규식으로 변환
+// OR 체인 대신 match() 한 줄을 쓰는 이유:
+// 경로 수에 무관하게 행당 정규식 평가가 1회로 고정되어 성능이 일정하게 유지됨
+// specificPath를 전달하면 해당 경로만, 없으면 TRACKED_PATHS 전체를 필터
+const buildPathFilter = (specificPath?: string): string => {
+	const paths: readonly string[] = specificPath
+		? [specificPath]
+		: TRACKED_PATHS;
+	const patterns = paths.map((p) => {
+		const { base, isPrefix } = parsePathBucket(p);
+		const escaped = escapeRegexPath(base);
+		// (/.*)?  →  /posthog 자체와 /posthog/1 같은 하위 경로 모두 포함
+		return isPrefix ? `${escaped}(/.*)?` : escaped;
+	});
+	// ^(...)$로 감싸 부분 일치 방지 (/posthog-other 가 /posthog/* 에 걸리지 않도록)
+	return `match(properties.$pathname, '^(${patterns.join("|")})$')`;
+};
+
+// "all" 또는 TRACKED_PATHS에 속한 값인지 검증 — pathFilter 문자열이 아닌 원본 startPath
+// 값 자체가 필요한 호출부(예: paths API route)도 있어 검증 로직만 별도로 분리해 공유한다
+const isValidPathParam = (rawPath: string): boolean =>
+	rawPath === "all" || (TRACKED_PATHS as readonly string[]).includes(rawPath);
+
+// path 파라미터 검증과 pathFilter 생성을 한 번에 처리
+// 세 API route(events, events/kpi, paths)에서 동일한 검증 로직이 반복되므로 단일 진실의 원천으로 관리
+const resolvePathFilter = (rawPath: string): string | null => {
+	if (!isValidPathParam(rawPath)) {
+		return null;
+	}
+	return buildPathFilter(rawPath === "all" ? undefined : rawPath);
+};
+
+// TRACKED_PATHS 전체를 넓게 스캔하는 KPI/flow/lifecycle류 쿼리가 공통으로 쓰는
+// 연장 타임아웃 — 기본 10s로는 트래픽이 많은 기간에 타임아웃될 수 있다
+const EXTENDED_QUERY_TIMEOUT_MS = 30_000;
+
+const runHogQLQuery = async (
+	query: string,
+	timeoutMs = 10_000,
+): Promise<PostHogQueryResult> => {
+	if (!POSTHOG_HOST || !POSTHOG_API_KEY || !POSTHOG_PROJECT_ID) {
+		throw new Error("PostHog 환경변수가 설정되지 않았습니다");
+	}
+	const response = await fetch(
+		`${POSTHOG_HOST}/api/projects/${POSTHOG_PROJECT_ID}/query`,
+		{
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${POSTHOG_API_KEY}`,
+			},
+			body: JSON.stringify({ query: { kind: "HogQLQuery", query } }),
+			// paths KPI/flow 쿼리는 TRACKED_PATHS 전체를 넓게 스캔해 기본 10s로는 타임아웃될 수 있음
+			signal: AbortSignal.timeout(timeoutMs),
+		},
+	);
+	if (!response.ok) {
+		const body = await response.text();
+		throw new Error(`PostHog API ${response.status}: ${body}`);
+	}
+	return response.json();
+};
+
+export {
+	buildKstPeriodFilter,
+	buildKstPreviousPeriodFilter,
+	buildPathFilter,
+	EXTENDED_QUERY_TIMEOUT_MS,
+	INVALID_PERIOD_ERROR_MESSAGE,
+	isValidPathParam,
+	KST_OFFSET,
+	parsePeriodParam,
+	resolvePathFilter,
+	runHogQLQuery,
+	sanitizeHogQLString,
+};

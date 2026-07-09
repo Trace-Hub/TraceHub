@@ -1,0 +1,193 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* =============================================
+   ADAPTIVE COLOR TOKENS
+   :root = 라이트 기본값, .dark = 다크 오버라이드
+   @theme inline이 이 변수를 직접 참조하여
+   유틸리티 클래스가 테마에 따라 자동으로 바뀜
+   ============================================= */
+
+:root {
+    /* Background */
+    --color-bg-base: #FFFFFF;
+    --color-bg-subtle: #FAFAFA;
+    --color-bg-card: #FFFFFF;
+    --color-bg-hover: #F4F4F5;
+    --color-bg-overlay: #F4F4F5;
+
+    /* Border */
+    --color-border-subtle: #E4E4E7;
+    --color-border-base: #D4D4D8;
+    --color-border-focus: #A1A1AA;
+
+    /* Text */
+    --color-text-primary: #09090B;
+    --color-text-secondary: #52525B;
+    --color-text-tertiary: #A1A1AA;
+    --color-text-disabled: #D4D4D8;
+
+    /* Semantic (라이트/다크 동일) */
+    --color-primary: #3B82F6;
+    --color-primary-hover: #2563EB;
+    --color-success: #22C55E;
+    --color-success-subtle: #14532D20;
+    --color-warning: #F59E0B;
+    --color-warning-subtle: #78350F20;
+    --color-error: #EF4444;
+    --color-error-subtle: #ef44441a;
+    --color-surge: #F97316;
+    --color-surge-subtle: #f59e0b1a;
+}
+
+.dark {
+    color-scheme: dark;
+
+    /* Background */
+    --color-bg-base: #0A0A0B;
+    --color-bg-subtle: #111113;
+    --color-bg-card: #18181B;
+    --color-bg-hover: #1F1F23;
+    --color-bg-overlay: #27272A;
+
+    /* Border */
+    --color-border-subtle: #27272A;
+    --color-border-base: #3F3F46;
+    --color-border-focus: #52525B;
+
+    /* Text */
+    --color-text-primary: #FAFAFA;
+    --color-text-secondary: #A1A1AA;
+    --color-text-tertiary: #71717A;
+    --color-text-disabled: #52525B;
+}
+
+/* =============================================
+   TAILWIND UTILITIES
+   @theme inline: 위 변수를 직접 참조하여
+   유틸리티가 테마에 따라 자동으로 적응
+   ============================================= */
+
+@theme inline {
+    --color-bg-base: var(--color-bg-base);
+    --color-bg-subtle: var(--color-bg-subtle);
+    --color-bg-card: var(--color-bg-card);
+    --color-bg-hover: var(--color-bg-hover);
+    --color-bg-overlay: var(--color-bg-overlay);
+
+    --color-border-subtle: var(--color-border-subtle);
+    --color-border-base: var(--color-border-base);
+    --color-border-focus: var(--color-border-focus);
+
+    --color-text-primary: var(--color-text-primary);
+    --color-text-secondary: var(--color-text-secondary);
+    --color-text-tertiary: var(--color-text-tertiary);
+    --color-text-disabled: var(--color-text-disabled);
+
+    --color-primary: var(--color-primary);
+    --color-primary-hover: var(--color-primary-hover);
+    --color-success: var(--color-success);
+    --color-success-subtle: var(--color-success-subtle);
+    --color-warning: var(--color-warning);
+    --color-warning-subtle: var(--color-warning-subtle);
+    --color-error: var(--color-error);
+    --color-error-subtle: var(--color-error-subtle);
+    --color-surge: var(--color-surge);
+    --color-surge-subtle: var(--color-surge-subtle);
+}
+
+/* =============================================
+   NON-COLOR TOKENS
+   색상 외 토큰은 @theme으로 정의
+   ============================================= */
+
+@theme {
+    /* Typography */
+    --font-sans: 'Geist Sans', Inter, system-ui, sans-serif;
+    --font-mono: 'Geist Mono', 'JetBrains Mono', monospace;
+
+    --text-display: 1.5rem;
+    --text-h1: 1.125rem;
+    --text-body1: 0.875rem;
+    --text-body2: 0.8125rem;
+    --text-caption: 0.75rem;
+    --text-mono: 0.8125rem;
+    --text-label: 0.6875rem;
+
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+
+    --leading-tight: 1.3;
+    --leading-normal: 1.5;
+    --leading-relaxed-custom: 1.75;
+
+    --tracking-tight: -0.02em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.05em;
+    --tracking-widest: 0.1em;
+
+    /* Spacing */
+    --spacing-0: 0px;
+    --spacing-1: 4px;
+    --spacing-2: 8px;
+    --spacing-3: 12px;
+    --spacing-4: 16px;
+    --spacing-5: 20px;
+    --spacing-6: 24px;
+    --spacing-8: 32px;
+    --spacing-10: 40px;
+    --spacing-12: 48px;
+    --spacing-16: 64px;
+
+    /* Border Radius */
+    --radius-none: 0px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+
+    /* Shadow */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.08);
+    --shadow-md: 0 4px 12px 0 rgb(0 0 0 / 0.15);
+    --shadow-lg: 0 8px 24px 0 rgb(0 0 0 / 0.2);
+
+    /* Transition */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 400ms ease;
+
+    /* Breakpoints */
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 744px;
+    --breakpoint-lg: 1280px;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+/* =============================================
+   CUSTOM UTILITIES
+   ============================================= */
+
+@utility transition-interactive {
+    transition-property: background-color, color;
+}
+
+/* =============================================
+   BASE STYLES
+   ============================================= */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--text-body2);
+    line-height: var(--leading-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
