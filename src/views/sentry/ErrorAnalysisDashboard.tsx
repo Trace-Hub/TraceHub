@@ -238,7 +238,7 @@ const ErrorAnalysisDashboard = (): ReactElement => {
   return (
     <div className="flex flex-col gap-4 p-6">
       {/* 헤더 */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col md:flex-row md:items-center gap-4">
         <div>
           <h1 className="text-h1 font-bold text-text-primary">Analysis</h1>
           <p className="text-body2 text-text-secondary mt-1">
