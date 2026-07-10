@@ -229,7 +229,7 @@ const InfiniteErrorList = ({
   envFilter,
 }: {
   issues: SentryIssue[];
-  envFilter: string;
+  envFilter: EnvFilterValue;
 }): ReactElement => {
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const observerRef = useRef<HTMLDivElement | null>(null);
