@@ -42,7 +42,18 @@ const MainDashboard = (): ReactElement => {
     ...i,
     environment: "production",
   }));
-  const topErrors = [...devIssues, ...prodIssues]
+  // id 기준 중복 제거 (최신 lastSeen 우선)
+  const issueMap = new Map<string, (typeof devIssues)[number]>();
+  for (const issue of [...devIssues, ...prodIssues]) {
+    const existing = issueMap.get(issue.id);
+    if (
+      !existing ||
+      new Date(issue.lastSeen).getTime() > new Date(existing.lastSeen).getTime()
+    ) {
+      issueMap.set(issue.id, issue);
+    }
+  }
+  const topErrors = [...issueMap.values()]
     .sort(
       (a, b) => new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime(),
     )
