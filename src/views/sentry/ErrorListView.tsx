@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactElement } from "react";
 import { useErrorList } from "@/entities/error/api/getErrorList";
 import type { ErrorStatus } from "@/entities/error/model/errorStats";
@@ -40,19 +41,69 @@ const STATUS_MAP: Record<StatusFilterValue, ErrorStatus | undefined> = {
   resolved: "resolved",
 };
 
+// URL 파라미터 key별 기본값 — 기본값일 때 URL에서 제거
+const DEFAULT_PARAM_VALUES: Record<string, string> = {
+  status: "all",
+  env: "development",
+  classification: "all",
+  q: "",
+};
+
 const ErrorListView = (): ReactElement => {
-  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
-  const [envFilter, setEnvFilter] = useState<EnvFilterValue>("development");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>(
+    (searchParams.get("status") as StatusFilterValue) || "all",
+  );
+  const [envFilter, setEnvFilter] = useState<EnvFilterValue>(
+    (searchParams.get("env") as EnvFilterValue) || "development",
+  );
   const [classificationFilter, setClassificationFilter] =
-    useState<ClassificationFilter>("all");
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+    useState<ClassificationFilter>(
+      (searchParams.get("classification") as ClassificationFilter) || "all",
+    );
+  const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") ?? "");
   const [isComposing, setIsComposing] = useState(false);
+
+  // URL 쿼리 파라미터 동기화 — key별 기본값일 때만 URL에서 제거
+  const syncParams = useCallback(
+    (params: Record<string, string>) => {
+      const current = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(params)) {
+        if (value === DEFAULT_PARAM_VALUES[key]) {
+          current.delete(key);
+        } else {
+          current.set(key, value);
+        }
+      }
+      const query = current.toString();
+      router.replace(`?${query}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  const handleStatusChange = (value: StatusFilterValue): void => {
+    setStatusFilter(value);
+    syncParams({ status: value });
+  };
+
+  const handleEnvChange = (value: EnvFilterValue): void => {
+    setEnvFilter(value);
+    syncParams({ env: value });
+  };
+
+  const handleClassificationChange = (value: ClassificationFilter): void => {
+    setClassificationFilter(value);
+    syncParams({ classification: value });
+  };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !isComposing) {
       const trimmed = searchInput.trim();
       setSearchQuery(trimmed);
+      syncParams({ q: trimmed });
       if (trimmed === "") setSearchInput("");
     }
   };
@@ -90,28 +141,28 @@ const ErrorListView = (): ReactElement => {
       </div>
 
       {/* 필터 드롭다운 + 검색 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-2 flex-wrap">
           <Dropdown
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={handleStatusChange}
             options={STATUS_OPTIONS}
             ariaLabel="상태 필터"
           />
           <Dropdown
             value={classificationFilter}
-            onChange={setClassificationFilter}
+            onChange={handleClassificationChange}
             options={CLASSIFICATION_OPTIONS}
             ariaLabel="분류 필터"
           />
           <Dropdown
             value={envFilter}
-            onChange={setEnvFilter}
+            onChange={handleEnvChange}
             options={ENV_OPTIONS}
             ariaLabel="환경 필터"
           />
         </div>
-        <div className="relative w-64">
+        <div className="relative w-full md:w-64">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
             width="14"

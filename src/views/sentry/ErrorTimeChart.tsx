@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import type { ReactElement } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from "recharts";
 import type {
@@ -38,6 +39,21 @@ const ErrorTimeChart = ({
   peakColor = "var(--color-warning)",
   labels,
 }: ErrorTimeChartProps): ReactElement => {
+  // 24h 차트 X축 반응형: 데스크탑 1시간, 태블릿 2시간, 모바일 4시간 간격
+  const [xInterval, setXInterval] = useState(0);
+
+  useEffect(() => {
+    const updateInterval = (): void => {
+      const width = window.innerWidth;
+      if (width >= 1280) setXInterval(period === "24h" ? 0 : 0);
+      else if (width >= 744) setXInterval(period === "24h" ? 1 : 0);
+      else setXInterval(period === "24h" ? 3 : 0);
+    };
+    updateInterval();
+    window.addEventListener("resize", updateInterval);
+    return () => window.removeEventListener("resize", updateInterval);
+  }, [period]);
+
   const chartData = stats.map((s, i) => ({
     timestamp: s.timestamp,
     label: labels?.[i] ?? formatLabel(s.timestamp, period),
@@ -68,7 +84,7 @@ const ErrorTimeChart = ({
           tickLine={false}
           axisLine={false}
           tick={{ fontSize: 11, fill: "var(--color-text-tertiary)" }}
-          interval={0}
+          interval={xInterval}
           minTickGap={0}
         />
         <YAxis

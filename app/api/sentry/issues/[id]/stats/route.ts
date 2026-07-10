@@ -70,27 +70,25 @@ export const GET = async (
     statsUrl.searchParams.set("interval", interval);
     statsUrl.searchParams.set("dataset", "errors");
 
-    // 오늘(24h)은 당일 0시~23시 고정, 나머지는 period 파라미터 사용
+    // 오늘(24h)은 KST 기준 당일 0시~23시 고정
     if (period === "24h") {
-      const now = new Date();
-      const startOfDay = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        0,
-        0,
-        0,
+      const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+      const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+      const startOfDayKst = new Date(
+        Date.UTC(
+          nowKst.getUTCFullYear(),
+          nowKst.getUTCMonth(),
+          nowKst.getUTCDate(),
+          0,
+          0,
+          0,
+        ),
       );
-      const endOfDay = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        23,
-        59,
-        59,
-      );
-      statsUrl.searchParams.set("start", startOfDay.toISOString());
-      statsUrl.searchParams.set("end", endOfDay.toISOString());
+      // KST 0시를 UTC로 변환 (KST 0시 = UTC 전날 15시)
+      const startUtc = new Date(startOfDayKst.getTime() - KST_OFFSET_MS);
+      const endUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000 - 1);
+      statsUrl.searchParams.set("start", startUtc.toISOString());
+      statsUrl.searchParams.set("end", endUtc.toISOString());
     } else {
       statsUrl.searchParams.set("period", periodParam);
     }
