@@ -82,7 +82,8 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       SENTRY_HOST,
     );
     statsUrl.searchParams.set("field", "count()");
-    statsUrl.searchParams.set("interval", interval);
+    // 7d/30d는 1h 간격으로 받아서 KST 기준 날짜별 재집계
+    statsUrl.searchParams.set("interval", period === "24h" ? interval : "1h");
     statsUrl.searchParams.set("dataset", "errors");
 
     if (period === "24h") {
@@ -114,12 +115,14 @@ export const GET = async (request: Request): Promise<NextResponse> => {
         ),
       );
       const startUtc = new Date(startOfDayKst.getTime() - KST_OFFSET_MS);
-      const daysBack = period === "7d" ? 7 : 30;
+      const daysBack = period === "7d" ? 6 : 29;
       const start = new Date(
         startUtc.getTime() - daysBack * 24 * 60 * 60 * 1000,
       );
+      // end를 KST 내일 0시 (UTC 변환)로 설정하여 오늘 버킷 포함
+      const endUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000);
       statsUrl.searchParams.set("start", start.toISOString());
-      statsUrl.searchParams.set("end", new Date().toISOString());
+      statsUrl.searchParams.set("end", endUtc.toISOString());
     }
 
     const response = await sentryFetch(
@@ -149,10 +152,42 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       count: values[0]?.count ?? 0,
     }));
 
-    const stats =
-      period === "24h"
-        ? buildDailySlots(allStats)
-        : ensureTodaySlot(allStats).slice(-PERIOD_LIMIT[period]);
+    let stats: { timestamp: number; count: number }[];
+
+    if (period === "24h") {
+      stats = buildDailySlots(allStats);
+    } else {
+      // 시간별 데이터를 KST 날짜별로 재집계
+      const dailyMap = new Map<string, number>();
+      for (const point of allStats) {
+        // timestamp(UTC초)를 KST 날짜 문자열로 변환
+        const kstMs = point.timestamp * 1000 + KST_OFFSET_MS;
+        const kstDate = new Date(kstMs);
+        const dateKey = `${kstDate.getUTCFullYear()}-${String(kstDate.getUTCMonth() + 1).padStart(2, "0")}-${String(kstDate.getUTCDate()).padStart(2, "0")}`;
+        dailyMap.set(dateKey, (dailyMap.get(dateKey) ?? 0) + point.count);
+      }
+
+      // KST 기준 날짜 범위 생성 (오늘 포함)
+      const nowKstForSlots = new Date(Date.now() + KST_OFFSET_MS);
+      const days = period === "7d" ? 7 : 30;
+      stats = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(
+          Date.UTC(
+            nowKstForSlots.getUTCFullYear(),
+            nowKstForSlots.getUTCMonth(),
+            nowKstForSlots.getUTCDate() - i,
+          ),
+        );
+        const dateKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+        // timestamp는 KST 날짜의 0시를 UTC로 변환
+        const timestampUtc = Math.floor((d.getTime() - KST_OFFSET_MS) / 1000);
+        stats.push({
+          timestamp: timestampUtc,
+          count: dailyMap.get(dateKey) ?? 0,
+        });
+      }
+    }
 
     return NextResponse.json({ period, stats } satisfies SentryStatsResponse);
   } catch (error) {

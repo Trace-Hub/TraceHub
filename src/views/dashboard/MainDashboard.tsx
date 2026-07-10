@@ -20,14 +20,44 @@ const MainDashboard = (): ReactElement => {
   const [chartType, setChartType] = useState<"error" | "event">("error");
   const [chartPeriod, setChartPeriod] = useState<Period>("오늘");
 
-  const { data: errorData, isLoading: errorLoading } = useErrorList({
+  const { data: errorDataDev, isLoading: errorDevLoading } = useErrorList({
     status: "unresolved",
+    environment: "development",
   });
+  const { data: errorDataProd, isLoading: errorProdLoading } = useErrorList({
+    status: "unresolved",
+    environment: "production",
+  });
+  const errorLoading = errorDevLoading || errorProdLoading;
   const { data: eventData, isLoading: eventLoading } = useEventStats("week");
   const { data: eventDataMonth, isLoading: eventMonthLoading } =
     useEventStats("month");
 
-  const topErrors = errorData?.issues.slice(0, 3) ?? [];
+  // 두 환경 합쳐서 최신순 정렬 후 3개
+  const devIssues = (errorDataDev?.issues ?? []).map((i) => ({
+    ...i,
+    environment: "development",
+  }));
+  const prodIssues = (errorDataProd?.issues ?? []).map((i) => ({
+    ...i,
+    environment: "production",
+  }));
+  // id 기준 중복 제거 (최신 lastSeen 우선)
+  const issueMap = new Map<string, (typeof devIssues)[number]>();
+  for (const issue of [...devIssues, ...prodIssues]) {
+    const existing = issueMap.get(issue.id);
+    if (
+      !existing ||
+      new Date(issue.lastSeen).getTime() > new Date(existing.lastSeen).getTime()
+    ) {
+      issueMap.set(issue.id, issue);
+    }
+  }
+  const topErrors = [...issueMap.values()]
+    .sort(
+      (a, b) => new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime(),
+    )
+    .slice(0, 3);
   const topEvents = (
     eventData?.events && eventData.events.length > 0
       ? eventData.events

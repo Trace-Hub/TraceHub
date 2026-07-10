@@ -80,9 +80,12 @@ const ErrorCard = ({
           </span>
           {" · "}최초: {dayjs(issue.firstSeen).format("MM/DD")}
           {" · "}마지막: {dayjs(issue.lastSeen).format("MM/DD HH:mm")}
-          {environment && (
+          {(environment || issue.environment) && (
             <>
-              {" · "}환경: <span className="font-medium">{environment}</span>
+              {" · "}환경:{" "}
+              <span className="font-medium">
+                {environment || issue.environment}
+              </span>
             </>
           )}
         </p>

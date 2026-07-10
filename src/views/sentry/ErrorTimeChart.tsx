@@ -39,15 +39,23 @@ const ErrorTimeChart = ({
   peakColor = "var(--color-warning)",
   labels,
 }: ErrorTimeChartProps): ReactElement => {
-  // 24h 차트 X축 반응형: 데스크탑 1시간, 태블릿 2시간, 모바일 4시간 간격
+  // X축 반응형: period에 따라 데스크탑/태블릿/모바일 간격 조절
   const [xInterval, setXInterval] = useState(0);
 
   useEffect(() => {
     const updateInterval = (): void => {
       const width = window.innerWidth;
-      if (width >= 1280) setXInterval(period === "24h" ? 0 : 0);
-      else if (width >= 744) setXInterval(period === "24h" ? 1 : 0);
-      else setXInterval(period === "24h" ? 3 : 0);
+      if (period === "24h") {
+        if (width >= 1280) setXInterval(0);
+        else if (width >= 744) setXInterval(1);
+        else setXInterval(3);
+      } else if (period === "30d") {
+        if (width >= 1280) setXInterval(0);
+        else if (width >= 744) setXInterval(1);
+        else setXInterval(4);
+      } else {
+        setXInterval(0);
+      }
     };
     updateInterval();
     window.addEventListener("resize", updateInterval);

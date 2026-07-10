@@ -71,23 +71,34 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       }),
     );
 
-    // 각 이슈의 http.status_code 태그를 병렬 조회
+    // 각 이슈의 http.status_code + environment 태그를 병렬 조회
     const issuesWithStatus = await Promise.all(
       issues.map(async (issue) => {
+        let httpStatusCode: string | undefined;
+        let environment: string | undefined;
         try {
-          const tagRes = await sentryFetch(
-            `/api/0/organizations/${config.org}/issues/${issue.id}/tags/http.status_code/`,
-            config,
-          );
-          if (tagRes.ok) {
-            const tagData = await tagRes.json();
-            const topValue = tagData?.topValues?.[0]?.value;
-            return { ...issue, httpStatusCode: topValue ?? undefined };
+          const [statusRes, envRes] = await Promise.allSettled([
+            sentryFetch(
+              `/api/0/organizations/${config.org}/issues/${issue.id}/tags/http.status_code/`,
+              config,
+            ),
+            sentryFetch(
+              `/api/0/organizations/${config.org}/issues/${issue.id}/tags/environment/`,
+              config,
+            ),
+          ]);
+          if (statusRes.status === "fulfilled" && statusRes.value.ok) {
+            const d = await statusRes.value.json();
+            httpStatusCode = d?.topValues?.[0]?.value ?? undefined;
+          }
+          if (envRes.status === "fulfilled" && envRes.value.ok) {
+            const d = await envRes.value.json();
+            environment = d?.topValues?.[0]?.value ?? undefined;
           }
         } catch {
           // 태그 조회 실패 또는 타임아웃 시 무시
         }
-        return issue;
+        return { ...issue, httpStatusCode, environment };
       }),
     );
 
