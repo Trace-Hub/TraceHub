@@ -13,17 +13,25 @@ import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
 import { ENV_OPTIONS } from "@/shared/config/dropdownOptions";
 import type { EnvFilterValue } from "@/shared/config/dropdownOptions";
+import type { ErrorStatus } from "@/entities/error/model/errorStats";
 import EventRelatedDonutChart from "@/widgets/posthog/eventDetail/EventRelatedDonutChart";
 import { cn } from "@/shared/lib/utils";
 
 type BadgeVariant = ClassificationBadgeProps["variant"];
 
 type ErrorCategory = "server" | "client" | "other";
+type StatusFilterValue = "all" | "unresolved" | "resolved";
 
 const CATEGORY_OPTIONS: { value: ErrorCategory; label: string }[] = [
   { value: "server", label: "Server Error (5xx)" },
   { value: "client", label: "Client Error (4xx)" },
   { value: "other", label: "Other" },
+];
+
+const STATUS_OPTIONS: { value: StatusFilterValue; label: string }[] = [
+  { value: "all", label: "상태 전체" },
+  { value: "unresolved", label: "미해결" },
+  { value: "resolved", label: "해결됨" },
 ];
 
 /**
@@ -66,11 +74,19 @@ const BADGE_CONFIG: {
   { key: "longterm", label: "장기미해결", colorClass: "bg-text-secondary" },
 ];
 
+const STATUS_MAP: Record<StatusFilterValue, ErrorStatus | undefined> = {
+  all: undefined,
+  unresolved: "unresolved",
+  resolved: "resolved",
+};
+
 const ErrorAnalysisDashboard = (): ReactElement => {
   const [category, setCategory] = useState<ErrorCategory>("server");
   const [envFilter, setEnvFilter] = useState<EnvFilterValue>("development");
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
 
   const { data, isLoading, error } = useErrorList({
+    status: STATUS_MAP[statusFilter],
     environment: envFilter,
   });
 
@@ -163,18 +179,44 @@ const ErrorAnalysisDashboard = (): ReactElement => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-6 p-6">
-        <div className="flex items-center gap-3">
-          <Skeleton className="h-8 w-40" />
-          <Skeleton className="h-8 w-44" />
+      <div className="flex flex-col gap-4 p-6">
+        {/* 헤더 */}
+        <div className="flex items-center gap-4">
+          <div>
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-4 w-64 mt-1" />
+          </div>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-40" />
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-8 w-28" />
+          </div>
         </div>
-        <div className="grid grid-cols-4 gap-3">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-24 rounded-xl" />
-          ))}
-        </div>
-        <Skeleton className="h-48 rounded-xl" />
-        <Skeleton className="h-48 rounded-xl" />
+        {/* 분류별 통계 */}
+        <section className="flex flex-col gap-3">
+          <Skeleton className="h-5 w-24" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
+          </div>
+        </section>
+        {/* 상태 코드별 / 타입별 통계 */}
+        <section className="flex flex-col gap-3">
+          <Skeleton className="h-5 w-32" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Skeleton className="h-64 rounded-xl" />
+            <Skeleton className="h-64 rounded-xl" />
+          </div>
+        </section>
+        {/* 에러 발생 위치 Top 5 */}
+        <section className="flex flex-col gap-3">
+          <Skeleton className="h-5 w-36" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Skeleton className="h-64 rounded-xl" />
+            <Skeleton className="h-64 rounded-xl" />
+          </div>
+        </section>
       </div>
     );
   }
@@ -183,9 +225,7 @@ const ErrorAnalysisDashboard = (): ReactElement => {
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-h1 font-bold text-text-primary">
-            에러 통계 분석
-          </h1>
+          <h1 className="text-h1 font-bold text-text-primary">Analysis</h1>
         </div>
         <EmptyState
           message="에러 통계를 불러오는 데 실패했습니다"
@@ -196,22 +236,35 @@ const ErrorAnalysisDashboard = (): ReactElement => {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      {/* 헤더: 타이틀 + 드롭다운 */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-h1 font-bold text-text-primary">에러 통계 분석</h1>
-        <Dropdown
-          value={category}
-          onChange={setCategory}
-          options={CATEGORY_OPTIONS}
-          ariaLabel="에러 분류 선택"
-        />
-        <Dropdown
-          value={envFilter}
-          onChange={setEnvFilter}
-          options={ENV_OPTIONS}
-          ariaLabel="환경 필터"
-        />
+    <div className="flex flex-col gap-4 p-6">
+      {/* 헤더 */}
+      <div className="flex items-center gap-4">
+        <div>
+          <h1 className="text-h1 font-bold text-text-primary">Analysis</h1>
+          <p className="text-body2 text-text-secondary mt-1">
+            Sentry에서 수집한 에러의 통계를 확인해보세요.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Dropdown
+            value={category}
+            onChange={setCategory}
+            options={CATEGORY_OPTIONS}
+            ariaLabel="에러 분류 선택"
+          />
+          <Dropdown
+            value={envFilter}
+            onChange={setEnvFilter}
+            options={ENV_OPTIONS}
+            ariaLabel="환경 필터"
+          />
+          <Dropdown
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={STATUS_OPTIONS}
+            ariaLabel="상태 필터"
+          />
+        </div>
       </div>
 
       {issues.length === 0 ? (
@@ -223,7 +276,7 @@ const ErrorAnalysisDashboard = (): ReactElement => {
             <h2 className="text-body1 font-medium text-text-primary">
               분류별 통계
             </h2>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {badgeStats.map((stat) => (
                 <div
                   key={stat.key}

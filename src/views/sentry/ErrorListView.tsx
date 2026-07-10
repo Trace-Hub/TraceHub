@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactElement } from "react";
 import { useErrorList } from "@/entities/error/api/getErrorList";
-import type { ErrorStatus } from "@/entities/error/model/errorStats";
+import type {
+  ErrorStatus,
+  SentryIssue,
+} from "@/entities/error/model/errorStats";
 import { getIssueClassifications } from "@/entities/error/model/errorStatsUtils";
 import type { ClassificationBadgeProps } from "@/shared/ui/ClassificationBadge";
 import Dropdown from "@/shared/ui/Dropdown";
@@ -134,9 +137,9 @@ const ErrorListView = (): ReactElement => {
     <div className="flex flex-col gap-3 p-6">
       {/* 헤더 */}
       <div>
-        <h1 className="text-h1 font-bold text-text-primary">에러 목록</h1>
+        <h1 className="text-h1 font-bold text-text-primary">Trends</h1>
         <p className="text-body2 text-text-secondary mt-1">
-          Sentry에서 수집된 미해결 에러입니다.
+          Sentry에서 수집된 에러를 확인하세요.
         </p>
       </div>
 
@@ -208,14 +211,65 @@ const ErrorListView = (): ReactElement => {
         />
       )}
       {!isLoading && !error && data && (
-        <div className="flex flex-col gap-3">
-          {filteredIssues.map((issue) => (
-            <ErrorCard key={issue.id} issue={issue} defaultInsightOpen />
-          ))}
-          {filteredIssues.length === 0 && (
-            <EmptyState message="조건에 맞는 이슈가 없습니다" />
-          )}
-        </div>
+        <InfiniteErrorList
+          key={`${statusFilter}-${envFilter}-${classificationFilter}-${searchQuery}`}
+          issues={filteredIssues}
+          envFilter={envFilter}
+        />
+      )}
+    </div>
+  );
+};
+
+const ITEMS_PER_PAGE = 5;
+
+// 무한스크롤 5개씩 렌더링
+const InfiniteErrorList = ({
+  issues,
+  envFilter,
+}: {
+  issues: SentryIssue[];
+  envFilter: EnvFilterValue;
+}): ReactElement => {
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const observerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = observerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisibleCount((prev) =>
+            Math.min(prev + ITEMS_PER_PAGE, issues.length),
+          );
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [issues.length]);
+
+  if (issues.length === 0) {
+    return <EmptyState message="조건에 맞는 이슈가 없습니다" />;
+  }
+
+  const visibleIssues = issues.slice(0, visibleCount);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {visibleIssues.map((issue) => (
+        <ErrorCard
+          key={issue.id}
+          issue={issue}
+          defaultInsightOpen
+          environment={envFilter}
+        />
+      ))}
+      {visibleCount < issues.length && (
+        <div ref={observerRef} className="h-10" />
       )}
     </div>
   );

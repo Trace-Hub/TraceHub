@@ -20,6 +20,8 @@ interface ErrorCardProps {
   defaultInsightOpen?: boolean;
   /** 카드 본문 영역 최소 높이 클래스 (예: "min-h-30") */
   minHeightClass?: string;
+  /** 발생 환경 표시 (예: "production", "development") */
+  environment?: string;
   className?: string;
 }
 
@@ -27,6 +29,7 @@ const ErrorCard = ({
   issue,
   defaultInsightOpen = false,
   minHeightClass,
+  environment,
   className,
 }: ErrorCardProps): ReactElement => {
   const [isInsightOpen, setIsInsightOpen] = useState(defaultInsightOpen);
@@ -77,6 +80,11 @@ const ErrorCard = ({
           </span>
           {" · "}최초: {dayjs(issue.firstSeen).format("MM/DD")}
           {" · "}마지막: {dayjs(issue.lastSeen).format("MM/DD HH:mm")}
+          {environment && (
+            <>
+              {" · "}환경: <span className="font-medium">{environment}</span>
+            </>
+          )}
         </p>
         <p className="text-caption text-text-tertiary">{issue.culprit}</p>
       </button>
