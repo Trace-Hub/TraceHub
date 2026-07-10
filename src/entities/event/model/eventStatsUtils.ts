@@ -2,12 +2,21 @@ import type {
 	EventPeriodCount,
 	Period,
 } from "@/entities/event/model/eventStats";
+import type { Breakpoint } from "@/shared/hooks/useBreakpoint";
+import dayjs from "@/shared/lib/dayjs";
 import {
-	KST_OFFSET,
 	buildKstPeriodFilter,
 	buildKstPreviousPeriodFilter,
+	KST_OFFSET,
 } from "@/shared/lib/posthogServer";
-import dayjs from "@/shared/lib/dayjs";
+
+// QA: 시간대별 발생 현황 그래프 반응형 간격 — Desktop 1시간 / Tablet 2시간 / Mobile 4시간
+// EventBarChart(목록)와 EventDetailTrendChart(상세) 양쪽에서 동일하게 참조하는 단일 기준
+const BREAKPOINT_TO_INTERVAL_HOURS: Record<Breakpoint, number> = {
+	desktop: 1,
+	tablet: 2,
+	mobile: 4,
+};
 
 interface HogQLQueries {
 	current: string;
@@ -90,12 +99,36 @@ const getYAxisTicks = (maxValue: number): number[] => {
 	return [0, 20000, 40000, 60000, 80000, 100000];
 };
 
+// 시간대별(1시간 단위) breakdown을 intervalHours 단위로 합산 — 반응형 그래프 간격에 사용
+// 합산된 값인데 라벨이 구간 시작 시각(예: "0시")만 보이면 그 한 시간에만 발생한 것처럼
+// 오독될 수 있어, 두 시간 이상 묶인 구간은 "시작~끝" 범위로 라벨을 표시한다
+const groupBreakdownByInterval = (
+	breakdown: EventPeriodCount[],
+	intervalHours: number,
+): EventPeriodCount[] => {
+	if (intervalHours <= 1) return breakdown;
+
+	const grouped: EventPeriodCount[] = [];
+	for (let i = 0; i < breakdown.length; i += intervalHours) {
+		const chunk = breakdown.slice(i, i + intervalHours);
+		const last = chunk[chunk.length - 1];
+		grouped.push({
+			label:
+				chunk.length > 1 ? `${chunk[0].label}~${last.label}` : chunk[0].label,
+			count: chunk.reduce((sum, b) => sum + b.count, 0),
+		});
+	}
+	return grouped;
+};
+
 export {
+	BREAKPOINT_TO_INTERVAL_HOURS,
 	buildEmptyBreakdown,
 	buildQueries,
 	calcAverage,
 	calcChangeRate,
 	getPeakLabel,
 	getYAxisTicks,
+	groupBreakdownByInterval,
 	toLabel,
 };

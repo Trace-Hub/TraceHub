@@ -115,14 +115,16 @@ const TrendsDashboard = (): ReactElement => {
 
 	return (
 		<div className="flex flex-col gap-6 p-6 h-full">
+			<h1 className="text-h1 font-bold text-text-primary">Event Trends</h1>
+
 			{/* 상단: KPI 듀얼 패널 (고정 기간 — 오늘/7일) */}
 			{isKpiLoading && <KpiDualPanelSkeleton />}
 			{kpiData && <KpiDualPanel data={kpiData} />}
 
 			{/* 중단: 기간 / 카테고리 드롭다운 + 이벤트명 검색 */}
 			<div className="flex flex-col gap-2">
-				<div className="flex items-center justify-between gap-3">
-					<div className="flex items-center gap-2">
+				<div className="flex flex-wrap items-center justify-between gap-3">
+					<div className="flex flex-wrap items-center gap-2">
 						<PeriodDropdown value={activeTab} onChange={handleTabChange} />
 						<CategoryDropdown
 							value={activeCategory}
@@ -130,7 +132,7 @@ const TrendsDashboard = (): ReactElement => {
 						/>
 						<PathDropdown value={activePath} onChange={handlePathChange} />
 					</div>
-					<div className="relative flex items-center">
+					<div className="relative flex items-center w-full sm:w-auto">
 						<svg
 							className="absolute left-3 pointer-events-none"
 							width="14"
@@ -162,7 +164,7 @@ const TrendsDashboard = (): ReactElement => {
 							}}
 							placeholder="Enter로 검색"
 							aria-label="이벤트명 검색"
-							className="pl-9 pr-3 py-1 w-80 rounded-md border border-border-base bg-bg-card text-body2 text-text-primary placeholder:text-text-tertiary outline-none focus:border-border-focus transition-colors duration-150"
+							className="pl-9 pr-3 py-1 w-full sm:w-64 lg:w-80 rounded-md border border-border-base bg-bg-card text-body2 text-text-primary placeholder:text-text-tertiary outline-none focus:border-border-focus transition-colors duration-150"
 						/>
 					</div>
 				</div>
