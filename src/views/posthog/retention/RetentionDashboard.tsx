@@ -42,7 +42,7 @@ const RetentionDashboard = (): ReactElement => {
 		<div className="flex flex-col gap-6 p-6 h-full">
 			{/* 페이지 헤더 */}
 			<div>
-				<h1 className="text-h1 font-bold text-text-primary">리텐션</h1>
+				<h1 className="text-h1 font-bold text-text-primary">Retention</h1>
 				<p className="text-body2 text-text-secondary mt-1">
 					같은 주에 처음 방문한 사용자 그룹(코호트)이 이후 주에도 재방문하는 비율을 추적합니다.
 				</p>

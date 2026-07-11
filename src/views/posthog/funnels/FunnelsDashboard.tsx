@@ -46,7 +46,7 @@ const FunnelsDashboard = (): ReactElement => {
 			{/* 페이지 헤더 */}
 			<div className="flex items-start justify-between gap-4">
 				<div>
-					<h1 className="text-h1 font-bold text-text-primary">퍼널</h1>
+					<h1 className="text-h1 font-bold text-text-primary">Funnels</h1>
 					<p className="text-body2 text-text-secondary mt-1">
 						정의된 이벤트 순서대로 사용자 전환율을 분석합니다.
 					</p>
@@ -83,6 +83,7 @@ const FunnelsDashboard = (): ReactElement => {
 					onChange={setActiveFunnelId}
 					options={FUNNEL_OPTIONS}
 					ariaLabel="퍼널 선택"
+					className="self-start"
 				/>
 			)}
 

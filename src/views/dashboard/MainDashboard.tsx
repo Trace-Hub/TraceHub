@@ -39,7 +39,7 @@ const MainDashboard = (): ReactElement => {
   return (
     <div className="flex flex-col gap-6 p-6">
       <div>
-        <h1 className="text-h1 font-bold text-text-primary">개요</h1>
+        <h1 className="text-h1 font-bold text-text-primary">Overview</h1>
         <p className="text-body2 text-text-secondary mt-1">
           오늘의 서비스 상태를 확인하세요.
         </p>

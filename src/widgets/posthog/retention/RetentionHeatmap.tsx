@@ -55,7 +55,7 @@ const RetentionHeatmap = ({
 			<table className="w-full border-collapse text-caption min-w-max">
 				<thead>
 					<tr className="border-b border-border-subtle">
-						<th className="sticky left-0 z-10 bg-bg-card px-4 py-2.5 text-left font-normal min-w-36">
+						<th className="sticky left-0 z-10 bg-bg-card px-4 py-2.5 text-left font-normal min-w-36 translate-z-0">
 							<div className="flex flex-col gap-0.5">
 								<span className="text-text-primary font-medium">모든 사용자</span>
 								<span className="text-text-tertiary text-label">
@@ -80,7 +80,7 @@ const RetentionHeatmap = ({
 							key={cohort.weekStart}
 							className="border-b border-border-subtle last:border-0 hover:brightness-95 transition-[filter]"
 						>
-							<td className="sticky left-0 z-10 bg-bg-card px-4 py-2">
+							<td className="sticky left-0 z-10 bg-bg-card px-4 py-2 translate-z-0">
 								<div className="flex flex-col gap-0.5">
 									<span className="text-text-secondary font-mono">
 										{formatWeekRange(cohort.weekStart)}

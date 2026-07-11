@@ -60,7 +60,7 @@ const PathsDashboard = (): ReactElement => {
 			{/* 페이지 헤더 */}
 			<div className="flex items-start justify-between gap-4">
 				<div>
-					<h1 className="text-h1 font-bold text-text-primary">유저 경로</h1>
+					<h1 className="text-h1 font-bold text-text-primary">User Paths</h1>
 					<p className="text-body2 text-text-secondary mt-1">
 						사용자가 실제로 어떤 페이지에서 어떤 페이지로 이동하는지 분석합니다.
 					</p>

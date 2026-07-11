@@ -61,6 +61,18 @@ const formatDurationShort = (ms: number): string => {
 // 노드 정체성은 (step, path) 복합키 — 같은 실제 페이지가 여러 컬럼에 각각 나타날 수 있다
 const nodeKey = (step: number, path: string): string => `${step}::${path}`;
 
+// text-label(11px) 기준 평균 글자폭 근사치 — SVG는 렌더 전 실제 텍스트 폭 측정이 불가능해
+// 근사치로 truncate한다. step 수가 늘어 노드 폭이 좁아지면 인접 라벨과 겹치는 문제 방지용
+const NODE_LABEL_AVG_CHAR_WIDTH_PX = 7;
+
+const truncateNodeLabel = (name: string, width: number): string => {
+	if (width <= 0) return "";
+	const maxChars = Math.floor(width / NODE_LABEL_AVG_CHAR_WIDTH_PX);
+	if (name.length <= maxChars) return name;
+	if (maxChars <= 1) return "…";
+	return `${name.slice(0, maxChars - 1)}…`;
+};
+
 interface HoveredLink {
 	source: string;
 	target: string;
@@ -266,7 +278,7 @@ const PathsSankeyChart = ({
 						isOther ? "var(--color-text-tertiary)" : "var(--color-text-primary)"
 					}
 				>
-					{node.name}
+					{truncateNodeLabel(node.name, width)}
 				</text>
 			</g>
 		);

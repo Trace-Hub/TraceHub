@@ -51,20 +51,20 @@ const LifecycleActiveSection = ({
 
 	return (
 		<div className="rounded-xl border border-border-subtle bg-bg-card p-5 flex flex-col gap-4">
-			{/* 헤더 행: 레이블 + 탭 선택 */}
-			<div className="flex items-start justify-between gap-4">
+			{/* 헤더 행: 레이블 + 탭 선택 — 모바일에서는 User Count 블록이 넘치지 않도록 세로로 쌓는다 */}
+			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
 				<div className="flex flex-col gap-0.5">
 					<span className="text-body1 font-medium text-text-primary">
 						Active User Base
 					</span>
 					<div className="flex items-center gap-1.5">
-						<span className="text-caption text-text-tertiary">
+						<span className="text-caption text-text-tertiary whitespace-nowrap">
 							Active within the last
 						</span>
 						<div
 							role="tablist"
 							aria-label="활성 기간 선택"
-							className="inline-flex items-center gap-0.5 bg-bg-subtle rounded-md p-0.5"
+							className="inline-flex items-center gap-0.5 bg-bg-subtle rounded-md p-0.5 shrink-0"
 						>
 							{LIFECYCLE_TABS.map((tab) => (
 								<button
@@ -88,7 +88,7 @@ const LifecycleActiveSection = ({
 				</div>
 
 				{/* 우측: 유저 수 + 증감률 */}
-				<div className="flex flex-col items-end gap-0.5 shrink-0">
+				<div className="flex flex-col items-start sm:items-end gap-0.5 shrink-0">
 					<span className="text-caption text-text-tertiary">User Count</span>
 					<span className="text-display font-bold text-text-primary">
 						<AnimatedNumber
