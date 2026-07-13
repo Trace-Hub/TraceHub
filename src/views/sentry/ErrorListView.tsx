@@ -112,14 +112,25 @@ const ErrorListView = (): ReactElement => {
   };
 
   const status = STATUS_MAP[statusFilter];
-  const { data, isLoading, error } = useErrorList({
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useErrorList({
     status,
     environment: envFilter,
   });
 
   useApiErrorToast(!!error, "이슈 목록을 불러오는 데 실패했습니다");
 
-  const filteredIssues = (data?.issues ?? []).filter((issue) => {
+  // 모든 페이지의 이슈를 평탄화
+  const allIssues = data?.pages.flatMap((page) => page.issues) ?? [];
+
+  // 클라이언트 사이드 필터 (분류, 검색어)
+  const filteredIssues = allIssues.filter((issue) => {
     if (classificationFilter !== "all") {
       const classifications = getIssueClassifications(issue);
       if (!classifications.includes(classificationFilter)) return false;
@@ -215,23 +226,29 @@ const ErrorListView = (): ReactElement => {
           key={`${statusFilter}-${envFilter}-${classificationFilter}-${searchQuery}`}
           issues={filteredIssues}
           envFilter={envFilter}
+          hasNextPage={!!hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          fetchNextPage={fetchNextPage}
         />
       )}
     </div>
   );
 };
 
-const ITEMS_PER_PAGE = 5;
-
-// 무한스크롤 5개씩 렌더링
+// API 기반 무한스크롤 리스트
 const InfiniteErrorList = ({
   issues,
   envFilter,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
 }: {
   issues: SentryIssue[];
   envFilter: EnvFilterValue;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
 }): ReactElement => {
-  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const observerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -240,27 +257,23 @@ const InfiniteErrorList = ({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisibleCount((prev) =>
-            Math.min(prev + ITEMS_PER_PAGE, issues.length),
-          );
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
         }
       },
       { threshold: 0.1 },
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [issues.length]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  if (issues.length === 0) {
+  if (issues.length === 0 && !hasNextPage) {
     return <EmptyState message="조건에 맞는 이슈가 없습니다" />;
   }
 
-  const visibleIssues = issues.slice(0, visibleCount);
-
   return (
     <div className="flex flex-col gap-3">
-      {visibleIssues.map((issue) => (
+      {issues.map((issue) => (
         <ErrorCard
           key={issue.id}
           issue={issue}
@@ -268,8 +281,16 @@ const InfiniteErrorList = ({
           environment={envFilter}
         />
       ))}
-      {visibleCount < issues.length && (
-        <div ref={observerRef} className="h-10" />
+      {/* 센티널: 다음 페이지가 있으면 보여줌 */}
+      {hasNextPage && (
+        <div
+          ref={observerRef}
+          className="h-10 flex items-center justify-center"
+        >
+          {isFetchingNextPage && (
+            <span className="text-body2 text-text-tertiary">로딩 중...</span>
+          )}
+        </div>
       )}
     </div>
   );

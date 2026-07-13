@@ -7,6 +7,32 @@ import type {
 import { getSentryConfig, sentryFetch } from "@/shared/api/sentryClient";
 
 const VALID_STATUSES: ErrorStatus[] = ["unresolved", "ignored", "resolved"];
+const PER_PAGE = 5;
+
+/**
+ * Sentry Link 헤더에서 next cursor를 파싱한다.
+ * 형식: <url>; rel="next"; results="true"; cursor="xxx:yyy:zzz"
+ */
+function parseNextCursor(linkHeader: string | null): string | null {
+  if (!linkHeader) return null;
+
+  const parts = linkHeader.split(",");
+  for (const part of parts) {
+    const isNext = part.includes('rel="next"');
+    const hasResults = part.includes('results="true"');
+    if (isNext && hasResults) {
+      const cursorMatch = part.match(/cursor="([^"]+)"/);
+      if (cursorMatch) return cursorMatch[1];
+      // fallback: URL에서 cursor 파라미터 추출
+      const urlMatch = part.match(/<([^>]+)>/);
+      if (urlMatch) {
+        const url = new URL(urlMatch[1]);
+        return url.searchParams.get("cursor");
+      }
+    }
+  }
+  return null;
+}
 
 export const GET = async (request: Request): Promise<NextResponse> => {
   const config = getSentryConfig();
@@ -23,6 +49,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     const rawStatus = searchParams.get("status") ?? "unresolved";
     const environment = searchParams.get("environment") ?? "";
     const query = searchParams.get("query") ?? "";
+    const cursor = searchParams.get("cursor") ?? "";
 
     if (!VALID_STATUSES.includes(rawStatus as ErrorStatus)) {
       return NextResponse.json(
@@ -38,7 +65,9 @@ export const GET = async (request: Request): Promise<NextResponse> => {
 
     const params = new URLSearchParams({
       query: `is:${status}${query ? ` ${query}` : ""}`,
+      limit: String(PER_PAGE),
       ...(environment && { environment }),
+      ...(cursor && { cursor }),
     });
 
     const response = await sentryFetch(
@@ -49,6 +78,10 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     if (!response.ok) {
       throw new Error(`Sentry API responded with ${response.status}`);
     }
+
+    // Link 헤더에서 next cursor 추출
+    const linkHeader = response.headers.get("Link");
+    const nextCursor = parseNextCursor(linkHeader);
 
     const rawIssues = await response.json();
 
@@ -104,6 +137,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
 
     return NextResponse.json({
       issues: issuesWithStatus,
+      nextCursor,
     } satisfies ErrorListResponse);
   } catch (error) {
     console.error("Sentry API error:", error);

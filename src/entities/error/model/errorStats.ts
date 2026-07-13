@@ -31,6 +31,7 @@ interface SentryIssue {
 
 interface ErrorListResponse {
   issues: SentryIssue[];
+  nextCursor: string | null;
 }
 
 type ErrorQueryParams = {
