@@ -10,8 +10,13 @@ import {
 	YAxis,
 } from "recharts"
 import type { EventTrendPoint } from "@/entities/event/model/eventStats"
-import { getYAxisTicks } from "@/entities/event/model/eventStatsUtils"
+import {
+	BREAKPOINT_TO_INTERVAL_HOURS,
+	getYAxisTicks,
+} from "@/entities/event/model/eventStatsUtils"
+import useBreakpoint from "@/shared/hooks/useBreakpoint"
 import { cn } from "@/shared/lib/utils"
+import type { Period as TabPeriod } from "@/shared/ui/PeriodSelector"
 import {
 	type ChartConfig,
 	ChartContainer,
@@ -21,6 +26,7 @@ import {
 
 interface EventDetailTrendChartProps {
 	trend: EventTrendPoint[]
+	period: TabPeriod
 	className?: string
 }
 
@@ -31,13 +37,25 @@ const config: ChartConfig = {
 
 const EventDetailTrendChart = ({
 	trend,
+	period,
 	className,
 }: EventDetailTrendChartProps): ReactElement => {
+	const breakpoint = useBreakpoint()
+	const isHourly = period === "오늘"
+
 	const maxValue = Math.max(...trend.map((t) => t.total), 0)
 	const ticks = getYAxisTicks(maxValue)
 
-	const xAxisTicks =
-		trend.length > 7
+	// total·unique는 시간대별로 이미 집계된 countDistinct 값이라 구간을 합산하면 중복 카운트가
+	// 생기므로(EventBarChart의 groupBreakdownByInterval과 달리) 데이터는 그대로 두고
+	// X축에 표시하는 라벨 밀도만 반응형으로 조정한다. 항상 마지막 인덱스(23시)를 강제로
+	// 끼워넣지도 않는다 — 그러면 간격이 안 맞는 tablet(2h)/mobile(4h)에서 23시 라벨만
+	// 따로 튀어나와 간격이 깨져 보였다
+	const xAxisTicks = isHourly
+		? trend
+				.filter((_, i) => i % BREAKPOINT_TO_INTERVAL_HOURS[breakpoint] === 0)
+				.map((t) => t.label)
+		: trend.length > 7
 			? trend
 					.filter((_, i) => i % 5 === 0 || i === trend.length - 1)
 					.map((t) => t.label)

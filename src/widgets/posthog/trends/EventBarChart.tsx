@@ -3,7 +3,12 @@
 import type { ReactElement } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import type { EventPeriodCount } from "@/entities/event/model/eventStats";
-import { getYAxisTicks } from "@/entities/event/model/eventStatsUtils";
+import {
+	BREAKPOINT_TO_INTERVAL_HOURS,
+	getYAxisTicks,
+	groupBreakdownByInterval,
+} from "@/entities/event/model/eventStatsUtils";
+import useBreakpoint from "@/shared/hooks/useBreakpoint";
 import { cn } from "@/shared/lib/utils";
 import {
 	type ChartConfig,
@@ -23,9 +28,14 @@ const EventBarChart = ({
 	color,
 	className,
 }: EventBarChartProps): ReactElement => {
-	const maxValue = Math.max(...breakdown.map((b) => b.count), 0);
+	const breakpoint = useBreakpoint();
+	const groupedBreakdown = groupBreakdownByInterval(
+		breakdown,
+		BREAKPOINT_TO_INTERVAL_HOURS[breakpoint],
+	);
+	const maxValue = Math.max(...groupedBreakdown.map((b) => b.count), 0);
 	const ticks = getYAxisTicks(maxValue);
-	const chartData = breakdown.map((b) => ({ ...b }));
+	const chartData = groupedBreakdown.map((b) => ({ ...b }));
 
 	const config: ChartConfig = {
 		count: { label: "발생 횟수", color },

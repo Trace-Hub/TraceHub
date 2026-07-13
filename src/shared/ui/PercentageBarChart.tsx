@@ -74,6 +74,7 @@ const PercentageBarChart = ({
 					type="number"
 					domain={isPercentage ? [0, 100] : undefined}
 					ticks={isPercentage ? [0, 25, 50, 75, 100] : undefined}
+					allowDecimals={false}
 					tickLine={false}
 					axisLine={false}
 					tick={{ fontSize: 11, fill: "var(--color-text-tertiary)" }}
