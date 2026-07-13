@@ -6,7 +6,7 @@ import type {
 	MouseEvent as ReactMouseEvent,
 	SVGProps,
 } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
 	Sankey,
 	type SankeyData,
@@ -60,18 +60,6 @@ const formatDurationShort = (ms: number): string => {
 
 // 노드 정체성은 (step, path) 복합키 — 같은 실제 페이지가 여러 컬럼에 각각 나타날 수 있다
 const nodeKey = (step: number, path: string): string => `${step}::${path}`;
-
-// text-label(11px) 기준 평균 글자폭 근사치 — SVG는 렌더 전 실제 텍스트 폭 측정이 불가능해
-// 근사치로 truncate한다. step 수가 늘어 노드 폭이 좁아지면 인접 라벨과 겹치는 문제 방지용
-const NODE_LABEL_AVG_CHAR_WIDTH_PX = 7;
-
-const truncateNodeLabel = (name: string, width: number): string => {
-	if (width <= 0) return "";
-	const maxChars = Math.floor(width / NODE_LABEL_AVG_CHAR_WIDTH_PX);
-	if (name.length <= maxChars) return name;
-	if (maxChars <= 1) return "…";
-	return `${name.slice(0, maxChars - 1)}…`;
-};
 
 interface HoveredLink {
 	source: string;
@@ -156,6 +144,91 @@ const NodeStatCard = ({ node }: { node: PathNodeStat }): ReactElement => {
 	);
 };
 
+interface SankeyNodeShapeProps {
+	nodeProps: SankeyNodeProps;
+	isHovered: boolean;
+	onFocusNode: (e: ReactFocusEvent<SVGGraphicsElement>) => void;
+	onBlurNode: () => void;
+}
+
+// recharts Sankey의 node 렌더 함수는 매 노드마다 반복 호출되어 그 안에서 직접 훅을 쓰면
+// 훅 호출 순서 규칙을 어긴다 — 노드 하나당 별도 컴포넌트 인스턴스로 분리해 각자 안정적인
+// 훅 컨텍스트를 갖게 한다 (CodeRabbit 리뷰 반영: 평균 글자폭 근사치 대신 실제 텍스트 폭 측정)
+const SankeyNodeShape = ({
+	nodeProps,
+	isHovered,
+	onFocusNode,
+	onBlurNode,
+}: SankeyNodeShapeProps): ReactElement => {
+	const textRef = useRef<SVGTextElement>(null);
+	const x = safeNum(nodeProps.x);
+	const y = safeNum(nodeProps.y);
+	const width = safeNum(nodeProps.width);
+	const height = safeNum(nodeProps.height);
+	// recharts의 NodeProps.payload 타입은 커스텀 필드를 모르므로 단언 필요 (위 인터페이스 주석 참고)
+	const node = nodeProps.payload as unknown as PathSankeyNodePayload;
+	const isOther = node.kind === "other";
+	// Step 0이 시작 지점 — 전체 경로(필터 없음) 모드에서는 여러 노드가 동시에 Step 0일 수 있다
+	const isStart = !isOther && node.step === 0;
+
+	// SVG는 실제로 그려지기 전엔 텍스트 폭을 알 수 없어, 렌더된 <text>를 getComputedTextLength()로
+	// 측정한 뒤 노드 폭을 넘으면 한 글자씩 줄이며 다시 잰다 — useLayoutEffect라 페인트 전에 끝나
+	// 풀 텍스트가 잠깐 보이는 깜빡임은 없다. React state 왕복 대신 DOM을 직접 갱신하는 이유도 동일
+	useLayoutEffect(() => {
+		const textEl = textRef.current;
+		if (!textEl) return;
+		if (width <= 0) {
+			textEl.textContent = "";
+			return;
+		}
+		textEl.textContent = node.name;
+		if (textEl.getComputedTextLength() <= width) return;
+		let truncated = node.name;
+		while (truncated.length > 1 && textEl.getComputedTextLength() > width) {
+			truncated = truncated.slice(0, -1);
+			textEl.textContent = `${truncated}…`;
+		}
+		// 한 글자 + 말줄임표조차 폭을 넘으면(극단적으로 좁은 노드) 라벨을 아예 숨긴다
+		if (textEl.getComputedTextLength() > width) textEl.textContent = "";
+	}, [node.name, width]);
+
+	return (
+		// biome-ignore lint/a11y/useSemanticElements: SVG 도형을 <button>으로 대체 불가
+		<g
+			tabIndex={0}
+			role="button"
+			aria-label={`${node.name} 노드 상세 정보`}
+			// 마우스 hover(Sankey의 onMouseEnter/Leave)와 동일한 상세 카드를 키보드
+			// 포커스로도 열 수 있어야 한다 — 그렇지 않으면 키보드 사용자는
+			// Continuing/Dropping off 수치를 영영 볼 수 없다
+			onFocus={onFocusNode}
+			onBlur={onBlurNode}
+		>
+			<rect
+				x={x}
+				y={y}
+				width={width}
+				height={Math.max(height, 2)}
+				fill={isStart ? "var(--color-primary)" : "var(--color-text-tertiary)"}
+				fillOpacity={isOther ? 0.35 : isHovered ? 1 : 0.7}
+				strokeDasharray={isOther ? "3 2" : undefined}
+			/>
+			{/* PostHog Paths처럼 경로명 + 인원수는 항상 막대 위에 표시한다 — 초기 텍스트는
+			    전체 이름이고, 위 useLayoutEffect가 페인트 전에 실제 폭 기준으로 덮어쓴다 */}
+			<text
+				ref={textRef}
+				x={x + width / 2}
+				y={y - 6}
+				textAnchor="middle"
+				className={cn("text-label", isOther && "italic")}
+				fill={isOther ? "var(--color-text-tertiary)" : "var(--color-text-primary)"}
+			>
+				{node.name}
+			</text>
+		</g>
+	);
+};
+
 interface HoveredNode {
 	node: PathNodeStat;
 	rect: NodeRect;
@@ -231,56 +304,18 @@ const PathsSankeyChart = ({
 	}
 
 	const renderNode = (props: SankeyNodeProps): ReactElement => {
-		const x = safeNum(props.x);
-		const y = safeNum(props.y);
-		const width = safeNum(props.width);
-		const height = safeNum(props.height);
-		// recharts의 NodeProps.payload 타입은 커스텀 필드를 모르므로 단언 필요 (위 인터페이스 주석 참고)
 		const node = props.payload as unknown as PathSankeyNodePayload;
-		const isOther = node.kind === "other";
-		// Step 0이 시작 지점 — 전체 경로(필터 없음) 모드에서는 여러 노드가 동시에 Step 0일 수 있다
-		const isStart = !isOther && node.step === 0;
-
 		const isHovered =
 			hoveredNode?.node.step === node.step &&
 			hoveredNode.node.path === node.path;
 
-		// SVG 도형(<g>)이라 recharts 레이아웃을 깨지 않고는 실제 <button>으로 바꿀 수 없다 —
-		// role="button"이 스크린리더 지원이 가장 넓은 현실적 대안이다
 		return (
-			// biome-ignore lint/a11y/useSemanticElements: SVG 도형을 <button>으로 대체 불가
-			<g
-				tabIndex={0}
-				role="button"
-				aria-label={`${node.name} 노드 상세 정보`}
-				// 마우스 hover(Sankey의 onMouseEnter/Leave)와 동일한 상세 카드를 키보드
-				// 포커스로도 열 수 있어야 한다 — 그렇지 않으면 키보드 사용자는
-				// Continuing/Dropping off 수치를 영영 볼 수 없다
-				onFocus={(e) => handleElementEnter(props, "node", e)}
-				onBlur={() => handleElementLeave(props, "node")}
-			>
-				<rect
-					x={x}
-					y={y}
-					width={width}
-					height={Math.max(height, 2)}
-					fill={isStart ? "var(--color-primary)" : "var(--color-text-tertiary)"}
-					fillOpacity={isOther ? 0.35 : isHovered ? 1 : 0.7}
-					strokeDasharray={isOther ? "3 2" : undefined}
-				/>
-				{/* PostHog Paths처럼 경로명 + 인원수는 항상 막대 위에 표시한다 */}
-				<text
-					x={x + width / 2}
-					y={y - 6}
-					textAnchor="middle"
-					className={cn("text-label", isOther && "italic")}
-					fill={
-						isOther ? "var(--color-text-tertiary)" : "var(--color-text-primary)"
-					}
-				>
-					{truncateNodeLabel(node.name, width)}
-				</text>
-			</g>
+			<SankeyNodeShape
+				nodeProps={props}
+				isHovered={isHovered}
+				onFocusNode={(e) => handleElementEnter(props, "node", e)}
+				onBlurNode={() => handleElementLeave(props, "node")}
+			/>
 		);
 	};
 
