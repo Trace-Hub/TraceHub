@@ -18,6 +18,7 @@ import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import { ENV_OPTIONS } from "@/shared/config/dropdownOptions";
 import type { EnvFilterValue } from "@/shared/config/dropdownOptions";
 import ErrorListSkeleton from "@/views/sentry/ErrorListSkeleton";
+import { Spinner } from "@/shared/ui/spinner";
 
 type StatusFilterValue = "all" | "unresolved" | "ignored" | "resolved";
 type ClassificationFilter = "all" | ClassificationBadgeProps["variant"];
@@ -285,10 +286,12 @@ const InfiniteErrorList = ({
       {hasNextPage && (
         <div
           ref={observerRef}
-          className="h-10 flex items-center justify-center"
+          className="h-16 flex flex-col items-center justify-center gap-2"
         >
           {isFetchingNextPage && (
-            <span className="text-body2 text-text-tertiary">로딩 중...</span>
+            <>
+              <Spinner className="size-8 [animation-duration:1.5s]" />
+            </>
           )}
         </div>
       )}
