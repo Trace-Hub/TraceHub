@@ -1,5 +1,7 @@
 import {cn} from '@/shared/lib/utils'
 import {Spinner} from '@/shared/ui/spinner'
+import {HugeiconsIcon} from '@hugeicons/react'
+import {CheckmarkCircle02Icon, MultiplicationSignCircleIcon} from '@hugeicons/core-free-icons'
 
 interface ConnectionStatusBoxProps {
     status: 'idle' | 'loading' | 'success' | 'failed'
@@ -11,20 +13,20 @@ interface ConnectionStatusBoxProps {
 
 const variantConfig = {
     idle: {
-        containerClass: 'border border-border-base bg-bg-subtle',
+        containerClass: 'border border-border-base bg-bg-subtle text-text-secondary',
         indicator: null,
     },
     loading: {
-        containerClass: '',
+        containerClass: 'border border-border-base bg-bg-subtle text-text-secondary',
         indicator: 'spinner',
     },
     success: {
-        containerClass: 'bg-success-subtle',
-        indicator: 'dot-success',
+        containerClass: 'border border-success-subtle bg-success-subtle text-success',
+        indicator: 'icon-success',
     },
     failed: {
-        containerClass: 'bg-error-subtle',
-        indicator: 'dot-error',
+        containerClass: 'border border-error-subtle bg-error-subtle text-error',
+        indicator: 'icon-error',
     },
 } as const
 
@@ -49,14 +51,18 @@ const ConnectionStatusBox = ({
             role="status"
             aria-live="polite"
             className={cn(
-                'flex flex-row items-center gap-2 px-4 py-3 rounded-md text-body2 leading-normal font-normal text-text-primary',
+                'flex flex-row items-center gap-2 px-4 py-3 rounded-md text-body2 leading-normal font-medium',
                 containerClass,
                 className,
             )}
         >
             {indicator === 'spinner' && <Spinner/>}
-            {indicator === 'dot-success' && <span className="w-2 h-2 rounded-full shrink-0 bg-success"/>}
-            {indicator === 'dot-error' && <span className="w-2 h-2 rounded-full shrink-0 bg-error"/>}
+            {indicator === 'icon-success' && (
+                <HugeiconsIcon icon={CheckmarkCircle02Icon} strokeWidth={2} className="size-4 shrink-0" color="currentColor"/>
+            )}
+            {indicator === 'icon-error' && (
+                <HugeiconsIcon icon={MultiplicationSignCircleIcon} strokeWidth={2} className="size-4 shrink-0" color="currentColor"/>
+            )}
             <span>{textContent}</span>
         </div>
     )
