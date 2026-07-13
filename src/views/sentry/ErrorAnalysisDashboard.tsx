@@ -92,7 +92,7 @@ const ErrorAnalysisDashboard = (): ReactElement => {
 
   useApiErrorToast(!!error, "에러 통계를 불러오는 데 실패했습니다");
 
-  const allIssues = data?.issues ?? [];
+  const allIssues = data?.pages.flatMap((page) => page.issues) ?? [];
   const issues = useMemo(
     () => filterByCategory(allIssues, category),
     [allIssues, category],

@@ -1,4 +1,8 @@
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  type InfiniteData,
+  type UseInfiniteQueryResult,
+} from "@tanstack/react-query";
 import type {
   ErrorListResponse,
   ErrorQueryParams,
@@ -7,12 +11,14 @@ import { apiClient } from "@/shared/api/client";
 
 const getErrorList = async (
   params: ErrorQueryParams = {},
+  cursor?: string,
 ): Promise<ErrorListResponse> => {
   const searchParams = new URLSearchParams();
 
   if (params.status) searchParams.set("status", params.status);
   if (params.environment) searchParams.set("environment", params.environment);
   if (params.query) searchParams.set("query", params.query);
+  if (cursor) searchParams.set("cursor", cursor);
 
   const queryString = searchParams.toString();
   const path = `/api/sentry/issues${queryString ? `?${queryString}` : ""}`;
@@ -24,13 +30,27 @@ const getErrorList = async (
   return response.json();
 };
 
+type ErrorListInfiniteData = InfiniteData<
+  ErrorListResponse,
+  string | undefined
+>;
+
 const useErrorList = (
   params: ErrorQueryParams = {},
-): UseQueryResult<ErrorListResponse, Error> => {
-  return useQuery({
+): UseInfiniteQueryResult<ErrorListInfiniteData, Error> => {
+  return useInfiniteQuery<
+    ErrorListResponse,
+    Error,
+    ErrorListInfiniteData,
+    readonly unknown[],
+    string | undefined
+  >({
     queryKey: ["sentry", "issues", params],
-    queryFn: () => getErrorList(params),
+    queryFn: ({ pageParam }) => getErrorList(params, pageParam),
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
   });
 };
 
 export { getErrorList, useErrorList };
+export type { ErrorListInfiniteData };

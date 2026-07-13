@@ -34,14 +34,18 @@ const MainDashboard = (): ReactElement => {
     useEventStats("month");
 
   // 두 환경 합쳐서 최신순 정렬 후 3개
-  const devIssues = (errorDataDev?.issues ?? []).map((i) => ({
-    ...i,
-    environment: "development",
-  }));
-  const prodIssues = (errorDataProd?.issues ?? []).map((i) => ({
-    ...i,
-    environment: "production",
-  }));
+  const devIssues = (errorDataDev?.pages.flatMap((p) => p.issues) ?? []).map(
+    (i) => ({
+      ...i,
+      environment: "development",
+    }),
+  );
+  const prodIssues = (errorDataProd?.pages.flatMap((p) => p.issues) ?? []).map(
+    (i) => ({
+      ...i,
+      environment: "production",
+    }),
+  );
   // id 기준 중복 제거 (최신 lastSeen 우선)
   const issueMap = new Map<string, (typeof devIssues)[number]>();
   for (const issue of [...devIssues, ...prodIssues]) {
