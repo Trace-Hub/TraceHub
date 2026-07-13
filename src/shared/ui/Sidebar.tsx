@@ -1,7 +1,7 @@
 "use client"
 
 import type { JSX } from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { AnimatePresence, motion } from "motion/react"
@@ -62,6 +62,17 @@ const Sidebar = (): JSX.Element => {
 	// 자식 경로 활성 여부를 파생값으로 계산 — Effect로 상태 동기화 시 cascading render 유발
 	const isPathUnder = (baseHref: string): boolean =>
 		pathname === baseHref || pathname.startsWith(`${baseHref}/`)
+
+	const activeParentHref = NAV_ITEMS.find((item) => item.children && isPathUnder(item.href))?.href ?? null
+	const prevActiveParentRef = useRef(activeParentHref)
+
+	// 다른 섹션으로 진입할 때만 자동으로 펼침 — 같은 섹션 안에서 사용자가 직접 접은 상태는 유지
+	useEffect(() => {
+		if (activeParentHref && activeParentHref !== prevActiveParentRef.current) {
+			setExpandedItems((prev) => new Set(prev).add(activeParentHref))
+		}
+		prevActiveParentRef.current = activeParentHref
+	}, [activeParentHref])
 
 	useEffect(() => {
 		if (!isOpen) return
@@ -138,7 +149,9 @@ const Sidebar = (): JSX.Element => {
 
 						if (children) {
 							const isParentActive = isPathUnder(href)
-							const isExpanded = isParentActive || expandedItems.has(href)
+							// isParentActive는 스타일(활성 표시)에만 사용하고, expanded 여부는 별도 상태로 관리
+							// 활성 섹션이라도 사용자가 직접 접고 펼 수 있어야 함
+							const isExpanded = expandedItems.has(href)
 
 							const subMenuId = `subnav-${href.replace(/\//g, "-")}`
 
@@ -146,10 +159,7 @@ const Sidebar = (): JSX.Element => {
 								<div key={href}>
 									<button
 										type="button"
-										onClick={() => {
-											if (isParentActive) return
-											toggleExpanded(href)
-										}}
+										onClick={() => toggleExpanded(href)}
 										className={cn(
 											"w-full flex items-center gap-3 px-4 py-3",
 											"border-l-2 transition-interactive",
