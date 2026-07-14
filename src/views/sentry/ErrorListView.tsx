@@ -123,6 +123,7 @@ const ErrorListView = (): ReactElement => {
   } = useErrorList({
     status,
     environment: envFilter,
+    query: searchQuery || undefined,
   });
 
   useApiErrorToast(!!error, "이슈 목록을 불러오는 데 실패했습니다");
@@ -130,17 +131,11 @@ const ErrorListView = (): ReactElement => {
   // 모든 페이지의 이슈를 평탄화
   const allIssues = data?.pages.flatMap((page) => page.issues) ?? [];
 
-  // 클라이언트 사이드 필터 (분류, 검색어)
+  // 클라이언트 사이드 필터 (분류)
   const filteredIssues = allIssues.filter((issue) => {
     if (classificationFilter !== "all") {
       const classifications = getIssueClassifications(issue);
       if (!classifications.includes(classificationFilter)) return false;
-    }
-    if (searchQuery.trim() !== "") {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = issue.title.toLowerCase().includes(q);
-      const matchCulprit = issue.culprit.toLowerCase().includes(q);
-      if (!matchTitle && !matchCulprit) return false;
     }
     return true;
   });
@@ -268,8 +263,19 @@ const InfiniteErrorList = ({
     return () => observer.disconnect();
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // 클라이언트 필터 결과가 0건인데 다음 페이지가 있으면 자동으로 추가 fetch
+  useEffect(() => {
+    if (issues.length === 0 && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [issues.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   if (issues.length === 0 && !hasNextPage) {
     return <EmptyState message="조건에 맞는 이슈가 없습니다" />;
+  }
+
+  if (issues.length === 0) {
+    return <ErrorListSkeleton />;
   }
 
   return (
