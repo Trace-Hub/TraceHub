@@ -96,11 +96,13 @@ const useAllEventStats = (
 	period: Period,
 	path = "all",
 	category: EventCategory = "all",
+	enabled = true,
 ): UseQueryResult<EventStatsResponse, Error> => {
 	return useQuery({
 		queryKey: ["events", "stats", "all", period, path, category],
 		queryFn: ({ signal }) => getAllEventStats(period, path, category, signal),
 		retry: 1,
+		enabled,
 	});
 };
 
