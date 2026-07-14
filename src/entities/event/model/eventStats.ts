@@ -44,6 +44,8 @@ interface EventStats {
 interface EventStatsResponse {
 	period: Period;
 	events: EventStats[];
+	// 다음 페이지 조회용 커서 — 더 가져올 이벤트가 없으면 null
+	nextCursor: string | null;
 }
 
 // 상세 페이지 핵심 지표 — totalCount 외 uniqueUsers·sessionCount는 기존 EventStats에 없어 별도 타입으로 분리

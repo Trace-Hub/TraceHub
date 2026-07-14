@@ -20,6 +20,15 @@ const KST_OFFSET = "INTERVAL 9 HOUR";
 const sanitizeHogQLString = (value: string): string =>
 	value.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 
+// LIKE 패턴용 이스케이프 — %, _ 는 LIKE의 와일드카드라 검색어에 literal로 포함돼도
+// 그대로 두면 의도치 않게 넓게 매칭된다. \ 를 LIKE escape 문자로 사용해 리터럴로 고정하고,
+// 그 결과를 다시 sanitizeHogQLString으로 감싸 문자열 리터럴 레벨 이스케이프까지 적용한다
+// (역슬래시가 두 단계에서 각각 이스케이프되어야 최종 파싱 후 원래 의도한 문자로 복원됨)
+const sanitizeHogQLLikePattern = (value: string): string =>
+	sanitizeHogQLString(
+		value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_"),
+	);
+
 const VALID_PERIODS: Period[] = ["day", "week", "month"];
 
 const INVALID_PERIOD_ERROR_MESSAGE =
@@ -133,5 +142,6 @@ export {
 	parsePeriodParam,
 	resolvePathFilter,
 	runHogQLQuery,
+	sanitizeHogQLLikePattern,
 	sanitizeHogQLString,
 };

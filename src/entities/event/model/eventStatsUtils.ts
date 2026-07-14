@@ -4,11 +4,6 @@ import type {
 } from "@/entities/event/model/eventStats";
 import type { Breakpoint } from "@/shared/hooks/useBreakpoint";
 import dayjs from "@/shared/lib/dayjs";
-import {
-	buildKstPeriodFilter,
-	buildKstPreviousPeriodFilter,
-	KST_OFFSET,
-} from "@/shared/lib/posthogServer";
 
 // QA: 시간대별 발생 현황 그래프 반응형 간격 — Desktop 1시간 / Tablet 2시간 / Mobile 4시간
 // EventBarChart(목록)와 EventDetailTrendChart(상세) 양쪽에서 동일하게 참조하는 단일 기준
@@ -16,39 +11,6 @@ const BREAKPOINT_TO_INTERVAL_HOURS: Record<Breakpoint, number> = {
 	desktop: 1,
 	tablet: 2,
 	mobile: 4,
-};
-
-interface HogQLQueries {
-	current: string;
-	previous: string;
-}
-
-const buildQueries = (period: Period, pathFilter: string): HogQLQueries => {
-	const currentFilter = buildKstPeriodFilter(period);
-	const previousFilter = buildKstPreviousPeriodFilter(period);
-	// day는 시간(toHour), week/month는 날짜(toDate)로 집계 단위가 다름
-	const unitExpr =
-		period === "day"
-			? `toHour(timestamp + ${KST_OFFSET})`
-			: `toDate(timestamp + ${KST_OFFSET})`;
-
-	return {
-		current: `
-      SELECT event, ${unitExpr} AS unit, count() AS count
-      FROM events
-      WHERE ${currentFilter}
-      AND ${pathFilter}
-      GROUP BY event, unit
-      ORDER BY event, unit ASC
-    `,
-		previous: `
-      SELECT event, count() AS count
-      FROM events
-      WHERE ${previousFilter}
-      AND ${pathFilter}
-      GROUP BY event
-    `,
-	};
 };
 
 const buildEmptyBreakdown = (period: Period): EventPeriodCount[] => {
@@ -124,7 +86,6 @@ const groupBreakdownByInterval = (
 export {
 	BREAKPOINT_TO_INTERVAL_HOURS,
 	buildEmptyBreakdown,
-	buildQueries,
 	calcAverage,
 	calcChangeRate,
 	getPeakLabel,
