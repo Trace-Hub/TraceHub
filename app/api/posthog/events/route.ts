@@ -4,19 +4,20 @@ import {
 	MAX_LIMIT,
 	PER_PAGE,
 } from "@/entities/event/api/fetchEventStatsServer";
-import type { EventCategory } from "@/entities/event/model/eventCategory";
+import {
+	EVENT_CATEGORY_LABELS,
+	type EventCategory,
+} from "@/entities/event/model/eventCategory";
 import {
 	INVALID_PERIOD_ERROR_MESSAGE,
 	parsePeriodParam,
 	resolvePathFilter,
 } from "@/shared/lib/posthogServer";
 
-const VALID_CATEGORIES: EventCategory[] = [
-	"all",
-	"navigation",
-	"interaction",
-	"system",
-];
+// EVENT_CATEGORY_LABELS가 Record<EventCategory, string>로 선언돼 있어 컴파일 타임에
+// 모든 EventCategory 값을 포함하도록 강제됨 — VALID_CATEGORIES를 별도로 하드코딩하지 않고
+// 여기서 파생시켜, 새 카테고리 추가 시 갱신을 누락해도 조용히 400 처리되는 걸 방지
+const VALID_CATEGORIES = Object.keys(EVENT_CATEGORY_LABELS) as EventCategory[];
 
 export async function GET(request: Request): Promise<NextResponse> {
 	try {

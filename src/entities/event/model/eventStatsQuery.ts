@@ -38,6 +38,7 @@ const decodeCursor = (raw: string): EventCursor | null => {
 			typeof parsed === "object" &&
 			parsed !== null &&
 			typeof (parsed as EventCursor).total === "number" &&
+			Number.isFinite((parsed as EventCursor).total) &&
 			typeof (parsed as EventCursor).event === "string"
 		) {
 			return parsed as EventCursor;

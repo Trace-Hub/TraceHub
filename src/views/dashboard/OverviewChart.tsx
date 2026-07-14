@@ -25,8 +25,12 @@ const OverviewChart = ({ type, period }: OverviewChartProps): ReactElement => {
 		type === "error",
 	);
 
-	const { data: eventStats, isLoading: eventLoading } =
-		useAllEventStats(eventPeriod);
+	const { data: eventStats, isLoading: eventLoading } = useAllEventStats(
+		eventPeriod,
+		"all",
+		"all",
+		type === "event",
+	);
 
 	if (type === "error") {
 		if (errorLoading) return <Skeleton className="h-36 w-full rounded-xl" />;

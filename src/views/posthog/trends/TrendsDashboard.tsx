@@ -72,6 +72,7 @@ const TrendsDashboard = (): ReactElement => {
 		period,
 		activePath,
 		activeCategory,
+		period !== "day",
 	);
 	const comparisonEvents = (comparisonData?.events ?? []).filter((ev) =>
 		COMPARISON_EVENTS.includes(ev.event),
@@ -142,23 +143,48 @@ const TrendsDashboard = (): ReactElement => {
 	// 첫 페이지만 별도로 fetch해 캐시의 pages[0]만 교체 — 요청 수를 억제하고 스크롤 위치를 보존한다
 	useEffect(() => {
 		const timer = setInterval(async () => {
-			const freshFirstPage = await getEventStats(
-				period,
-				activePath,
-				activeCategory,
-				committedQuery,
-			);
-			queryClient.setQueryData<EventStatsInfiniteData>(
-				["events", "stats", period, activePath, activeCategory, committedQuery],
-				(old) =>
-					old && old.pages.length > 0
-						? {
-								pages: [freshFirstPage, ...old.pages.slice(1)],
-								pageParams: old.pageParams,
-							}
-						: old,
-			);
-			setRefreshedAt(Date.now());
+			try {
+				const freshFirstPage = await getEventStats(
+					period,
+					activePath,
+					activeCategory,
+					committedQuery,
+				);
+				queryClient.setQueryData<EventStatsInfiniteData>(
+					[
+						"events",
+						"stats",
+						period,
+						activePath,
+						activeCategory,
+						committedQuery,
+					],
+					(old) => {
+						if (!old || old.pages.length === 0) return old;
+						// pages[0]를 새로 받아온 이벤트로 교체하면서, 순위가 바뀌어 뒤 페이지에도
+						// 남아있는 이벤트가 있으면 화면에 중복 표시되므로 제거
+						const freshEventNames = new Set(
+							freshFirstPage.events.map((ev) => ev.event),
+						);
+						const dedupedRestPages = old.pages.slice(1).map((page) => ({
+							...page,
+							events: page.events.filter(
+								(ev) => !freshEventNames.has(ev.event),
+							),
+						}));
+						return {
+							pages: [freshFirstPage, ...dedupedRestPages],
+							pageParams: old.pageParams,
+						};
+					},
+				);
+				setRefreshedAt(Date.now());
+			} catch {
+				// 자동 갱신 실패는 화면을 막지 않고 토스트로만 알림 — 다음 주기에 재시도됨
+				toast.error(
+					"데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+				);
+			}
 		}, EVENT_STATS_REFETCH_INTERVAL_MS);
 		return () => clearInterval(timer);
 	}, [period, activePath, activeCategory, committedQuery, queryClient]);
@@ -282,6 +308,14 @@ const TrendsDashboard = (): ReactElement => {
 	);
 };
 
+interface InfiniteEventListProps {
+	events: EventStats[];
+	period: Period;
+	hasNextPage: boolean;
+	isFetchingNextPage: boolean;
+	fetchNextPage: () => void;
+}
+
 // API 기반 무한스크롤 리스트 — Sentry InfiniteErrorList와 동일한 IntersectionObserver 패턴
 const InfiniteEventList = ({
 	events,
@@ -289,13 +323,7 @@ const InfiniteEventList = ({
 	hasNextPage,
 	isFetchingNextPage,
 	fetchNextPage,
-}: {
-	events: EventStats[];
-	period: Period;
-	hasNextPage: boolean;
-	isFetchingNextPage: boolean;
-	fetchNextPage: () => void;
-}): ReactElement => {
+}: InfiniteEventListProps): ReactElement => {
 	const observerRef = useRef<HTMLDivElement | null>(null);
 
 	useEffect(() => {
