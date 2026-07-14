@@ -5,7 +5,13 @@ import type {ConnectionTestReason} from "@/features/settings/model/integrationTy
 export const SERVICE_CONFIG = {
     sentry: {
         title: "Sentry",
-        envKeys: ["SENTRY_AUTH_TOKEN", "NEXT_PUBLIC_SENTRY_DSN", "NEXT_SENTRY_API_TOKEN"],
+        envKeys: [
+            "SENTRY_AUTH_TOKEN",
+            "NEXT_PUBLIC_SENTRY_DSN",
+            "NEXT_SENTRY_API_TOKEN",
+            "NEXT_SENTRY_ORG",
+            "NEXT_SENTRY_PROJECT",
+        ],
         guide: {
             SENTRY_AUTH_TOKEN: "1. Sentry 프로젝트 페이지에 들어갑니다.\n " +
                 "2. Settings → Developer Tokens → Organizations Tokens로 들어갑니다.\n " +
@@ -17,6 +23,10 @@ export const SERVICE_CONFIG = {
                 "2. Settings → Developer Tokens → Personal Tokens로 들어갑니다.\n " +
                 "3. Create New Token → event, org 등 상황에 맞게 read로 설정합니다.\n " +
                 "4. Create Token을 누른 뒤, 생성된 키 값을 확인합니다.",
+            NEXT_SENTRY_ORG: "1. Sentry 프로젝트 페이지에 들어갑니다.\n " +
+                "2. Settings → Organization Settings에서 Organization Slug를 확인합니다.",
+            NEXT_SENTRY_PROJECT: "1. Sentry 프로젝트 페이지에 들어갑니다.\n " +
+                "2. Settings → Projects → 생성한 프로젝트에 들어가 Project Slug를 확인합니다.",
         },
         docsUrl: "https://docs.sentry.io/account/auth-tokens/",
     },
@@ -27,6 +37,7 @@ export const SERVICE_CONFIG = {
             "NEXT_PUBLIC_POSTHOG_HOST",
             "NEXT_PUBLIC_POSTHOG_APP_HOST",
             "NEXT_POSTHOG_PERSONAL_API_KEY",
+            "NEXT_PUBLIC_POSTHOG_PROJECT_ID",
         ],
         guide: {
             NEXT_PUBLIC_POSTHOG_TOKEN: "1. PostHog 프로젝트 페이지에 들어갑니다.\n " +
@@ -40,6 +51,8 @@ export const SERVICE_CONFIG = {
             NEXT_POSTHOG_PERSONAL_API_KEY: "1. PostHog 프로젝트 페이지에 들어갑니다.\n " +
                 "2. Settings → Account → Personal API Keys → Create personal API Key를 누릅니다.\n " +
                 "3. 생성 후 키 값을 확인합니다. (이후 재확인 불가)",
+            NEXT_PUBLIC_POSTHOG_PROJECT_ID: "1. PostHog 프로젝트 페이지에 들어갑니다.\n " +
+                "2. Settings - General에서 Project ID를 확인합니다.",
         },
         docsUrl: "https://posthog.com/docs/api/personal-api-keys",
     },

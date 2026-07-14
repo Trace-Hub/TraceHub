@@ -20,6 +20,8 @@ interface ErrorCardProps {
   defaultInsightOpen?: boolean;
   /** 카드 본문 영역 최소 높이 클래스 (예: "min-h-30") */
   minHeightClass?: string;
+  /** 발생 환경 표시 (예: "production", "development") */
+  environment?: string;
   className?: string;
 }
 
@@ -27,6 +29,7 @@ const ErrorCard = ({
   issue,
   defaultInsightOpen = false,
   minHeightClass,
+  environment,
   className,
 }: ErrorCardProps): ReactElement => {
   const [isInsightOpen, setIsInsightOpen] = useState(defaultInsightOpen);
@@ -77,6 +80,14 @@ const ErrorCard = ({
           </span>
           {" · "}최초: {dayjs(issue.firstSeen).format("MM/DD")}
           {" · "}마지막: {dayjs(issue.lastSeen).format("MM/DD HH:mm")}
+          {(environment || issue.environment) && (
+            <>
+              {" · "}환경:{" "}
+              <span className="font-medium">
+                {environment || issue.environment}
+              </span>
+            </>
+          )}
         </p>
         <p className="text-caption text-text-tertiary">{issue.culprit}</p>
       </button>
@@ -85,7 +96,7 @@ const ErrorCard = ({
         <div className="px-4 pb-3 flex flex-col gap-2">
           <InsightLabel
             variant="fact"
-            text={`${issue.title} 에러가 ${Number(issue.count).toLocaleString()}회 발생했습니다. 영향 사용자는 ${issue.userCount.toLocaleString()}명입니다.`}
+            text={`에러가 ${Number(issue.count).toLocaleString()}회 발생했습니다. 영향 사용자는 ${issue.userCount.toLocaleString()}명입니다.`}
           />
           <InsightLabel
             variant="comparison"

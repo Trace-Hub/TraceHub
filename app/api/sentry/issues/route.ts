@@ -7,6 +7,32 @@ import type {
 import { getSentryConfig, sentryFetch } from "@/shared/api/sentryClient";
 
 const VALID_STATUSES: ErrorStatus[] = ["unresolved", "ignored", "resolved"];
+const PER_PAGE = 5;
+
+/**
+ * Sentry Link 헤더에서 next cursor를 파싱한다.
+ * 형식: <url>; rel="next"; results="true"; cursor="xxx:yyy:zzz"
+ */
+function parseNextCursor(linkHeader: string | null): string | null {
+  if (!linkHeader) return null;
+
+  const parts = linkHeader.split(",");
+  for (const part of parts) {
+    const isNext = part.includes('rel="next"');
+    const hasResults = part.includes('results="true"');
+    if (isNext && hasResults) {
+      const cursorMatch = part.match(/cursor="([^"]+)"/);
+      if (cursorMatch) return cursorMatch[1];
+      // fallback: URL에서 cursor 파라미터 추출
+      const urlMatch = part.match(/<([^>]+)>/);
+      if (urlMatch) {
+        const url = new URL(urlMatch[1]);
+        return url.searchParams.get("cursor");
+      }
+    }
+  }
+  return null;
+}
 
 export const GET = async (request: Request): Promise<NextResponse> => {
   const config = getSentryConfig();
@@ -23,6 +49,7 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     const rawStatus = searchParams.get("status") ?? "unresolved";
     const environment = searchParams.get("environment") ?? "";
     const query = searchParams.get("query") ?? "";
+    const cursor = searchParams.get("cursor") ?? "";
 
     if (!VALID_STATUSES.includes(rawStatus as ErrorStatus)) {
       return NextResponse.json(
@@ -38,7 +65,9 @@ export const GET = async (request: Request): Promise<NextResponse> => {
 
     const params = new URLSearchParams({
       query: `is:${status}${query ? ` ${query}` : ""}`,
+      limit: String(PER_PAGE),
       ...(environment && { environment }),
+      ...(cursor && { cursor }),
     });
 
     const response = await sentryFetch(
@@ -49,6 +78,10 @@ export const GET = async (request: Request): Promise<NextResponse> => {
     if (!response.ok) {
       throw new Error(`Sentry API responded with ${response.status}`);
     }
+
+    // Link 헤더에서 next cursor 추출
+    const linkHeader = response.headers.get("Link");
+    const nextCursor = parseNextCursor(linkHeader);
 
     const rawIssues = await response.json();
 
@@ -71,28 +104,40 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       }),
     );
 
-    // 각 이슈의 http.status_code 태그를 병렬 조회
+    // 각 이슈의 http.status_code + environment 태그를 병렬 조회
     const issuesWithStatus = await Promise.all(
       issues.map(async (issue) => {
+        let httpStatusCode: string | undefined;
+        let environment: string | undefined;
         try {
-          const tagRes = await sentryFetch(
-            `/api/0/organizations/${config.org}/issues/${issue.id}/tags/http.status_code/`,
-            config,
-          );
-          if (tagRes.ok) {
-            const tagData = await tagRes.json();
-            const topValue = tagData?.topValues?.[0]?.value;
-            return { ...issue, httpStatusCode: topValue ?? undefined };
+          const [statusRes, envRes] = await Promise.allSettled([
+            sentryFetch(
+              `/api/0/organizations/${config.org}/issues/${issue.id}/tags/http.status_code/`,
+              config,
+            ),
+            sentryFetch(
+              `/api/0/organizations/${config.org}/issues/${issue.id}/tags/environment/`,
+              config,
+            ),
+          ]);
+          if (statusRes.status === "fulfilled" && statusRes.value.ok) {
+            const d = await statusRes.value.json();
+            httpStatusCode = d?.topValues?.[0]?.value ?? undefined;
+          }
+          if (envRes.status === "fulfilled" && envRes.value.ok) {
+            const d = await envRes.value.json();
+            environment = d?.topValues?.[0]?.value ?? undefined;
           }
         } catch {
           // 태그 조회 실패 또는 타임아웃 시 무시
         }
-        return issue;
+        return { ...issue, httpStatusCode, environment };
       }),
     );
 
     return NextResponse.json({
       issues: issuesWithStatus,
+      nextCursor,
     } satisfies ErrorListResponse);
   } catch (error) {
     console.error("Sentry API error:", error);

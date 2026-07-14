@@ -27,17 +27,19 @@
     --color-text-tertiary: #A1A1AA;
     --color-text-disabled: #D4D4D8;
 
-    /* Semantic (라이트/다크 동일) */
+    /* Semantic - 기본 색상은 라이트/다크 동일 */
     --color-primary: #3B82F6;
     --color-primary-hover: #2563EB;
     --color-success: #22C55E;
-    --color-success-subtle: #14532D20;
     --color-warning: #F59E0B;
-    --color-warning-subtle: #78350F20;
     --color-error: #EF4444;
-    --color-error-subtle: #ef44441a;
     --color-surge: #F97316;
-    --color-surge-subtle: #f59e0b1a;
+
+    /* Semantic subtle(배경용) - 다크용 저알파 값을 라이트 배경에 그대로 쓰면 연해 보여 라이트 전용 값 사용 */
+    --color-success-subtle: #22C55E26;
+    --color-warning-subtle: #F59E0B26;
+    --color-error-subtle: #EF444426;
+    --color-surge-subtle: #F9731626;
 }
 
 .dark {
@@ -60,6 +62,12 @@
     --color-text-secondary: #A1A1AA;
     --color-text-tertiary: #71717A;
     --color-text-disabled: #52525B;
+
+    /* Semantic subtle(배경용) - 다크 배경 기준 저알파 값 */
+    --color-success-subtle: #14532D20;
+    --color-warning-subtle: #78350F20;
+    --color-error-subtle: #ef44441a;
+    --color-surge-subtle: #f973161a;
 }
 
 /* =============================================

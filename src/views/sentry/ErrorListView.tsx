@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactElement } from "react";
 import { useErrorList } from "@/entities/error/api/getErrorList";
-import type { ErrorStatus } from "@/entities/error/model/errorStats";
+import type {
+  ErrorStatus,
+  SentryIssue,
+} from "@/entities/error/model/errorStats";
 import { getIssueClassifications } from "@/entities/error/model/errorStatsUtils";
 import type { ClassificationBadgeProps } from "@/shared/ui/ClassificationBadge";
 import Dropdown from "@/shared/ui/Dropdown";
@@ -14,6 +18,7 @@ import useApiErrorToast from "@/shared/hooks/useApiErrorToast";
 import { ENV_OPTIONS } from "@/shared/config/dropdownOptions";
 import type { EnvFilterValue } from "@/shared/config/dropdownOptions";
 import ErrorListSkeleton from "@/views/sentry/ErrorListSkeleton";
+import { Spinner } from "@/shared/ui/spinner";
 
 type StatusFilterValue = "all" | "unresolved" | "ignored" | "resolved";
 type ClassificationFilter = "all" | ClassificationBadgeProps["variant"];
@@ -40,41 +45,97 @@ const STATUS_MAP: Record<StatusFilterValue, ErrorStatus | undefined> = {
   resolved: "resolved",
 };
 
+// URL 파라미터 key별 기본값 — 기본값일 때 URL에서 제거
+const DEFAULT_PARAM_VALUES: Record<string, string> = {
+  status: "all",
+  env: "development",
+  classification: "all",
+  q: "",
+};
+
 const ErrorListView = (): ReactElement => {
-  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
-  const [envFilter, setEnvFilter] = useState<EnvFilterValue>("development");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>(
+    (searchParams.get("status") as StatusFilterValue) || "all",
+  );
+  const [envFilter, setEnvFilter] = useState<EnvFilterValue>(
+    (searchParams.get("env") as EnvFilterValue) || "development",
+  );
   const [classificationFilter, setClassificationFilter] =
-    useState<ClassificationFilter>("all");
-  const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+    useState<ClassificationFilter>(
+      (searchParams.get("classification") as ClassificationFilter) || "all",
+    );
+  const [searchInput, setSearchInput] = useState(searchParams.get("q") ?? "");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") ?? "");
   const [isComposing, setIsComposing] = useState(false);
+
+  // URL 쿼리 파라미터 동기화 — key별 기본값일 때만 URL에서 제거
+  const syncParams = useCallback(
+    (params: Record<string, string>) => {
+      const current = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(params)) {
+        if (value === DEFAULT_PARAM_VALUES[key]) {
+          current.delete(key);
+        } else {
+          current.set(key, value);
+        }
+      }
+      const query = current.toString();
+      router.replace(`?${query}`, { scroll: false });
+    },
+    [router, searchParams],
+  );
+
+  const handleStatusChange = (value: StatusFilterValue): void => {
+    setStatusFilter(value);
+    syncParams({ status: value });
+  };
+
+  const handleEnvChange = (value: EnvFilterValue): void => {
+    setEnvFilter(value);
+    syncParams({ env: value });
+  };
+
+  const handleClassificationChange = (value: ClassificationFilter): void => {
+    setClassificationFilter(value);
+    syncParams({ classification: value });
+  };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !isComposing) {
       const trimmed = searchInput.trim();
       setSearchQuery(trimmed);
+      syncParams({ q: trimmed });
       if (trimmed === "") setSearchInput("");
     }
   };
 
   const status = STATUS_MAP[statusFilter];
-  const { data, isLoading, error } = useErrorList({
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useErrorList({
     status,
     environment: envFilter,
+    query: searchQuery || undefined,
   });
 
   useApiErrorToast(!!error, "이슈 목록을 불러오는 데 실패했습니다");
 
-  const filteredIssues = (data?.issues ?? []).filter((issue) => {
+  // 모든 페이지의 이슈를 평탄화
+  const allIssues = data?.pages.flatMap((page) => page.issues) ?? [];
+
+  // 클라이언트 사이드 필터 (분류)
+  const filteredIssues = allIssues.filter((issue) => {
     if (classificationFilter !== "all") {
       const classifications = getIssueClassifications(issue);
       if (!classifications.includes(classificationFilter)) return false;
-    }
-    if (searchQuery.trim() !== "") {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = issue.title.toLowerCase().includes(q);
-      const matchCulprit = issue.culprit.toLowerCase().includes(q);
-      if (!matchTitle && !matchCulprit) return false;
     }
     return true;
   });
@@ -83,35 +144,35 @@ const ErrorListView = (): ReactElement => {
     <div className="flex flex-col gap-3 p-6">
       {/* 헤더 */}
       <div>
-        <h1 className="text-h1 font-bold text-text-primary">에러 목록</h1>
+        <h1 className="text-h1 font-bold text-text-primary">Trends</h1>
         <p className="text-body2 text-text-secondary mt-1">
-          Sentry에서 수집된 미해결 에러입니다.
+          Sentry에서 수집된 에러를 확인하세요.
         </p>
       </div>
 
       {/* 필터 드롭다운 + 검색 */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-2 flex-wrap">
           <Dropdown
             value={statusFilter}
-            onChange={setStatusFilter}
+            onChange={handleStatusChange}
             options={STATUS_OPTIONS}
             ariaLabel="상태 필터"
           />
           <Dropdown
             value={classificationFilter}
-            onChange={setClassificationFilter}
+            onChange={handleClassificationChange}
             options={CLASSIFICATION_OPTIONS}
             ariaLabel="분류 필터"
           />
           <Dropdown
             value={envFilter}
-            onChange={setEnvFilter}
+            onChange={handleEnvChange}
             options={ENV_OPTIONS}
             ariaLabel="환경 필터"
           />
         </div>
-        <div className="relative w-64">
+        <div className="relative w-full md:w-64">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
             width="14"
@@ -157,12 +218,86 @@ const ErrorListView = (): ReactElement => {
         />
       )}
       {!isLoading && !error && data && (
-        <div className="flex flex-col gap-3">
-          {filteredIssues.map((issue) => (
-            <ErrorCard key={issue.id} issue={issue} defaultInsightOpen />
-          ))}
-          {filteredIssues.length === 0 && (
-            <EmptyState message="조건에 맞는 이슈가 없습니다" />
+        <InfiniteErrorList
+          key={`${statusFilter}-${envFilter}-${classificationFilter}-${searchQuery}`}
+          issues={filteredIssues}
+          envFilter={envFilter}
+          hasNextPage={!!hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          fetchNextPage={fetchNextPage}
+        />
+      )}
+    </div>
+  );
+};
+
+// API 기반 무한스크롤 리스트
+const InfiniteErrorList = ({
+  issues,
+  envFilter,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
+}: {
+  issues: SentryIssue[];
+  envFilter: EnvFilterValue;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => void;
+}): ReactElement => {
+  const observerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = observerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // 클라이언트 필터 결과가 0건인데 다음 페이지가 있으면 자동으로 추가 fetch
+  useEffect(() => {
+    if (issues.length === 0 && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [issues.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  if (issues.length === 0 && !hasNextPage) {
+    return <EmptyState message="조건에 맞는 이슈가 없습니다" />;
+  }
+
+  if (issues.length === 0) {
+    return <ErrorListSkeleton />;
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {issues.map((issue) => (
+        <ErrorCard
+          key={issue.id}
+          issue={issue}
+          defaultInsightOpen
+          environment={envFilter}
+        />
+      ))}
+      {/* 센티널: 다음 페이지가 있으면 보여줌 */}
+      {hasNextPage && (
+        <div
+          ref={observerRef}
+          className="h-16 flex flex-col items-center justify-center gap-2"
+        >
+          {isFetchingNextPage && (
+            <>
+              <Spinner className="size-8 [animation-duration:1.5s]" />
+            </>
           )}
         </div>
       )}

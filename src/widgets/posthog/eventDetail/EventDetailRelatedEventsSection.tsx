@@ -9,6 +9,7 @@ import type {
 import { CHART_COLOR_PALETTE } from "@/shared/config/chartColors";
 import { getEventLabel } from "@/shared/config/eventLabel";
 import { cn } from "@/shared/lib/utils";
+import Dropdown from "@/shared/ui/Dropdown";
 import EmptyState from "@/shared/ui/EmptyState";
 import PercentageBarChart, {
 	type PercentageBarChartItem,
@@ -49,6 +50,10 @@ const EventDetailRelatedEventsSection = ({
 		percentage: e.percentage,
 	}));
 	const isChartEmpty = pageEvents.length === 0;
+	const pageOptions = [
+		{ value: "", label: "전체" },
+		...pages.map((p) => ({ value: p.pathname, label: p.pathname })),
+	];
 
 	return (
 		<section className={cn("flex flex-col gap-3", className)}>
@@ -57,19 +62,12 @@ const EventDetailRelatedEventsSection = ({
 					페이지별 발생 현황
 				</h3>
 				{!isLoading && !isPagesEmpty && (
-					<select
+					<Dropdown
 						value={selectedPathname}
-						onChange={(e) => onPathnameChange(e.target.value)}
-						aria-label="페이지 선택"
-						className="text-caption text-text-secondary bg-bg-base border border-border-base rounded-md px-2 py-1 focus:outline-none focus:border-border-focus"
-					>
-						<option value="">전체</option>
-						{pages.map((p) => (
-							<option key={p.pathname} value={p.pathname}>
-								{p.pathname}
-							</option>
-						))}
-					</select>
+						onChange={onPathnameChange}
+						options={pageOptions}
+						ariaLabel="페이지 선택"
+					/>
 				)}
 			</div>
 

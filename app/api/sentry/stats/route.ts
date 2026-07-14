@@ -20,10 +20,21 @@ interface SentryStatsResponse {
   stats: ErrorStatPoint[];
 }
 
-/** 당일 자정(0시 0분 0초) Date 객체를 반환 */
-const getStartOfToday = (): Date => {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+/** KST 기준 당일 0시의 UTC 타임스탬프(초)를 반환 */
+const getKstTodayTimestamp = (): number => {
+  const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+  const startOfDayKstMs =
+    Date.UTC(
+      nowKst.getUTCFullYear(),
+      nowKst.getUTCMonth(),
+      nowKst.getUTCDate(),
+      0,
+      0,
+      0,
+    ) - KST_OFFSET_MS;
+  return Math.floor(startOfDayKstMs / 1000);
 };
 
 /**
@@ -33,7 +44,7 @@ const getStartOfToday = (): Date => {
 const ensureTodaySlot = (stats: ErrorStatPoint[]): ErrorStatPoint[] => {
   if (stats.length === 0) return stats;
 
-  const todayTimestamp = Math.floor(getStartOfToday().getTime() / 1000);
+  const todayTimestamp = getKstTodayTimestamp();
   const lastTimestamp = stats[stats.length - 1].timestamp;
 
   if (lastTimestamp < todayTimestamp) {
@@ -71,31 +82,47 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       SENTRY_HOST,
     );
     statsUrl.searchParams.set("field", "count()");
-    statsUrl.searchParams.set("interval", interval);
+    // 7d/30d는 1h 간격으로 받아서 KST 기준 날짜별 재집계
+    statsUrl.searchParams.set("interval", period === "24h" ? interval : "1h");
     statsUrl.searchParams.set("dataset", "errors");
 
     if (period === "24h") {
-      const startOfDay = getStartOfToday();
-      const now = new Date();
-      const endOfDay = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        23,
-        59,
-        59,
+      const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+      const startOfDayKst = new Date(
+        Date.UTC(
+          nowKst.getUTCFullYear(),
+          nowKst.getUTCMonth(),
+          nowKst.getUTCDate(),
+          0,
+          0,
+          0,
+        ),
       );
-      statsUrl.searchParams.set("start", startOfDay.toISOString());
-      statsUrl.searchParams.set("end", endOfDay.toISOString());
+      const startUtc = new Date(startOfDayKst.getTime() - KST_OFFSET_MS);
+      const endUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000 - 1);
+      statsUrl.searchParams.set("start", startUtc.toISOString());
+      statsUrl.searchParams.set("end", endUtc.toISOString());
     } else {
-      const now = new Date();
-      const daysBack = period === "7d" ? 7 : 30;
-      const startOfDay = getStartOfToday();
-      const start = new Date(
-        startOfDay.getTime() - daysBack * 24 * 60 * 60 * 1000,
+      const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+      const startOfDayKst = new Date(
+        Date.UTC(
+          nowKst.getUTCFullYear(),
+          nowKst.getUTCMonth(),
+          nowKst.getUTCDate(),
+          0,
+          0,
+          0,
+        ),
       );
+      const startUtc = new Date(startOfDayKst.getTime() - KST_OFFSET_MS);
+      const daysBack = period === "7d" ? 6 : 29;
+      const start = new Date(
+        startUtc.getTime() - daysBack * 24 * 60 * 60 * 1000,
+      );
+      // end를 KST 내일 0시 (UTC 변환)로 설정하여 오늘 버킷 포함
+      const endUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000);
       statsUrl.searchParams.set("start", start.toISOString());
-      statsUrl.searchParams.set("end", now.toISOString());
+      statsUrl.searchParams.set("end", endUtc.toISOString());
     }
 
     const response = await sentryFetch(
@@ -125,10 +152,42 @@ export const GET = async (request: Request): Promise<NextResponse> => {
       count: values[0]?.count ?? 0,
     }));
 
-    const stats =
-      period === "24h"
-        ? buildDailySlots(allStats)
-        : ensureTodaySlot(allStats).slice(-PERIOD_LIMIT[period]);
+    let stats: { timestamp: number; count: number }[];
+
+    if (period === "24h") {
+      stats = buildDailySlots(allStats);
+    } else {
+      // 시간별 데이터를 KST 날짜별로 재집계
+      const dailyMap = new Map<string, number>();
+      for (const point of allStats) {
+        // timestamp(UTC초)를 KST 날짜 문자열로 변환
+        const kstMs = point.timestamp * 1000 + KST_OFFSET_MS;
+        const kstDate = new Date(kstMs);
+        const dateKey = `${kstDate.getUTCFullYear()}-${String(kstDate.getUTCMonth() + 1).padStart(2, "0")}-${String(kstDate.getUTCDate()).padStart(2, "0")}`;
+        dailyMap.set(dateKey, (dailyMap.get(dateKey) ?? 0) + point.count);
+      }
+
+      // KST 기준 날짜 범위 생성 (오늘 포함)
+      const nowKstForSlots = new Date(Date.now() + KST_OFFSET_MS);
+      const days = period === "7d" ? 7 : 30;
+      stats = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(
+          Date.UTC(
+            nowKstForSlots.getUTCFullYear(),
+            nowKstForSlots.getUTCMonth(),
+            nowKstForSlots.getUTCDate() - i,
+          ),
+        );
+        const dateKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+        // timestamp는 KST 날짜의 0시를 UTC로 변환
+        const timestampUtc = Math.floor((d.getTime() - KST_OFFSET_MS) / 1000);
+        stats.push({
+          timestamp: timestampUtc,
+          count: dailyMap.get(dateKey) ?? 0,
+        });
+      }
+    }
 
     return NextResponse.json({ period, stats } satisfies SentryStatsResponse);
   } catch (error) {

@@ -67,32 +67,51 @@ export const GET = async (
     );
     statsUrl.searchParams.set("field", "count()");
     statsUrl.searchParams.set("query", `issue.id:${id}`);
-    statsUrl.searchParams.set("interval", interval);
+    // 7d/30d는 1h 간격으로 받아서 KST 기준 날짜별 재집계
+    statsUrl.searchParams.set("interval", period === "24h" ? interval : "1h");
     statsUrl.searchParams.set("dataset", "errors");
 
-    // 오늘(24h)은 당일 0시~23시 고정, 나머지는 period 파라미터 사용
+    // 오늘(24h)은 KST 기준 당일 0시~23시 고정
     if (period === "24h") {
-      const now = new Date();
-      const startOfDay = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        0,
-        0,
-        0,
+      const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+      const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+      const startOfDayKst = new Date(
+        Date.UTC(
+          nowKst.getUTCFullYear(),
+          nowKst.getUTCMonth(),
+          nowKst.getUTCDate(),
+          0,
+          0,
+          0,
+        ),
       );
-      const endOfDay = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        23,
-        59,
-        59,
-      );
-      statsUrl.searchParams.set("start", startOfDay.toISOString());
-      statsUrl.searchParams.set("end", endOfDay.toISOString());
+      const startUtc = new Date(startOfDayKst.getTime() - KST_OFFSET_MS);
+      const endUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000 - 1);
+      statsUrl.searchParams.set("start", startUtc.toISOString());
+      statsUrl.searchParams.set("end", endUtc.toISOString());
     } else {
-      statsUrl.searchParams.set("period", periodParam);
+      // 7d/30d: KST 기준 오늘 포함하여 start/end 계산
+      const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+      const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+      const startOfDayKst = new Date(
+        Date.UTC(
+          nowKst.getUTCFullYear(),
+          nowKst.getUTCMonth(),
+          nowKst.getUTCDate(),
+          0,
+          0,
+          0,
+        ),
+      );
+      const startUtc = new Date(startOfDayKst.getTime() - KST_OFFSET_MS);
+      const daysBack = period === "7d" ? 6 : 29;
+      const start = new Date(
+        startUtc.getTime() - daysBack * 24 * 60 * 60 * 1000,
+      );
+      // end를 KST 내일 0시 (UTC 변환)로 설정하여 오늘 버킷 포함
+      const endUtc = new Date(startUtc.getTime() + 24 * 60 * 60 * 1000);
+      statsUrl.searchParams.set("start", start.toISOString());
+      statsUrl.searchParams.set("end", endUtc.toISOString());
     }
 
     const response = await sentryFetch(
@@ -130,8 +149,34 @@ export const GET = async (
         await import("@/entities/error/model/errorStatsUtils");
       stats = buildDailySlots(allStats);
     } else {
-      // 7일/30일은 최근 N개 슬라이싱
-      stats = allStats.slice(-PERIOD_LIMIT[period]);
+      // 시간별 데이터를 KST 날짜별로 재집계
+      const KST_MS = 9 * 60 * 60 * 1000;
+      const dailyMap = new Map<string, number>();
+      for (const point of allStats) {
+        const kstMs = point.timestamp * 1000 + KST_MS;
+        const kstDate = new Date(kstMs);
+        const dateKey = `${kstDate.getUTCFullYear()}-${String(kstDate.getUTCMonth() + 1).padStart(2, "0")}-${String(kstDate.getUTCDate()).padStart(2, "0")}`;
+        dailyMap.set(dateKey, (dailyMap.get(dateKey) ?? 0) + point.count);
+      }
+
+      const nowKst = new Date(Date.now() + KST_MS);
+      const days = period === "7d" ? 7 : 30;
+      stats = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(
+          Date.UTC(
+            nowKst.getUTCFullYear(),
+            nowKst.getUTCMonth(),
+            nowKst.getUTCDate() - i,
+          ),
+        );
+        const dateKey = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
+        const timestampUtc = Math.floor((d.getTime() - KST_MS) / 1000);
+        stats.push({
+          timestamp: timestampUtc,
+          count: dailyMap.get(dateKey) ?? 0,
+        });
+      }
     }
 
     return NextResponse.json({

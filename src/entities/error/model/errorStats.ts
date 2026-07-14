@@ -26,10 +26,12 @@ interface SentryIssue {
   shortId: string;
   permalink: string;
   httpStatusCode?: string;
+  environment?: string;
 }
 
 interface ErrorListResponse {
   issues: SentryIssue[];
+  nextCursor: string | null;
 }
 
 type ErrorQueryParams = {

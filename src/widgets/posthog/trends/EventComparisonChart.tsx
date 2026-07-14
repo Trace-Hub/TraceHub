@@ -139,3 +139,4 @@ const EventComparisonChart = ({
 };
 
 export default EventComparisonChart;
+export { COMPARISON_EVENTS };
