@@ -99,6 +99,8 @@ https://trace-hub-seven.vercel.app/dashboard
 
 **자동 갱신** — 5분 주기, 카운트다운 표시. 무한스크롤 상태에서도 첫 페이지만 재조회하여 요청 폭증 방지, 스크롤 위치 보존.
 
+---
+
 ### 이벤트 상세 — `/dashboard/events/[eventName]`
 
 > 이벤트 하나를 골라 발생량·사용자·세션·발생 페이지·브라우저 환경까지 다각도로 분석
@@ -110,6 +112,8 @@ https://trace-hub-seven.vercel.app/dashboard
 3. **발생 추이** — 기간 탭 연동 시계열 차트 (오늘=시간대별, 그 외=일별)
 4. **연관 분석** — 이벤트 발생 페이지 목록 → 해당 페이지 내 상위 5개 이벤트 분포 도넛 차트
 5. **프로퍼티 분포** — 브라우저 / OS / 발생 URL / 직전 페이지 각 상위 10개. URL은 개발(localhost)/프로덕션 자동 구분
+
+---
 
 ### Funnels — `/dashboard/events/funnels`
 
@@ -124,6 +128,8 @@ https://trace-hub-seven.vercel.app/dashboard
 5. **전환율 추이 차트** — 기간 내 일자별 전환율 변화
 
 **집계 기준** — person 단위로 이벤트 발생 여부를 판정하여 단계 통과 계산. 퍼널 추가는 `funnelConfig.ts`에 이벤트 순서 배열만 정의하면 자동 반영.
+
+---
 
 ### Paths — `/dashboard/events/paths`
 
@@ -141,6 +147,8 @@ https://trace-hub-seven.vercel.app/dashboard
 - 세션(`$session_id`) 단위로 여정을 그림
 - "전체 경로" 선택 시: 세션이 실제로 시작된 페이지가 Step 0
 - 특정 경로 선택 시: 세션 중 그 경로를 처음 만난 지점이 Step 0 (세션의 첫 페이지가 아닐 수 있음)
+
+---
 
 ### Lifecycle — `/dashboard/events/lifecycle`
 
@@ -215,6 +223,8 @@ https://trace-hub-seven.vercel.app/dashboard
 3. **태그 분포 차트** — 브라우저 / OS / 환경별 분포
 
 **집계 기준** — 24시간은 1시간 간격, 7일은 1일 간격, 30일은 1일 간격으로 집계.
+
+---
 
 ### Analysis — `/dashboard/errors/analysis`
 
