@@ -48,9 +48,9 @@ TraceHub를 배포해서 사용하는 데 필요한 전체 과정을 안내합�
 
 TraceHub는 PostHog와 두 방향으로 통신합니다.
 
-| 방향 | 위치 | 방식 |
-|------|------|------|
-| **수집 (이벤트 전송)** | 브라우저 (클라이언트) | `posthog-js` SDK가 페이지뷰·클릭 등 이벤트를 PostHog로 전송 |
+| 방향                | 위치                     | 방식                                                                        |
+|-------------------|------------------------|---------------------------------------------------------------------------|
+| **수집 (이벤트 전송)**   | 브라우저 (클라이언트)           | `posthog-js` SDK가 페이지뷰·클릭 등 이벤트를 PostHog로 전송                              |
 | **조회 (대시보드 데이터)** | Next.js 서버 (API Route) | HogQL Query API(`POST {HOST}/api/projects/{PROJECT_ID}/query`)로 집계 데이터 조회 |
 
 - 수집: `instrumentation-client.ts`에서 `posthog.init()`이 앱 부팅 시 1회 실행되고,
@@ -84,18 +84,18 @@ NEXT_PUBLIC_POSTHOG_PROJECT_ID=12345
 NEXT_POSTHOG_PERSONAL_API_KEY=phx_xxxxxxxx
 ```
 
-| 변수 | 용도 | 발급/확인 위치 | 노출 범위 |
-|------|------|----------------|-----------|
-| `NEXT_PUBLIC_POSTHOG_TOKEN` | 이벤트 수집용 프로젝트 토큰 | Settings → General → Project token | 클라이언트 (공개돼도 무방) |
-| `NEXT_PUBLIC_POSTHOG_HOST` | 수집/API 호스트 | US: `https://us.i.posthog.com` / EU: `https://eu.i.posthog.com` | 클라이언트 |
-| `NEXT_PUBLIC_POSTHOG_APP_HOST` | PostHog 웹 UI 딥링크(원본 이벤트 바로가기)용 | US: `https://us.posthog.com` / EU: `https://eu.posthog.com` | 클라이언트 |
-| `NEXT_PUBLIC_POSTHOG_PROJECT_ID` | HogQL 조회 URL의 프로젝트 ID | Settings → General → Project ID | 클라이언트 |
-| `NEXT_POSTHOG_PERSONAL_API_KEY` | HogQL 조회 인증용 Personal API Key | Settings → Account → Personal API Keys → Create personal API Key | **서버 전용** |
+| 변수                               | 용도                             | 발급/확인 위치                                                         | 노출 범위           |
+|----------------------------------|--------------------------------|------------------------------------------------------------------|-----------------|
+| `NEXT_PUBLIC_POSTHOG_TOKEN`      | 이벤트 수집용 프로젝트 토큰                | Settings → General → Project token                               | 클라이언트 (공개돼도 무방) |
+| `NEXT_PUBLIC_POSTHOG_HOST`       | 수집/API 호스트                     | US: `https://us.i.posthog.com` / EU: `https://eu.i.posthog.com`  | 클라이언트           |
+| `NEXT_PUBLIC_POSTHOG_APP_HOST`   | PostHog 웹 UI 딥링크(원본 이벤트 바로가기)용 | US: `https://us.posthog.com` / EU: `https://eu.posthog.com`      | 클라이언트           |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_ID` | HogQL 조회 URL의 프로젝트 ID          | Settings → General → Project ID                                  | 클라이언트           |
+| `NEXT_POSTHOG_PERSONAL_API_KEY`  | HogQL 조회 인증용 Personal API Key  | Settings → Account → Personal API Keys → Create personal API Key | **서버 전용**       |
 
 > **⚠️ Personal API Key 주의사항**
 > - 생성 직후 한 번만 표시되며 이후 재확인이 불가하므로 즉시 복사해 두세요.
 > - 이 키는 프로젝트 데이터 조회 권한을 가지므로 **절대 `NEXT_PUBLIC_` 접두사를 붙이면 안 됩니다.**
->   `NEXT_PUBLIC_`이 없는 변수는 Next.js가 클라이언트 번들에 포함하지 않아 브라우저에 노출되지 않습니다.
+    > `NEXT_PUBLIC_`이 없는 변수는 Next.js가 클라이언트 번들에 포함하지 않아 브라우저에 노출되지 않습니다.
 > - 참고: [PostHog Personal API Keys 문서](https://posthog.com/docs/api/personal-api-keys)
 
 `NEXT_PUBLIC_POSTHOG_APP_HOST`와 `NEXT_PUBLIC_POSTHOG_PROJECT_ID`가 없어도 대시보드 자체는 동작하지만,
@@ -114,11 +114,11 @@ Personal API Key로 PostHog `/api/users/@me/`를 호출해 인증을 검증합�
 
 실패 시 사유별 조치:
 
-| 사유 | 메시지 | 조치 |
-|------|--------|------|
-| `env_missing` | 환경변수가 설정되지 않았습니다 | `NEXT_PUBLIC_POSTHOG_HOST`, `NEXT_POSTHOG_PERSONAL_API_KEY` 설정 여부 확인 후 서버 재시작 |
-| `invalid_token` | 토큰이 유효하지 않습니다 | Personal API Key 재발급 (만료·오타·권한 부족 여부 확인) |
-| `api_error` | API 연결에 실패했습니다 | 호스트 주소가 리전(US/EU)과 일치하는지, 네트워크 방화벽 여부 확인 |
+| 사유              | 메시지              | 조치                                                                            |
+|-----------------|------------------|-------------------------------------------------------------------------------|
+| `env_missing`   | 환경변수가 설정되지 않았습니다 | `NEXT_PUBLIC_POSTHOG_HOST`, `NEXT_POSTHOG_PERSONAL_API_KEY` 설정 여부 확인 후 서버 재시작 |
+| `invalid_token` | 토큰이 유효하지 않습니다    | Personal API Key 재발급 (만료·오타·권한 부족 여부 확인)                                      |
+| `api_error`     | API 연결에 실패했습니다   | 호스트 주소가 리전(US/EU)과 일치하는지, 네트워크 방화벽 여부 확인                                      |
 
 ---
 
@@ -135,13 +135,17 @@ Personal API Key로 PostHog `/api/users/@me/`를 호출해 인증을 검증합�
 
 TraceHub가 기본 정의한 커스텀 이벤트입니다. (`src/shared/config/tracking.ts`)
 
-| 상수 | 이벤트명 | 대시보드 표시 라벨 | 주요 프로퍼티 예시 |
-|------|----------|--------------------|---------------------|
-| `BUTTON_CLICKED` | `button_clicked` | 버튼 클릭 | `label`, `source` |
-| `LINK_CLICKED` | `link_clicked` | 링크 클릭 | `href`, `source` |
-| `FORM_SUBMITTED` | `form_submitted` | 폼 제출 | `name`, `email`, `source` |
-| `TAB_CHANGED` | `tab_changed` | 탭 전환 | `tab`, `source` |
-| `INPUT_FOCUSED` | `input_focus` | 입력 포커스 | `field`, `source` |
+| 상수               | 이벤트명             | 대시보드 표시 라벨 | 주요 프로퍼티 예시                |
+|------------------|------------------|------------|---------------------------|
+| `BUTTON_CLICKED` | `button_clicked` | 버튼 클릭      | `label`, `source`         |
+| `LINK_CLICKED`   | `link_clicked`   | 링크 클릭      | `href`, `source`          |
+| `FORM_SUBMITTED` | `form_submitted` | 폼 제출       | `name`, `source`          |
+| `TAB_CHANGED`    | `tab_changed`    | 탭 전환       | `tab`, `source`           |
+| `INPUT_FOCUSED`  | `input_focus`    | 입력 포커스     | `field`, `source`         |
+
+> **⚠️ 프로퍼티에 개인정보 포함 주의**
+> 이메일 등 원본 개인정보는 이벤트 프로퍼티로 그대로 전송하지 마세요.
+> 꼭 필요하다면 별도의 동의 절차, 보존 기간, 접근 권한 정책을 먼저 마련한 뒤 추가하세요.
 
 PostHog 빌트인 이벤트(`$pageview`, `$pageleave`, `$autocapture`, `$identify`, `$rageclick`)도
 대시보드에서 한글 라벨로 표시됩니다. (`src/shared/config/eventLabel.ts`)
@@ -154,8 +158,8 @@ PostHog 빌트인 이벤트(`$pageview`, `$pageleave`, `$autocapture`, `$identif
 이벤트 전송은 항상 `src/shared/lib/posthog.ts`의 `trackEvent()` 래퍼를 통해서만 합니다.
 (`posthog.capture()`를 컴포넌트에서 직접 호출하는 것은 프로젝트 규칙상 금지)
 
-```typescript
-trackEvent(이벤트키, 프로퍼티객체?)
+``` typescript
+trackEvent(event: keyof typeof TRACKING_EVENT, properties?: Record<string, unknown>): void
 ```
 
 - 첫 번째 인자: `TRACKING_EVENT` 상수의 **키** (`"BUTTON_CLICKED"` 등). 문자열 이벤트명이 아닙니다.
@@ -163,7 +167,7 @@ trackEvent(이벤트키, 프로퍼티객체?)
 
 이미 정의된 5종 이벤트는 별도 등록 없이 바로 사용할 수 있습니다.
 
-```tsx
+``` tsx
 "use client";
 
 import { trackEvent } from "@/shared/lib/posthog";
@@ -248,15 +252,15 @@ export default DownloadButton;
 이벤트 대시보드는 `/dashboard/events` 하위에 있습니다.
 각 화면이 동작하려면 표의 "필요한 데이터"가 PostHog에 쌓여 있어야 합니다.
 
-| 메뉴 | 경로 | 보여주는 것 | 필요한 데이터 |
-|------|------|-------------|----------------|
-| 이벤트 개요 / KPI | `/dashboard/events` | 오늘·이번 주 활성 사용자, 총 이벤트 수, 시간대별 추이 | 아무 이벤트나 (사용자 수는 `person_id` 기준) |
-| 트렌드 | `/dashboard/events/trends` | 이벤트별 발생량 목록·시계열, 기간/경로/카테고리 필터 | 이벤트 + `$pathname` |
-| 이벤트 상세 | `/dashboard/events/[eventName]` | 특정 이벤트의 발생량, 고유 사용자·세션 수, 브라우저/OS/URL 분포 | `$session_id`, `$browser`, `$os`, `$current_url`, `$prev_pageview_pathname` |
-| 퍼널 | `/dashboard/events/funnels` | `funnelConfig.ts`에 정의한 단계별 전환율 | 퍼널에 지정한 이벤트들 |
-| 경로 분석 (Sankey) | `/dashboard/events/paths` | 세션별 페이지 이동 흐름, 진입/이탈 페이지 | **`$pageview` + `$session_id` + `$pathname` 필수** |
-| 라이프사이클 | `/dashboard/events/lifecycle` | 신규/복귀/휴면 사용자 분류 (최근 60~90일) | 이벤트 + `person_id` |
-| 리텐션 | `/dashboard/events/retention` | 주 단위 코호트 리텐션 (최근 12주) | 이벤트 + `person_id` |
+| 메뉴             | 경로                              | 보여주는 것                                   | 필요한 데이터                                                                     |
+|----------------|---------------------------------|------------------------------------------|-----------------------------------------------------------------------------|
+| 이벤트 개요 / KPI   | `/dashboard/events`             | 오늘·최근 7일 활성 사용자, 총 이벤트 수, 시간대별 추이        | 아무 이벤트나 (사용자 수는 `person_id` 기준)                                             |
+| 트렌드            | `/dashboard/events/trends`      | 이벤트별 발생량 목록·시계열, 기간/경로/카테고리 필터           | 이벤트 + `$pathname`                                                           |
+| 이벤트 상세         | `/dashboard/events/[eventName]` | 특정 이벤트의 발생량, 고유 사용자·세션 수, 브라우저/OS/URL 분포 | `$session_id`, `$browser`, `$os`, `$current_url`, `$prev_pageview_pathname` |
+| 퍼널             | `/dashboard/events/funnels`     | `funnelConfig.ts`에 정의한 단계별 전환율           | 퍼널에 지정한 이벤트들                                                                |
+| 경로 분석 (Sankey) | `/dashboard/events/paths`       | 세션별 페이지 이동 흐름, 진입/이탈 페이지                 | **`$pageview` + `$session_id` + `$pathname` 필수**                            |
+| 라이프사이클         | `/dashboard/events/lifecycle`   | 신규/복귀/휴면 사용자 분류 (최근 60~90일)              | 이벤트 + `person_id`                                                           |
+| 리텐션            | `/dashboard/events/retention`   | 주 단위 코호트 리텐션 (최근 12주)                    | 이벤트 + `person_id`                                                           |
 
 `$session_id`, `$pathname`, `$browser` 등의 프로퍼티는 `posthog-js`가 기본 설정에서 자동으로 부착하므로,
 이 저장소의 수집 코드를 그대로 사용하면 별도 작업이 필요 없습니다.
@@ -272,7 +276,7 @@ export default DownloadButton;
 이벤트 대시보드는 이 목록에 포함된 경로의 이벤트만 집계합니다.
 기본값은 데모용이므로 **본인 서비스의 실제 경로로 교체해야 합니다.**
 
-```typescript
+``` typescript
 // 기본값 (데모용)
 export const TRACKED_PATHS = ["/", "/sentry-test", "/posthog/*"] as const;
 
@@ -281,6 +285,7 @@ export const TRACKED_PATHS = ["/", "/products/*", "/checkout", "/mypage/*"] as c
 ```
 
 매칭 규칙:
+
 - 경로 그대로 (`"/checkout"`): 해당 경로만 정확히 일치
 - `/*`로 끝나면 (`"/products/*"`): 해당 경로와 모든 하위 경로 포함 (`/products`, `/products/1`, ...)
 
@@ -288,7 +293,7 @@ export const TRACKED_PATHS = ["/", "/products/*", "/checkout", "/mypage/*"] as c
 
 `FUNNEL_CONFIG` 배열에 퍼널을 추가하면 Funnels 대시보드의 선택 탭에 자동으로 나타납니다.
 
-```typescript
+``` typescript
 {
     id: "signup",                    // 영문 소문자·숫자·하이픈만 허용
     name: "회원가입 플로우",           // 탭에 표시될 이름
@@ -355,13 +360,14 @@ export const TRACKED_PATHS = ["/", "/products/*", "/checkout", "/mypage/*"] as c
 
 이벤트 분석 도구를 처음 사용한다면 아래 용어를 먼저 익혀두면 대시보드를 이해하기 쉽습니다.
 
-| 용어 | 설명 |
-|------|------|
-| 이벤트 (Event) | 사용자 행동 하나하나의 기록. 페이지 방문, 버튼 클릭 등이 각각 이벤트 1건 |
-| 프로퍼티 (Property) | 이벤트에 붙는 부가 정보. `$browser`처럼 `$`로 시작하면 PostHog가 자동으로 붙이는 시스템 프로퍼티, 나머지는 직접 넣는 커스텀 프로퍼티 |
-| 세션 (Session) | 한 사용자의 연속된 방문 단위. 잠시 쉬었다 다시 들어오면 새 세션이 됩니다. 경로 분석이 세션 단위로 흐름을 그림 |
-| `person_id` / `distinct_id` | PostHog가 사용자를 식별하는 ID. 고유 사용자 수를 셀 때의 기준 (7장 참고) |
-| 퍼널 (Funnel) | "방문 → 클릭 → 제출"처럼 여러 단계를 순서대로 통과한 비율(전환율)을 보는 분석 |
-| 리텐션 (Retention) | 특정 주에 방문한 사용자가 이후 주에도 다시 방문하는 비율. 코호트(같은 주에 방문한 그룹) 단위로 표시 |
-| 라이프사이클 (Lifecycle) | 사용자를 신규/복귀/재활성/휴면으로 분류해 사용자 구성의 변화를 보는 분석 |
-| HogQL | PostHog의 SQL 방언. TraceHub 서버가 대시보드 데이터를 조회할 때 내부적으로 사용 (직접 작성할 일은 없음) |
+| 용어                     | 설명                                                                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| 이벤트 (Event)           | 사용자 행동 하나하나의 기록. 페이지 방문, 버튼 클릭 등이 각각 이벤트 1건                                                             |
+| 프로퍼티 (Property)      | 이벤트에 붙는 부가 정보. `$browser`처럼 `$`로 시작하면 PostHog가 자동으로 붙이는 시스템 프로퍼티, 나머지는 직접 넣는 커스텀 프로퍼티 |
+| 세션 (Session)           | 한 사용자의 연속된 방문 단위. 잠시 쉬었다 다시 들어오면 새 세션이 됩니다. 경로 분석이 세션 단위로 흐름을 그림                        |
+| `person_id`              | PostHog가 사람(person) 단위로 병합한 식별자. KPI·라이프사이클·리텐션처럼 **사람 단위 집계**에 사용 (7장 참고)                        |
+| `distinct_id`            | 이벤트를 발생시킨 기기/세션에 붙는 원본 식별자. 이벤트 상세 화면처럼 **이벤트 단위 식별**에 사용 (7장 참고)                          |
+| 퍼널 (Funnel)            | "방문 → 클릭 → 제출"처럼 여러 단계를 순서대로 통과한 비율(전환율)을 보는 분석                                                        |
+| 리텐션 (Retention)       | 특정 주에 방문한 사용자가 이후 주에도 다시 방문하는 비율. 코호트(같은 주에 방문한 그룹) 단위로 표시                                  |
+| 라이프사이클 (Lifecycle) | 사용자를 신규/복귀/재활성/휴면으로 분류해 사용자 구성의 변화를 보는 분석                                                             |
+| HogQL                    | PostHog의 SQL 방언. TraceHub 서버가 대시보드 데이터를 조회할 때 내부적으로 사용 (직접 작성할 일은 없음)                            |
