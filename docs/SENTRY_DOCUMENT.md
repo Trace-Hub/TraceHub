@@ -66,12 +66,10 @@ Sentry 연동에는 서로 목적이 다른 두 설정이 필요합니다.
 [TraceHub 대시보드]
 ```
 
-| 구분                                     | 설정 위치          | 목적                                    | TraceHub 조회에 필요한가 |
-| ---------------------------------------- | ------------------ | --------------------------------------- | ------------------------ |
-| Sentry SDK와 DSN                         | 모니터링 대상 앱   | 에러를 Sentry로 전송                    | 대상 앱에 필요           |
-| API Token·Organization Slug·Project Slug | TraceHub           | Sentry 데이터를 읽어 대시보드에 표시    | 필수                     |
-| TraceHub 자체 DSN                        | TraceHub           | TraceHub 자체 오류를 별도 모니터링      | 선택                     |
-| Source Map 업로드 토큰                   | TraceHub 빌드 환경 | TraceHub 자체 오류의 난독화된 스택 복원 | 선택                     |
+| 구분                                     | 설정 위치        | 목적                                 | TraceHub 조회에 필요한가 |
+| ---------------------------------------- | ---------------- | ------------------------------------ | ------------------------ |
+| Sentry SDK와 DSN                         | 모니터링 대상 앱 | 에러를 Sentry로 전송                 | 대상 앱에 필요           |
+| API Token·Organization Slug·Project Slug | TraceHub         | Sentry 데이터를 읽어 대시보드에 표시 | 필수                     |
 
 > **핵심:** DSN은 데이터를 보내는 주소이고 API Token은 데이터를 읽는 자격 증명입니다. 둘은 서로 대체할 수 없습니다.
 
@@ -213,28 +211,15 @@ NEXT_SENTRY_ORG=your-organization-slug
 NEXT_SENTRY_PROJECT=your-project-slug
 ```
 
-| 환경변수                | 필수 | 사용 위치     | 설명                            |
-| ----------------------- | ---- | ------------- | ------------------------------- |
-| `NEXT_SENTRY_API_TOKEN` | 예   | TraceHub 서버 | Sentry REST API Bearer 인증     |
-| `NEXT_SENTRY_ORG`       | 예   | TraceHub 서버 | 조회할 Organization Slug        |
-| `NEXT_SENTRY_PROJECT`   | 예   | TraceHub 서버 | 이슈 목록을 조회할 Project Slug |
+| 환경변수                | 사용 위치     | 설명                            |
+| ----------------------- | ------------- | ------------------------------- |
+| `NEXT_SENTRY_API_TOKEN` | TraceHub 서버 | Sentry REST API Bearer 인증     |
+| `NEXT_SENTRY_ORG`       | TraceHub 서버 | 조회할 Organization Slug        |
+| `NEXT_SENTRY_PROJECT`   | TraceHub 서버 | 이슈 목록을 조회할 Project Slug |
 
 세 변수에는 `NEXT_PUBLIC_` 접두사를 붙이지 마십시오. 서버 전용 비밀값이며 브라우저 번들에 포함되어서는 안 됩니다.
 
-### 5.3 선택 환경변수와 혼동하지 않기
-
-다음 두 값은 외부 프로젝트 데이터를 TraceHub에서 **조회하는 데 필요하지 않습니다**.
-
-| 환경변수                 | 용도                                             | 일반 사용자 설정 여부                                  |
-| ------------------------ | ------------------------------------------------ | ------------------------------------------------------ |
-| `NEXT_PUBLIC_SENTRY_DSN` | TraceHub 앱 자체에서 발생한 오류를 Sentry로 전송 | TraceHub 자체 모니터링이 필요할 때만 설정              |
-| `SENTRY_AUTH_TOKEN`      | TraceHub 프로덕션 빌드 중 Source Map 업로드      | TraceHub 자체 모니터링과 Source Map이 필요할 때만 설정 |
-
-현재 `next.config.ts`의 Sentry Source Map 업로드 대상 조직·프로젝트는 TraceHub 개발 프로젝트 값으로 구성되어 있습니다. 별도 배포자가 `SENTRY_AUTH_TOKEN`을 설정하려면 먼저 해당 설정도 자신의 Sentry 조직과 프로젝트로 변경해야 합니다. 그렇지 않으면 빌드 실패 또는 잘못된 업로드 대상 문제가 발생할 수 있습니다.
-
-> 보안을 위해 단순 대시보드 조회만 필요한 사용자에게 `NEXT_PUBLIC_SENTRY_DSN`이나 `SENTRY_AUTH_TOKEN`을 공유하지 마십시오.
-
-### 5.4 환경변수 적용
+### 5.3 환경변수 적용
 
 환경변수를 추가하거나 변경한 뒤 실행 중인 개발 서버를 다시 시작합니다.
 
@@ -294,7 +279,6 @@ curl http://localhost:3000/api/sentry/test
 - 해당 프로젝트의 이슈를 읽을 권한이 있는지
 - 이슈 태그와 오류 통계를 읽을 권한이 있는지
 - 대상 앱의 SDK 또는 DSN이 이벤트를 정상 전송하는지
-- `NEXT_PUBLIC_SENTRY_DSN` 또는 `SENTRY_AUTH_TOKEN`이 유효한지
 
 따라서 `{ "connected": true }`는 **토큰의 기본 API 접근 성공**을 의미할 뿐, 전체 대시보드 연동 완료를 보장하지 않습니다.
 
@@ -438,9 +422,9 @@ TraceHub의 Sentry API 요청 기본 제한 시간은 10초입니다. Sentry 상
 
 `environment`, `browser.name`, `os.name`, `http.status_code`는 모든 이벤트에 자동으로 존재하지 않습니다. 특히 `http.status_code`는 대상 앱의 SDK 설정 또는 수동 태깅 방식에 따라 누락될 수 있습니다. TraceHub 저장소의 현재 Sentry 설정은 에러 발생 전 마지막 HTTP/fetch breadcrumb에 상태 코드가 있을 때만 `http.status_code`를 이벤트 태그에 추가합니다.
 
-### Source Map 관련 오류
+### 요청 시간 초과 또는 `api_error`
 
-Source Map은 TraceHub의 데이터 조회 필수 조건이 아닙니다. Sentry에서 스택이 난독화되어 보이더라도 이슈 목록과 통계 조회는 가능합니다. Source Map이 필요할 때만 빌드용 토큰과 업로드 대상을 별도로 구성하십시오.
+TraceHub의 Sentry API 요청 기본 제한 시간은 10초입니다. Sentry 상태, 로컬 네트워크, 프록시, 방화벽을 확인한 뒤 재시도합니다.
 
 ---
 
