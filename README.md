@@ -1,6 +1,7 @@
 # 📌 프로젝트 개요
 
-<img width="149" height="56" alt="image" src="https://github.com/user-attachments/assets/3a8f3dce-3c17-412f-a23f-65826cc89452" />
+<img width="332" height="92" alt="TraceHub_logo" src="https://github.com/user-attachments/assets/08a7cf4b-f13f-46b1-9855-d748748fc2a2" />
+
 
 > _"흩어진 에러 로그와 사용자 이벤트, 한 곳에서 추적(trace)하다"_
 >
@@ -14,9 +15,11 @@ TraceHub(트레이스허브)은 이러한 문제를 해결하기 위해 Sentry�
 하나의 대시보드로 통합했습니다. 에러 목록 조회·분류·통계 분석, 사용자 행동 트렌드·퍼널·리텐션 분석을
 한 곳에서 수행하고, 연동 상태를 실시간으로 확인할 수 있는 구조로 설계했습니다.
 
-## 📎 배포 링크
+## 📎 관련 링크
 
-https://trace-hub-seven.vercel.app/dashboard
+ [Vercel 배포](https://trace-hub-seven.vercel.app/dashboard) </br>
+ [Notion 문서](https://parkgeunwon.notion.site/Trace-Hub-34a1ece0be12806b939ff51137f20417?source=copy_link)</br>
+ [Figma 디자인](https://www.figma.com/design/1dh3jzfAQgW6WHGkOyXLaQ/TraceHub?node-id=0-1&t=FblmJuTfvMNji7aA-1)
 
 ## 👥 팀원 소개
 
@@ -41,7 +44,6 @@ https://trace-hub-seven.vercel.app/dashboard
 **State Management**
 
 ![TanStack Query](https://img.shields.io/badge/TanStack_Query_v5-FF4154?style=for-the-badge&logo=reactquery&logoColor=white)
-![Zustand](https://img.shields.io/badge/Zustand_v5-433E38?style=for-the-badge&logo=zustand&logoColor=white)
 
 **Monitoring & Analytics**
 
@@ -60,6 +62,47 @@ https://trace-hub-seven.vercel.app/dashboard
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
 ![pnpm](https://img.shields.io/badge/pnpm-F69220?style=for-the-badge&logo=pnpm&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
+
+## 📁 프로젝트 구조
+
+FSD(Feature-Sliced Design) 기반 아키텍처를 사용합니다.
+
+```
+📦 tracehub/
+├── 📁 app/                          # Next.js App Router (라우팅 + API)
+│   ├── 📁 api/
+│   │   ├── 📁 posthog/             # PostHog 데이터 조회 API Route
+│   │   └── 📁 sentry/              # Sentry 데이터 조회 API Route
+│   ├── 📁 dashboard/
+│   │   ├── 📁 errors/              # 에러 대시보드 페이지 (list, analysis, [id])
+│   │   ├── 📁 events/              # 이벤트 대시보드 페이지 (trends, funnels, paths, lifecycle, retention)
+│   │   └── 📁 settings/            # 환경설정 페이지
+│   └── layout.tsx                   # 루트 레이아웃
+│
+├── 📁 src/                          # 소스 코드 (FSD 레이어 구조)
+│   ├── 📁 app-init/                 # Provider, PageviewTracker
+│   ├── 📁 views/                    # 페이지 단위 뷰 컴포넌트
+│   │   ├── 📁 dashboard/           # 메인 대시보드 뷰
+│   │   ├── 📁 posthog/             # 이벤트 대시보드 뷰
+│   │   └── 📁 sentry/              # 에러 대시보드 뷰
+│   ├── 📁 widgets/                  # 복합 UI 블록 (차트, 통계 카드)
+│   │   └── 📁 posthog/             # 이벤트 관련 위젯 (퍼널, 경로, 리텐션 등)
+│   ├── 📁 features/                 # 독립적 기능 단위
+│   │   └── 📁 settings/            # 설정 기능 (테마, 연동 테스트)
+│   ├── 📁 entities/                 # 도메인 모델
+│   │   ├── 📁 error/               # 에러 도메인 (api, model)
+│   │   └── 📁 event/               # 이벤트 도메인 (api, model)
+│   ├── 📁 shared/                   # 공용 리소스
+│   │   ├── 📁 api/                  # fetch 클라이언트 래퍼
+│   │   ├── 📁 config/              # 환경변수, 추적 경로, 차트 색상 등 설정 상수
+│   │   ├── 📁 hooks/               # 범용 커스텀 훅
+│   │   ├── 📁 lib/                  # 외부 라이브러리 래퍼 (dayjs, posthog 등)
+│   │   ├── 📁 providers/           # ThemeProvider 등
+│   │   └── 📁 ui/                   # 공통 UI 컴포넌트 (Button, Dropdown, ErrorCard 등)
+│   └── 📁 styles/                   # 전역 CSS (디자인 토큰)
+│
+└── 📁 docs/                         # 연동 가이드 등 문서
+```
 
 ## ✨ 주요 기능
 
@@ -174,6 +217,8 @@ https://trace-hub-seven.vercel.app/dashboard
 - 활성 윈도우: 7일 탭 = 최근 7일 / 30일 탭 = 최근 30일 (롤링)
 - 조회 범위: 7일 탭 = 60일 / 30일 탭 = 90일 룩백, person 단위 집계
 
+---
+
 ### Retention — `/dashboard/events/retention`
 
 > 이번 주 온 사용자가 다음 주에도 오는가 — 12주 주간 코호트 리텐션 히트맵
@@ -268,92 +313,33 @@ https://trace-hub-seven.vercel.app/dashboard
 5. **SSR Prefetch + TanStack Query** — 서버에서 데이터를 미리 패칭해 하이드레이션하므로 초기 로딩이 빠릅니다.
 6. **원본 데이터 접근성** — 가공된 수치에서 한 클릭으로 PostHog 원본 이벤트로 이동하여 검증할 수 있습니다.
 
-## 시작하기
+## 🤝 기여하기
 
-### 요구사항
+TraceHub에 대한 버그 제보, 기능 제안, 코드 기여를 환영합니다.
 
-- Node.js 20+
-- pnpm 10+
+### 기여 절차
 
-### 설치
+1. 이 저장소를 **Fork**합니다.
+2. Fork한 저장소를 로컬에 **Clone**합니다.
+   ```bash
+   git clone https://github.com/{본인계정}/tracehub.git
+   cd tracehub
+   pnpm install
+   ```
+3. 이슈를 확인하거나 새로 생성합니다.
+4. 브랜치를 생성합니다. (`#{이슈번호}-{타입}-{작업설명}`)
+5. 코드를 수정하고 린트·타입 체크를 통과시킵니다.
+   ```bash
+   pnpm lint
+   pnpm type-check
+   ```
+6. 커밋 컨벤션에 맞게 커밋합니다. (`.github/.gitmessage.txt` 참고)
+7. Fork한 저장소에 Push 후 원본 저장소로 **Pull Request**를 생성합니다.
 
-```bash
-pnpm install
-```
+### 지켜야 할 규칙
 
-### 환경변수 설정
-
-- `.env` 파일을 프로젝트 루트에 생성하고 환경변수를 설정합니다.
-- 실행 후 Settings 페이지의 **설정 가이드** 참고
-
-### 실행
-
-```bash
-pnpm dev
-```
-
-`http://localhost:3000/dashboard`에서 확인할 수 있습니다.
-
-### 기타 스크립트
-
-```bash
-pnpm build        # 프로덕션 빌드
-pnpm type-check   # 타입 체크
-pnpm lint         # ESLint
-```
-
-## 페이지 구성
-
-| 경로                          | 설명                                         |
-| ----------------------------- | -------------------------------------------- |
-| `/dashboard`                  | 메인 Overview (에러·이벤트 요약 + 추이 차트) |
-| `/dashboard/events`           | 이벤트 트렌드 (KPI, 카테고리별 필터)         |
-| `/dashboard/events/lifecycle` | 사용자 라이프사이클 분석                     |
-| `/dashboard/events/retention` | 리텐션 코호트 분석                           |
-| `/dashboard/events/funnels`   | 전환 퍼널 시각화                             |
-| `/dashboard/events/paths`     | 사용자 네비게이션 경로 분석                  |
-| `/dashboard/errors/list`      | 에러 목록 (무한스크롤, 필터, 검색)           |
-| `/dashboard/errors/analysis`  | 에러 통계 (상태코드별, 타입별, 핫스팟)       |
-| `/dashboard/errors/[id]`      | 에러 상세 (태그, 시간별 추이)                |
-| `/dashboard/settings`         | 테마 설정, 연동 상태 확인                    |
-
-## 📁 프로젝트 구조
-
-FSD(Feature-Sliced Design) 기반 아키텍처를 사용합니다.
-
-```
-📦 tracehub/
-├── 📁 app/                          # Next.js App Router (라우팅 + API)
-│   ├── 📁 api/
-│   │   ├── 📁 posthog/             # PostHog 데이터 조회 API Route
-│   │   └── 📁 sentry/              # Sentry 데이터 조회 API Route
-│   ├── 📁 dashboard/
-│   │   ├── 📁 errors/              # 에러 대시보드 페이지 (list, analysis, [id])
-│   │   ├── 📁 events/              # 이벤트 대시보드 페이지 (trends, funnels, paths, lifecycle, retention)
-│   │   └── 📁 settings/            # 환경설정 페이지
-│   └── layout.tsx                   # 루트 레이아웃
-│
-├── 📁 src/                          # 소스 코드 (FSD 레이어 구조)
-│   ├── 📁 app-init/                 # Provider, PageviewTracker
-│   ├── 📁 views/                    # 페이지 단위 뷰 컴포넌트
-│   │   ├── 📁 dashboard/           # 메인 대시보드 뷰
-│   │   ├── 📁 posthog/             # 이벤트 대시보드 뷰
-│   │   └── 📁 sentry/              # 에러 대시보드 뷰
-│   ├── 📁 widgets/                  # 복합 UI 블록 (차트, 통계 카드)
-│   │   └── 📁 posthog/             # 이벤트 관련 위젯 (퍼널, 경로, 리텐션 등)
-│   ├── 📁 features/                 # 독립적 기능 단위
-│   │   └── 📁 settings/            # 설정 기능 (테마, 연동 테스트)
-│   ├── 📁 entities/                 # 도메인 모델
-│   │   ├── 📁 error/               # 에러 도메인 (api, model)
-│   │   └── 📁 event/               # 이벤트 도메인 (api, model)
-│   ├── 📁 shared/                   # 공용 리소스
-│   │   ├── 📁 api/                  # fetch 클라이언트 래퍼
-│   │   ├── 📁 config/              # 환경변수, 추적 경로, 차트 색상 등 설정 상수
-│   │   ├── 📁 hooks/               # 범용 커스텀 훅
-│   │   ├── 📁 lib/                  # 외부 라이브러리 래퍼 (dayjs, posthog 등)
-│   │   ├── 📁 providers/           # ThemeProvider 등
-│   │   └── 📁 ui/                   # 공통 UI 컴포넌트 (Button, Dropdown, ErrorCard 등)
-│   └── 📁 styles/                   # 전역 CSS (디자인 토큰)
-│
-└── 📁 docs/                         # 연동 가이드 등 문서
-```
+- FSD 레이어 구조를 따릅니다. 같은 레이어 간 참조는 금지입니다.
+- `any` 사용 금지, `console.log` 커밋 금지
+- 공통 컴포넌트는 `shared/ui/`를 먼저 확인하고 중복 생성하지 않습니다.
+- 새 라이브러리 추가 시 팀 리뷰가 필요합니다.
+- 상세 코딩 규칙은 `AGENTS.md`를 참고합니다.
