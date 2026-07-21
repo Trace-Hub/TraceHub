@@ -2,7 +2,6 @@
 
 <img width="332" height="92" alt="TraceHub_logo" src="https://github.com/user-attachments/assets/08a7cf4b-f13f-46b1-9855-d748748fc2a2" />
 
-
 > _"흩어진 에러 로그와 사용자 이벤트, 한 곳에서 추적(trace)하다"_
 >
 > 여러 도구에 흩어진 에러와 사용자 행동 데이터를 한 화면에서 확인하고,
@@ -17,9 +16,9 @@ TraceHub(트레이스허브)은 이러한 문제를 해결하기 위해 Sentry�
 
 ## 📎 관련 링크
 
- [Vercel 배포](https://trace-hub-seven.vercel.app/dashboard) </br>
- [Notion 문서](https://parkgeunwon.notion.site/Trace-Hub-34a1ece0be12806b939ff51137f20417?source=copy_link)</br>
- [Figma 디자인](https://www.figma.com/design/1dh3jzfAQgW6WHGkOyXLaQ/TraceHub?node-id=0-1&t=FblmJuTfvMNji7aA-1)
+[Vercel 배포](https://trace-hub-seven.vercel.app/dashboard) </br>
+[Notion 문서](https://parkgeunwon.notion.site/Trace-Hub-34a1ece0be12806b939ff51137f20417?source=copy_link)</br>
+[Figma 디자인](https://www.figma.com/design/1dh3jzfAQgW6WHGkOyXLaQ/TraceHub?node-id=0-1&t=FblmJuTfvMNji7aA-1)
 
 ## 👥 팀원 소개
 
@@ -67,7 +66,7 @@ TraceHub(트레이스허브)은 이러한 문제를 해결하기 위해 Sentry�
 
 FSD(Feature-Sliced Design) 기반 아키텍처를 사용합니다.
 
-```
+```plaintext
 📦 tracehub/
 ├── 📁 app/                          # Next.js App Router (라우팅 + API)
 │   ├── 📁 api/

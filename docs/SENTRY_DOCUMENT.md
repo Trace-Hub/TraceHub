@@ -201,6 +201,18 @@ TraceHub는 브라우저에서 Sentry API를 직접 호출하지 않습니다. N
 
 Sentry 계정 유형과 UI 버전에 따라 권한명이 `org:read`, `project:read`, `event:read`처럼 표시되거나 리소스별 Read 권한으로 표시될 수 있습니다. 먼저 읽기 권한만 부여하고, 403 응답이 확인될 때 필요한 읽기 권한만 추가하십시오. 쓰기·관리자 권한은 TraceHub 조회에 필요하지 않습니다.
 
+TraceHub가 호출하는 엔드포인트별 최소 권한은 다음과 같습니다.
+
+| TraceHub 기능 | Sentry 엔드포인트                                    | 필요 권한      |
+| ------------- | ---------------------------------------------------- | -------------- |
+| 연결 테스트   | `/api/0/organizations/`                              | `org:read`     |
+| 이슈 목록     | `/api/0/projects/{org}/{project}/issues/`            | `project:read` |
+| 이슈 상세     | `/api/0/organizations/{org}/issues/{id}/`            | `event:read`   |
+| 이슈 태그     | `/api/0/organizations/{org}/issues/{id}/tags/{tag}/` | `event:read`   |
+| 오류 통계     | `/api/0/organizations/{org}/events-stats/`           | `org:read`     |
+
+권한 설정에 대한 자세한 내용은 [Sentry API Authentication 문서](https://docs.sentry.io/api/auth/)를 참고하십시오.
+
 ### 5.2 `.env` 작성
 
 TraceHub 프로젝트 루트의 `.env`에 다음 세 값을 설정합니다.
@@ -421,10 +433,6 @@ TraceHub의 Sentry API 요청 기본 제한 시간은 10초입니다. Sentry 상
 ### 태그 또는 상태 코드가 보이지 않는 경우
 
 `environment`, `browser.name`, `os.name`, `http.status_code`는 모든 이벤트에 자동으로 존재하지 않습니다. 특히 `http.status_code`는 대상 앱의 SDK 설정 또는 수동 태깅 방식에 따라 누락될 수 있습니다. TraceHub 저장소의 현재 Sentry 설정은 에러 발생 전 마지막 HTTP/fetch breadcrumb에 상태 코드가 있을 때만 `http.status_code`를 이벤트 태그에 추가합니다.
-
-### 요청 시간 초과 또는 `api_error`
-
-TraceHub의 Sentry API 요청 기본 제한 시간은 10초입니다. Sentry 상태, 로컬 네트워크, 프록시, 방화벽을 확인한 뒤 재시도합니다.
 
 ---
 
