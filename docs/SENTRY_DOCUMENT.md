@@ -211,7 +211,7 @@ TraceHub가 호출하는 엔드포인트별 최소 권한은 다음과 같습니
 | 이슈 태그     | `/api/0/organizations/{org}/issues/{id}/tags/{tag}/` | `event:read`   |
 | 오류 통계     | `/api/0/organizations/{org}/events-stats/`           | `org:read`     |
 
-권한 설정에 대한 자세한 내용은 [Sentry API Authentication 문서](https://docs.sentry.io/api/auth/)를 참고하십시오.
+권한 설정에 대한 자세한 내용은 [Sentry API Authentication 문서](https://docs.sentry.io/api/auth/)와 [Sentry API Permissions & Scopes 문서](https://docs.sentry.io/api/permissions/)를 참고하십시오.
 
 ### 5.2 `.env` 작성
 

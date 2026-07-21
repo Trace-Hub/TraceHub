@@ -16,9 +16,9 @@ TraceHub(트레이스허브)은 이러한 문제를 해결하기 위해 Sentry�
 
 ## 📎 관련 링크
 
-[Vercel 배포](https://trace-hub-seven.vercel.app/dashboard) </br>
-[Notion 문서](https://parkgeunwon.notion.site/Trace-Hub-34a1ece0be12806b939ff51137f20417?source=copy_link)</br>
-[Figma 디자인](https://www.figma.com/design/1dh3jzfAQgW6WHGkOyXLaQ/TraceHub?node-id=0-1&t=FblmJuTfvMNji7aA-1)
+- Service URL : [https://trace-hub-seven.vercel.app/dashboard](https://trace-hub-seven.vercel.app/dashboard)
+- Project Document : [TraceHub Notion](https://parkgeunwon.notion.site/Trace-Hub-34a1ece0be12806b939ff51137f20417?source=copy_link)
+- Design : [Figma](https://www.figma.com/design/1dh3jzfAQgW6WHGkOyXLaQ/TraceHub?node-id=0-1&t=FblmJuTfvMNji7aA-1)
 
 ## 👥 팀원 소개
 
