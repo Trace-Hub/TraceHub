@@ -33,12 +33,12 @@ TraceHub를 배포해서 사용하는 데 필요한 전체 과정을 안내합�
    pnpm install
    ```
 
-3. **PostHog 키 발급 & 환경변수 설정** — 2장을 따라 `.env.local`에 5개 변수 입력
+3. **PostHog 키 발급 & 환경변수 설정** — 2장을 따라 `.env.local`에 4개 필수 변수 입력
 4. **개발 서버 실행 & 연결 확인** — `pnpm dev` 실행 후 `/dashboard/settings`에서 연결 테스트 (3장)
-5. **첫 이벤트 보내기** — `/posthog` 테스트 페이지에서 "이벤트 발생" 버튼 클릭
+5. **첫 이벤트 보내기** — 서비스 화면을 돌아다니거나 버튼을 클릭해 페이지뷰/커스텀 이벤트를 발생시킵니다
 6. **대시보드에서 확인** — `/dashboard/events`에서 수치 확인.
    이벤트가 PostHog에 집계되기까지 **수 초~수 분** 걸릴 수 있으니 바로 안 보여도 기다려 보세요.
-7. **내 서비스에 맞게 수정** — 분석 대상 경로 교체(6-1), 필요한 커스텀 이벤트 추가(4-4)
+7. **내 서비스에 맞게 수정** — 분석 대상 경로 추가(6-1), 필요한 커스텀 이벤트 추가(4-4)
 
 각 단계에서 막히면 [8. 트러블슈팅](#8-트러블슈팅)을 참고하세요.
 
@@ -58,6 +58,11 @@ TraceHub는 PostHog와 두 방향으로 통신합니다.
 - 조회: 모든 대시보드 분석 쿼리는 `src/shared/lib/posthogServer.ts`의 `runHogQLQuery()` 하나를 통해 실행됩니다.
   이 함수는 서버 전용 Personal API Key를 사용하므로 브라우저에 키가 노출되지 않습니다.
 
+> **구분해야 할 핵심:** `NEXT_PUBLIC_POSTHOG_TOKEN`은 TraceHub 코드 자체가 이벤트를 PostHog로 **전송**할 때만 쓰이는 값이고,
+> 나머지 4개(`NEXT_PUBLIC_POSTHOG_HOST`, `NEXT_PUBLIC_POSTHOG_APP_HOST`, `NEXT_PUBLIC_POSTHOG_PROJECT_ID`, `NEXT_POSTHOG_PERSONAL_API_KEY`)는
+> TraceHub가 PostHog 데이터를 **조회**해 대시보드에 표시하는 데 쓰이는 값입니다.
+> 분석 대상 서비스가 이미 별도로 PostHog 이벤트를 전송하고 있다면 `NEXT_PUBLIC_POSTHOG_TOKEN`은 필요 없고, 설정 화면(`/dashboard/settings`)에도 노출되지 않습니다 (2-3 참고).
+
 ---
 
 ## 2. PostHog 프로젝트 준비 & 환경변수 설정
@@ -70,14 +75,13 @@ TraceHub는 PostHog와 두 방향으로 통신합니다.
 3. 온보딩을 마치면 프로젝트가 생성됩니다. 온보딩 중 SDK 설치 안내는 건너뛰어도 됩니다 —
    TraceHub에 이미 `posthog-js` 연동 코드가 들어 있어서 환경변수만 넣으면 동작합니다.
 
-### 2-2. 환경변수 5종
+### 2-2. 환경변수 4종 (필수 — 조회/연결 테스트용)
 
-프로젝트 루트에 `.env.local` 파일을 만들고(없다면 새로 생성) 아래 5개 변수를 설정합니다.
+프로젝트 루트에 `.env.local` 파일을 만들고(없다면 새로 생성) 아래 4개 변수를 설정합니다.
 `.env.local`은 `.gitignore`에 포함되어 있어 저장소에 커밋되지 않으므로 키를 넣어도 안전합니다.
 
 ```bash
 # .env.local (값은 본인 프로젝트의 것으로 교체)
-NEXT_PUBLIC_POSTHOG_TOKEN=phc_xxxxxxxx
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 NEXT_PUBLIC_POSTHOG_APP_HOST=https://us.posthog.com
 NEXT_PUBLIC_POSTHOG_PROJECT_ID=12345
@@ -86,7 +90,6 @@ NEXT_POSTHOG_PERSONAL_API_KEY=phx_xxxxxxxx
 
 | 변수                               | 용도                             | 발급/확인 위치                                                         | 노출 범위           |
 |----------------------------------|--------------------------------|------------------------------------------------------------------|-----------------|
-| `NEXT_PUBLIC_POSTHOG_TOKEN`      | 이벤트 수집용 프로젝트 토큰                | Settings → General → Project token                               | 클라이언트 (공개돼도 무방) |
 | `NEXT_PUBLIC_POSTHOG_HOST`       | 수집/API 호스트                     | US: `https://us.i.posthog.com` / EU: `https://eu.i.posthog.com`  | 클라이언트           |
 | `NEXT_PUBLIC_POSTHOG_APP_HOST`   | PostHog 웹 UI 딥링크(원본 이벤트 바로가기)용 | US: `https://us.posthog.com` / EU: `https://eu.posthog.com`      | 클라이언트           |
 | `NEXT_PUBLIC_POSTHOG_PROJECT_ID` | HogQL 조회 URL의 프로젝트 ID          | Settings → General → Project ID                                  | 클라이언트           |
@@ -103,6 +106,23 @@ NEXT_POSTHOG_PERSONAL_API_KEY=phx_xxxxxxxx
 
 환경변수를 추가·변경한 뒤에는 **개발 서버를 재시작해야** 반영됩니다.
 특히 `NEXT_PUBLIC_` 변수는 빌드 시점에 번들에 포함되므로, 배포 환경에서는 재배포가 필요합니다.
+
+### 2-3. (선택) TraceHub 코드로 이벤트 전송하기 — `NEXT_PUBLIC_POSTHOG_TOKEN`
+
+`NEXT_PUBLIC_POSTHOG_TOKEN`은 위 4종과 성격이 다릅니다. TraceHub가 PostHog 데이터를 **조회**하는 데 쓰이는 값이 아니라,
+`instrumentation-client.ts`의 `posthog.init()`이 이벤트를 PostHog로 **전송**할 때만 쓰입니다.
+그래서 설정 화면(`/dashboard/settings`)의 연결 테스트 대상에도 포함되지 않으며, 안내 가이드에도 노출되지 않습니다.
+
+- 분석 대상 서비스가 이미 자체적으로 PostHog SDK를 붙여 이벤트를 전송하고 있다면 이 값은 필요 없습니다.
+- 지금 클론한 TraceHub 코드 자체에서 이벤트를 발생시키고 싶다면(예: 로컬에서 대시보드 동작을 확인해보고 싶을 때),
+  아래처럼 본인 `.env.local`에 직접 추가하면 됩니다.
+
+```bash
+# .env.local (선택 — TraceHub 코드 자체에서 이벤트를 보내고 싶을 때만)
+NEXT_PUBLIC_POSTHOG_TOKEN=phc_xxxxxxxx
+```
+
+발급 위치는 PostHog 프로젝트의 **Settings → General → Project token**입니다. 공개되어도 무방한 클라이언트 값입니다.
 
 ---
 
@@ -150,8 +170,7 @@ TraceHub가 기본 정의한 커스텀 이벤트입니다. (`src/shared/config/t
 PostHog 빌트인 이벤트(`$pageview`, `$pageleave`, `$autocapture`, `$identify`, `$rageclick`)도
 대시보드에서 한글 라벨로 표시됩니다. (`src/shared/config/eventLabel.ts`)
 
-`/posthog` 경로의 테스트 페이지에서 버튼 클릭·폼 제출 등으로 이벤트를 직접 발생시켜
-수집이 정상 동작하는지 확인할 수 있습니다.
+서비스 화면에서 버튼 클릭·폼 제출 등을 직접 수행해 이벤트가 정상 수집되는지 확인할 수 있습니다.
 
 ### 4-3. trackEvent() 사용법 — 이미 정의된 이벤트 보내기
 
@@ -274,13 +293,14 @@ export default DownloadButton;
 ### 6-1. 분석 대상 경로 — `src/shared/config/trackedPaths.ts`
 
 이벤트 대시보드는 이 목록에 포함된 경로의 이벤트만 집계합니다.
-기본값은 데모용이므로 **본인 서비스의 실제 경로로 교체해야 합니다.**
+기본값은 `/`(홈)만 포함하며, 그 외에 연동해서 파악하고 싶은 경로가 있다면
+이 배열에 경로를 추가하면 됩니다.
 
 ``` typescript
-// 기본값 (데모용)
-export const TRACKED_PATHS = ["/", "/sentry-test", "/posthog/*"] as const;
+// 기본값
+export const TRACKED_PATHS = ["/"] as const;
 
-// 예시: 실제 서비스 경로로 교체
+// 예시: 분석하고 싶은 경로 추가
 export const TRACKED_PATHS = ["/", "/products/*", "/checkout", "/mypage/*"] as const;
 ```
 
@@ -331,9 +351,10 @@ export const TRACKED_PATHS = ["/", "/products/*", "/checkout", "/mypage/*"] as c
 대시보드에 데이터가 보이지 않을 때 아래 순서로 점검하세요.
 
 1. **연결 테스트** — `/dashboard/settings`에서 PostHog 연결 테스트 실행 (3장 참고)
-2. **환경변수 확인** — 5개 변수가 모두 설정됐는지, 호스트가 리전과 일치하는지 확인.
+2. **환경변수 확인** — 4개 필수 변수가 모두 설정됐는지, 호스트가 리전과 일치하는지 확인.
    환경변수 변경 후에는 서버 재시작이 필요합니다.
-3. **수집 확인** — `/posthog` 테스트 페이지에서 이벤트를 발생시킨 뒤,
+   TraceHub 코드 자체에서 이벤트를 보내고 싶다면 `NEXT_PUBLIC_POSTHOG_TOKEN`도 설정했는지 확인하세요 (2-3 참고).
+3. **수집 확인** — 서비스 화면에서 이벤트를 발생시킨 뒤,
    PostHog 웹 UI의 Activity 화면에서 이벤트가 실제로 들어오는지 확인합니다.
    (이벤트 카드의 딥링크를 쓰면 해당 이벤트의 원본 데이터로 바로 이동합니다.)
    전송부터 집계까지 수 초~수 분의 지연이 있을 수 있으니, 방금 보낸 이벤트가
