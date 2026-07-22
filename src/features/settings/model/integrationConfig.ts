@@ -6,19 +6,11 @@ export const SERVICE_CONFIG = {
     sentry: {
         title: "Sentry",
         envKeys: [
-            "SENTRY_AUTH_TOKEN",
-            "NEXT_PUBLIC_SENTRY_DSN",
             "NEXT_SENTRY_API_TOKEN",
             "NEXT_SENTRY_ORG",
             "NEXT_SENTRY_PROJECT",
         ],
         guide: {
-            SENTRY_AUTH_TOKEN: "1. Sentry 프로젝트 페이지에 들어갑니다.\n " +
-                "2. Settings → Developer Tokens → Organizations Tokens로 들어갑니다.\n " +
-                "3. Create new Token → org:ci → Save Change를 누른 뒤, 키 값을 확인합니다.",
-            NEXT_PUBLIC_SENTRY_DSN: "Sentry 프로젝트 페이지에 들어갑니다.\n " +
-                "2. Settings → Organization → Projects → 생성한 프로젝트 이름에 들어갑니다.\n " +
-                "3. Client Keys(DSN)에서 키 값을 확인합니다.",
             NEXT_SENTRY_API_TOKEN: "1. Sentry 프로젝트 페이지에 들어갑니다.\n " +
                 "2. Settings → Developer Tokens → Personal Tokens로 들어갑니다.\n " +
                 "3. Create New Token → event, org 등 상황에 맞게 read로 설정합니다.\n " +
@@ -33,15 +25,12 @@ export const SERVICE_CONFIG = {
     posthog: {
         title: "PostHog",
         envKeys: [
-            "NEXT_PUBLIC_POSTHOG_TOKEN",
             "NEXT_PUBLIC_POSTHOG_HOST",
             "NEXT_PUBLIC_POSTHOG_APP_HOST",
             "NEXT_POSTHOG_PERSONAL_API_KEY",
             "NEXT_PUBLIC_POSTHOG_PROJECT_ID",
         ],
         guide: {
-            NEXT_PUBLIC_POSTHOG_TOKEN: "1. PostHog 프로젝트 페이지에 들어갑니다.\n " +
-                "2. Settings - General에서 Project token을 확인합니다.",
             NEXT_PUBLIC_POSTHOG_HOST: "PostHog 프로젝트 생성 시, 설정했던 지역에 맞게 주소를 입력합니다.\n " +
                 "* US Cloud - Public endpoint: https://us.i.posthog.com\n" +
                 "* EU Cloud - Public endpoint: https://eu.i.posthog.com",
