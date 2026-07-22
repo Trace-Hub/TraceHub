@@ -75,7 +75,7 @@ TraceHub는 PostHog와 두 방향으로 통신합니다.
 3. 온보딩을 마치면 프로젝트가 생성됩니다. 온보딩 중 SDK 설치 안내는 건너뛰어도 됩니다 —
    TraceHub에 이미 `posthog-js` 연동 코드가 들어 있어서 환경변수만 넣으면 동작합니다.
 
-### 2-2. 환경변수 4종 (필수 — 조회/연결 테스트용)
+### 2-2. 환경변수 4종 (3개 필수 + 1개 선택)
 
 프로젝트 루트에 `.env.local` 파일을 만들고(없다면 새로 생성) 아래 4개 변수를 설정합니다.
 `.env.local`은 `.gitignore`에 포함되어 있어 저장소에 커밋되지 않으므로 키를 넣어도 안전합니다.
@@ -83,17 +83,17 @@ TraceHub는 PostHog와 두 방향으로 통신합니다.
 ```bash
 # .env.local (값은 본인 프로젝트의 것으로 교체)
 NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
-NEXT_PUBLIC_POSTHOG_APP_HOST=https://us.posthog.com
 NEXT_PUBLIC_POSTHOG_PROJECT_ID=12345
 NEXT_POSTHOG_PERSONAL_API_KEY=phx_xxxxxxxx
+NEXT_PUBLIC_POSTHOG_APP_HOST=https://us.posthog.com
 ```
 
-| 변수                               | 용도                             | 발급/확인 위치                                                         | 노출 범위           |
-|----------------------------------|--------------------------------|------------------------------------------------------------------|-----------------|
-| `NEXT_PUBLIC_POSTHOG_HOST`       | 수집/API 호스트                     | US: `https://us.i.posthog.com` / EU: `https://eu.i.posthog.com`  | 클라이언트           |
-| `NEXT_PUBLIC_POSTHOG_APP_HOST`   | PostHog 웹 UI 딥링크(원본 이벤트 바로가기)용 | US: `https://us.posthog.com` / EU: `https://eu.posthog.com`      | 클라이언트           |
-| `NEXT_PUBLIC_POSTHOG_PROJECT_ID` | HogQL 조회 URL의 프로젝트 ID          | Settings → General → Project ID                                  | 클라이언트           |
-| `NEXT_POSTHOG_PERSONAL_API_KEY`  | HogQL 조회 인증용 Personal API Key  | Settings → Account → Personal API Keys → Create personal API Key | **서버 전용**       |
+| 변수                               | 용도                             | 발급/확인 위치                                                         | 필수 여부                 |
+|----------------------------------|--------------------------------|------------------------------------------------------------------|------------------------|
+| `NEXT_PUBLIC_POSTHOG_HOST`       | 수집/API 호스트                     | US: `https://us.i.posthog.com` / EU: `https://eu.i.posthog.com`  | 필수 (클라이언트)            |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_ID` | HogQL 조회 URL의 프로젝트 ID          | Settings → General → Project ID                                  | 필수 (클라이언트)            |
+| `NEXT_POSTHOG_PERSONAL_API_KEY`  | HogQL 조회 인증용 Personal API Key  | Settings → Account → Personal API Keys → Create personal API Key | 필수 (**서버 전용**)        |
+| `NEXT_PUBLIC_POSTHOG_APP_HOST`   | PostHog 웹 UI 딥링크(원본 이벤트 바로가기)용 | US: `https://us.posthog.com` / EU: `https://eu.posthog.com`      | 선택 — 딥링크 전용 (클라이언트) |
 
 > **⚠️ Personal API Key 주의사항**
 > - 생성 직후 한 번만 표시되며 이후 재확인이 불가하므로 즉시 복사해 두세요.
@@ -101,8 +101,13 @@ NEXT_POSTHOG_PERSONAL_API_KEY=phx_xxxxxxxx
     > `NEXT_PUBLIC_`이 없는 변수는 Next.js가 클라이언트 번들에 포함하지 않아 브라우저에 노출되지 않습니다.
 > - 참고: [PostHog Personal API Keys 문서](https://posthog.com/docs/api/personal-api-keys)
 
-`NEXT_PUBLIC_POSTHOG_APP_HOST`와 `NEXT_PUBLIC_POSTHOG_PROJECT_ID`가 없어도 대시보드 자체는 동작하지만,
+`NEXT_PUBLIC_POSTHOG_APP_HOST`만 선택 값입니다. 이 값이 없어도 대시보드 자체는 동작하지만,
 이벤트 카드에서 PostHog 원본 데이터로 이동하는 딥링크가 비활성화됩니다.
+나머지 3개(`HOST`, `PROJECT_ID`, `PERSONAL_API_KEY`)가 하나라도 없으면 대시보드 조회 자체가 실패합니다.
+
+> 참고로 `/dashboard/settings`의 연결 테스트는 `HOST`와 `PERSONAL_API_KEY`만 검증합니다.
+> `PROJECT_ID`가 빠진 경우 연결 테스트는 통과해도 실제 대시보드 위젯은 에러로 표시되니,
+> 3개 필수 변수를 모두 설정했는지 별도로 확인하세요.
 
 환경변수를 추가·변경한 뒤에는 **개발 서버를 재시작해야** 반영됩니다.
 특히 `NEXT_PUBLIC_` 변수는 빌드 시점에 번들에 포함되므로, 배포 환경에서는 재배포가 필요합니다.
@@ -351,7 +356,9 @@ export const TRACKED_PATHS = ["/", "/products/*", "/checkout", "/mypage/*"] as c
 대시보드에 데이터가 보이지 않을 때 아래 순서로 점검하세요.
 
 1. **연결 테스트** — `/dashboard/settings`에서 PostHog 연결 테스트 실행 (3장 참고)
-2. **환경변수 확인** — 4개 필수 변수가 모두 설정됐는지, 호스트가 리전과 일치하는지 확인.
+2. **환경변수 확인** — 3개 필수 변수(`HOST`, `PROJECT_ID`, `PERSONAL_API_KEY`)가 모두 설정됐는지,
+   호스트가 리전과 일치하는지 확인. 연결 테스트는 `PROJECT_ID`를 검증하지 않으므로, 테스트가
+   통과했는데도 대시보드가 비어 있다면 `PROJECT_ID` 설정 여부를 별도로 확인하세요 (2-2 참고).
    환경변수 변경 후에는 서버 재시작이 필요합니다.
    TraceHub 코드 자체에서 이벤트를 보내고 싶다면 `NEXT_PUBLIC_POSTHOG_TOKEN`도 설정했는지 확인하세요 (2-3 참고).
 3. **수집 확인** — 서비스 화면에서 이벤트를 발생시킨 뒤,
